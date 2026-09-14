@@ -1,0 +1,46 @@
+// Generated from spec.json.
+// Design: arbiter_0005
+
+// P1_MUTUAL_EXCLUSION: at most one requester is granted at a time.
+p_mutual_exclusion: assert property (@(posedge clk) disable iff (rst)
+    !((grant0 && grant1) || (grant0 && grant2) || (grant1 && grant2)));
+
+// P2_RESET_NO_GRANT: reset clears every grant.
+p_reset_no_grant: assert property (@(posedge clk)
+    (rst) |=> (!grant0 && !grant1 && !grant2));
+
+// P3_REQ0_GRANTED: request 0 receives the next grant whenever the arbiter is idle.
+p_req0_granted: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !grant2 && req0) |=> (grant0 && !grant1 && !grant2));
+
+// P4_REQ1_GRANTED: request 1 is granted when request 0 is absent.
+p_req1_granted: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !grant2 && !req0 && req1) |=> (!grant0 && grant1 && !grant2));
+
+// P5_REQ2_GRANTED: request 2 is granted when requests 0 and 1 are absent.
+p_req2_granted: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !grant2 && !req0 && !req1 && req2) |=> (!grant0 && !grant1 && grant2));
+
+// P6_REQ0_HIGHEST_PRIORITY: request 0 wins whenever all three requests arrive together.
+p_req0_highest_priority: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !grant2 && req0 && req1 && req2) |=> (grant0 && !grant1 && !grant2));
+
+// P7_REQ1_OVER_REQ2: request 1 wins over request 2 when request 0 is absent.
+p_req1_over_req2: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !grant2 && !req0 && req1 && req2) |=> (!grant0 && grant1 && !grant2));
+
+// P8_IDLE_HOLDS: without requests an idle arbiter remains idle.
+p_idle_holds: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !grant2 && !req0 && !req1 && !req2) |=> (!grant0 && !grant1 && !grant2));
+
+// P9_GRANT0_ONE_CYCLE: grant 0 lasts one cycle.
+p_grant0_one_cycle: assert property (@(posedge clk) disable iff (rst)
+    (grant0) |=> (!grant0 && !grant1 && !grant2));
+
+// P10_GRANT1_ONE_CYCLE: grant 1 lasts one cycle.
+p_grant1_one_cycle: assert property (@(posedge clk) disable iff (rst)
+    (grant1) |=> (!grant0 && !grant1 && !grant2));
+
+// P11_GRANT2_ONE_CYCLE: grant 2 lasts one cycle.
+p_grant2_one_cycle: assert property (@(posedge clk) disable iff (rst)
+    (grant2) |=> (!grant0 && !grant1 && !grant2));

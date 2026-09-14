@@ -1,0 +1,26 @@
+// Generated from spec.json.
+// Design: timer_0004
+
+// P1_TICK_REQUIRES_ACTIVE: tick is only asserted while the periodic timer is active.
+p_tick_requires_active: assert property (@(posedge clk) disable iff (rst)
+    !tick || active);
+
+// P2_RESET_IDLE: reset returns the periodic timer to idle.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!active && !tick));
+
+// P3_START: start activates the periodic timer.
+p_start: assert property (@(posedge clk) disable iff (rst)
+    (!active && !tick && start) |=> (active && !tick));
+
+// P4_IDLE_HOLDS: without start the timer remains idle.
+p_idle_holds: assert property (@(posedge clk) disable iff (rst)
+    (!active && !tick && !start) |=> (!active && !tick));
+
+// P5_RUN_TO_TICK: the running timer produces a tick on the following cycle.
+p_run_to_tick: assert property (@(posedge clk) disable iff (rst)
+    (active && !tick) |=> (active && tick));
+
+// P6_TICK_REARMS: after a tick the periodic timer automatically rearms.
+p_tick_rearms: assert property (@(posedge clk) disable iff (rst)
+    (active && tick) |=> (active && !tick));

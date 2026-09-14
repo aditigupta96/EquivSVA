@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: timer_0005
+
+// P1_TIMEOUT_MUTEX: timeout is never asserted while the watchdog is active.
+p_timeout_mutex: assert property (@(posedge clk) disable iff (rst)
+    !(active && timeout));
+
+// P2_RESET_IDLE: reset disables the watchdog.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!active && !warning && !timeout));
+
+// P3_ENABLE_STARTS: asserting enable while idle starts watchdog monitoring.
+p_enable_starts: assert property (@(posedge clk) disable iff (rst)
+    ((!active && !warning && !timeout) && enable) |=> (active && !warning && !timeout));
+
+// P4_DISABLED_HOLDS: an idle watchdog remains disabled while enable is low.
+p_disabled_holds: assert property (@(posedge clk) disable iff (rst)
+    ((!active && !warning && !timeout) && !enable) |=> (!active && !warning && !timeout));
+
+// P5_RUN_DISABLE: deasserting enable during the first stage disables the watchdog.
+p_run_disable: assert property (@(posedge clk) disable iff (rst)
+    (active && !warning && !enable) |=> (!active && !warning && !timeout));
+
+// P6_RUN_PROGRESS: while enable remains asserted the watchdog progresses to warning.
+p_run_progress: assert property (@(posedge clk) disable iff (rst)
+    (active && !warning && enable) |=> (active && warning && !timeout));
+
+// P7_WARNING_DISABLE: deasserting enable during warning disables the watchdog without timeout.
+p_warning_disable: assert property (@(posedge clk) disable iff (rst)
+    (active && warning && !enable) |=> (!active && !warning && !timeout));
+
+// P8_WARNING_TIMEOUT: remaining enabled through warning produces timeout.
+p_warning_timeout: assert property (@(posedge clk) disable iff (rst)
+    (active && warning && enable) |=> (!active && !warning && timeout));
+
+// P9_TIMEOUT_PULSE: timeout lasts one cycle before returning idle.
+p_timeout_pulse: assert property (@(posedge clk) disable iff (rst)
+    (timeout) |=> (!active && !warning && !timeout));

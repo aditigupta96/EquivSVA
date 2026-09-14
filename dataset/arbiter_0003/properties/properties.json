@@ -1,0 +1,107 @@
+[
+  {
+    "id": "P1_MUTUAL_EXCLUSION",
+    "type": "invariant",
+    "natural_language": "the arbiter never grants both requesters simultaneously",
+    "disable": "rst",
+    "expression": "!(grant0 && grant1)"
+  },
+  {
+    "id": "P2_RESET_NO_GRANT",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears both grants",
+    "antecedent": "rst",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P3_REQ0_GRANTED",
+    "type": "next_cycle_implication",
+    "natural_language": "request 0 receives ownership when the arbiter is idle",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && req0",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P4_REQ1_GRANTED",
+    "type": "next_cycle_implication",
+    "natural_language": "request 1 receives ownership while idle when request 0 is absent",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !req0 && req1",
+    "consequent": "!grant0 && grant1",
+    "delay": 1
+  },
+  {
+    "id": "P5_IDLE_PRIORITY",
+    "type": "next_cycle_implication",
+    "natural_language": "request 0 wins when both requests arrive while idle",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && req0 && req1",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P6_GRANT0_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "grant 0 remains asserted while request 0 remains active",
+    "disable": "rst",
+    "antecedent": "grant0 && req0",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P7_GRANT0_HANDOFF",
+    "type": "next_cycle_implication",
+    "natural_language": "when requester 0 releases and requester 1 is waiting, ownership transfers directly to requester 1",
+    "disable": "rst",
+    "antecedent": "grant0 && !req0 && req1",
+    "consequent": "!grant0 && grant1",
+    "delay": 1
+  },
+  {
+    "id": "P8_GRANT0_RELEASE",
+    "type": "next_cycle_implication",
+    "natural_language": "when requester 0 releases with no competing request, the arbiter returns to idle",
+    "disable": "rst",
+    "antecedent": "grant0 && !req0 && !req1",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P9_GRANT1_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "grant 1 remains asserted while request 1 remains active",
+    "disable": "rst",
+    "antecedent": "grant1 && req1",
+    "consequent": "!grant0 && grant1",
+    "delay": 1
+  },
+  {
+    "id": "P10_GRANT1_HANDOFF",
+    "type": "next_cycle_implication",
+    "natural_language": "when requester 1 releases and requester 0 is waiting, ownership transfers directly to requester 0",
+    "disable": "rst",
+    "antecedent": "grant1 && !req1 && req0",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P11_GRANT1_RELEASE",
+    "type": "next_cycle_implication",
+    "natural_language": "when requester 1 releases with no competing request, the arbiter returns to idle",
+    "disable": "rst",
+    "antecedent": "grant1 && !req1 && !req0",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P12_IDLE_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "without any request an idle arbiter remains idle",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !req0 && !req1",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  }
+]

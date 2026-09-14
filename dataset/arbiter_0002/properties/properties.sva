@@ -1,0 +1,42 @@
+// Generated from spec.json.
+// Design: arbiter_0002
+
+// P1_MUTUAL_EXCLUSION: the arbiter never grants both requesters simultaneously.
+p_mutual_exclusion: assert property (@(posedge clk) disable iff (rst)
+    !(grant0 && grant1));
+
+// P2_RESET_NO_GRANT: reset clears both grants.
+p_reset_no_grant: assert property (@(posedge clk)
+    (rst) |=> (!grant0 && !grant1));
+
+// P3_REQ0_GRANTED: request 0 receives ownership when the arbiter is idle.
+p_req0_granted: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && req0) |=> (grant0 && !grant1));
+
+// P4_REQ1_GRANTED: request 1 receives ownership when request 0 is absent.
+p_req1_granted: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !req0 && req1) |=> (!grant0 && grant1));
+
+// P5_PRIORITY: request 0 wins when both requests arrive while idle.
+p_priority: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && req0 && req1) |=> (grant0 && !grant1));
+
+// P6_GRANT0_HOLDS: grant 0 remains asserted while request 0 remains asserted.
+p_grant0_holds: assert property (@(posedge clk) disable iff (rst)
+    (grant0 && req0) |=> (grant0 && !grant1));
+
+// P7_GRANT0_RELEASES: grant 0 is released when request 0 is deasserted.
+p_grant0_releases: assert property (@(posedge clk) disable iff (rst)
+    (grant0 && !req0) |=> (!grant0 && !grant1));
+
+// P8_GRANT1_HOLDS: grant 1 remains asserted while request 1 remains asserted.
+p_grant1_holds: assert property (@(posedge clk) disable iff (rst)
+    (grant1 && req1) |=> (!grant0 && grant1));
+
+// P9_GRANT1_RELEASES: grant 1 is released when request 1 is deasserted.
+p_grant1_releases: assert property (@(posedge clk) disable iff (rst)
+    (grant1 && !req1) |=> (!grant0 && !grant1));
+
+// P10_IDLE_HOLDS: without any request an idle arbiter remains idle.
+p_idle_holds: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !req0 && !req1) |=> (!grant0 && !grant1));

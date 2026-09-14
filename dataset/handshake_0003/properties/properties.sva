@@ -1,0 +1,22 @@
+// Generated from spec.json.
+// Design: handshake_0003
+
+// P1_RESET_IDLE: reset clears acknowledgement.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!ack));
+
+// P2_REQUEST_TO_ACK: a request while idle raises acknowledgement.
+p_request_to_ack: assert property (@(posedge clk) disable iff (rst)
+    (!ack && req) |=> (ack));
+
+// P3_IDLE_WITHOUT_REQUEST: without a request the idle controller remains unacknowledged.
+p_idle_without_request: assert property (@(posedge clk) disable iff (rst)
+    (!ack && !req) |=> (!ack));
+
+// P4_ACK_HOLDS: acknowledgement remains asserted while request remains asserted.
+p_ack_holds: assert property (@(posedge clk) disable iff (rst)
+    (ack && req) |=> (ack));
+
+// P5_ACK_RELEASES: acknowledgement clears after request is released.
+p_ack_releases: assert property (@(posedge clk) disable iff (rst)
+    (ack && !req) |=> (!ack));

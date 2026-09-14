@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: timer_0003
+
+// P1_MUTEX: timeout is never asserted while the timer is active.
+p_mutex: assert property (@(posedge clk) disable iff (rst)
+    !(active && timeout));
+
+// P2_RESET_IDLE: reset returns the timer to idle.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!active && !warning && !timeout));
+
+// P3_START: start begins timeout monitoring.
+p_start: assert property (@(posedge clk) disable iff (rst)
+    ((!active && !warning && !timeout) && start) |=> (active && !warning && !timeout));
+
+// P4_IDLE_HOLDS: without start an idle timer remains idle.
+p_idle_holds: assert property (@(posedge clk) disable iff (rst)
+    ((!active && !warning && !timeout) && !start) |=> (!active && !warning && !timeout));
+
+// P5_RUN_CANCEL: cancel during the first timing stage returns to idle.
+p_run_cancel: assert property (@(posedge clk) disable iff (rst)
+    (active && !warning && cancel) |=> (!active && !warning && !timeout));
+
+// P6_RUN_PROGRESS: without cancellation the timer progresses to warning.
+p_run_progress: assert property (@(posedge clk) disable iff (rst)
+    (active && !warning && !cancel) |=> (active && warning && !timeout));
+
+// P7_WARNING_CANCEL: cancel during warning returns to idle without timeout.
+p_warning_cancel: assert property (@(posedge clk) disable iff (rst)
+    (active && warning && cancel) |=> (!active && !warning && !timeout));
+
+// P8_WARNING_TIMEOUT: without cancellation the warning stage produces timeout.
+p_warning_timeout: assert property (@(posedge clk) disable iff (rst)
+    (active && warning && !cancel) |=> (!active && !warning && timeout));
+
+// P9_TIMEOUT_PULSE: timeout lasts exactly one cycle.
+p_timeout_pulse: assert property (@(posedge clk) disable iff (rst)
+    (timeout) |=> (!active && !warning && !timeout));

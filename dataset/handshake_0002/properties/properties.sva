@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: handshake_0002
+
+// P1_MUTEX: busy and ack are never asserted together.
+p_mutex: assert property (@(posedge clk) disable iff (rst)
+    !(busy && ack));
+
+// P2_RESET_IDLE: reset returns the controller to idle.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!busy && !ack));
+
+// P3_REQUEST_TO_BUSY: a request presented while idle starts an operation.
+p_request_to_busy: assert property (@(posedge clk) disable iff (rst)
+    ((!busy && !ack) && req) |=> (busy));
+
+// P4_IDLE_STAYS_IDLE: an idle controller remains idle without a request.
+p_idle_stays_idle: assert property (@(posedge clk) disable iff (rst)
+    ((!busy && !ack) && !req) |=> (!busy && !ack));
+
+// P5_DONE_TO_ACK: completion while busy produces an acknowledgement.
+p_done_to_ack: assert property (@(posedge clk) disable iff (rst)
+    (busy && done) |=> (ack));
+
+// P6_BUSY_HOLDS: the controller remains busy until completion.
+p_busy_holds: assert property (@(posedge clk) disable iff (rst)
+    (busy && !done) |=> (busy));
+
+// P7_ACK_TO_IDLE: acknowledgement lasts one cycle before returning idle.
+p_ack_to_idle: assert property (@(posedge clk) disable iff (rst)
+    (ack) |=> (!busy && !ack));

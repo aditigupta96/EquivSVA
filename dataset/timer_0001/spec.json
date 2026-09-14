@@ -1,0 +1,196 @@
+{
+  "design_id": "timer_0001",
+  "category": "timer_watchdog",
+  "template": "watchdog_with_early_warning",
+  "description": "A watchdog controller with an early-warning stage. Start begins monitoring, kick restarts the watchdog, warning is asserted before expiration, and timeout is asserted for one cycle if no kick arrives.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "state": "IDLE"
+  },
+  "inputs": [
+    "start",
+    "kick"
+  ],
+  "outputs": [
+    "running",
+    "warning",
+    "timeout"
+  ],
+  "states": [
+    "IDLE",
+    "RUN",
+    "WARNING",
+    "TIMEOUT"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "running": 0,
+      "warning": 0,
+      "timeout": 0
+    },
+    "RUN": {
+      "running": 1,
+      "warning": 0,
+      "timeout": 0
+    },
+    "WARNING": {
+      "running": 1,
+      "warning": 1,
+      "timeout": 0
+    },
+    "TIMEOUT": {
+      "running": 0,
+      "warning": 0,
+      "timeout": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "start",
+      "to": "RUN"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "RUN",
+      "when": "kick",
+      "to": "RUN"
+    },
+    {
+      "from": "RUN",
+      "when": "true",
+      "to": "WARNING"
+    },
+    {
+      "from": "WARNING",
+      "when": "kick",
+      "to": "RUN"
+    },
+    {
+      "from": "WARNING",
+      "when": "true",
+      "to": "TIMEOUT"
+    },
+    {
+      "from": "TIMEOUT",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_OUTPUT_CONSISTENCY",
+      "sva_name": "p_output_consistency",
+      "type": "invariant",
+      "natural_language": "timeout is never asserted while the watchdog is running",
+      "disable": "rst",
+      "expression": "!(running && timeout)"
+    },
+    {
+      "id": "P2_RESET_IDLE",
+      "sva_name": "p_reset_idle",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the watchdog to idle",
+      "antecedent": "rst",
+      "consequent": "!running && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P3_START_TO_RUNNING",
+      "sva_name": "p_start_to_running",
+      "type": "next_cycle_implication",
+      "natural_language": "starting an idle watchdog begins monitoring",
+      "disable": "rst",
+      "antecedent": "(!running && !warning && !timeout) && start",
+      "consequent": "running && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P4_IDLE_HOLDS",
+      "sva_name": "p_idle_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "an idle watchdog remains idle without start",
+      "disable": "rst",
+      "antecedent": "(!running && !warning && !timeout) && !start",
+      "consequent": "!running && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P5_RUN_TO_WARNING",
+      "sva_name": "p_run_to_warning",
+      "type": "next_cycle_implication",
+      "natural_language": "without a kick the running watchdog reaches the warning stage",
+      "disable": "rst",
+      "antecedent": "running && !warning && !kick",
+      "consequent": "running && warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P6_WARNING_TO_TIMEOUT",
+      "sva_name": "p_warning_to_timeout",
+      "type": "next_cycle_implication",
+      "natural_language": "without a kick the warning stage expires into timeout",
+      "disable": "rst",
+      "antecedent": "running && warning && !kick",
+      "consequent": "!running && !warning && timeout",
+      "delay": 1
+    },
+    {
+      "id": "P7_KICK_RESTARTS",
+      "sva_name": "p_kick_restarts",
+      "type": "next_cycle_implication",
+      "natural_language": "a kick while monitoring restarts the watchdog before warning",
+      "disable": "rst",
+      "antecedent": "running && kick",
+      "consequent": "running && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P8_TIMEOUT_PULSE",
+      "sva_name": "p_timeout_pulse",
+      "type": "next_cycle_implication",
+      "natural_language": "timeout lasts one cycle before returning idle",
+      "disable": "rst",
+      "antecedent": "timeout",
+      "consequent": "!running && !warning && !timeout",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_kick",
+      "kind": "replace_transition_guard",
+      "from": "RUN",
+      "old": "kick",
+      "new": "false"
+    },
+    {
+      "name": "premature_timeout",
+      "kind": "force_transition",
+      "from": "RUN",
+      "to": "TIMEOUT"
+    },
+    {
+      "name": "warning_stuck",
+      "kind": "force_transition",
+      "from": "WARNING",
+      "to": "WARNING"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

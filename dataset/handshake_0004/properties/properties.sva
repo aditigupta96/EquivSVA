@@ -1,0 +1,22 @@
+// Generated from spec.json.
+// Design: handshake_0004
+
+// P1_RESET_EMPTY: reset clears valid.
+p_reset_empty: assert property (@(posedge clk)
+    (rst) |=> (!valid));
+
+// P2_PUSH_TO_VALID: a push into an empty buffer makes the output valid.
+p_push_to_valid: assert property (@(posedge clk) disable iff (rst)
+    (!valid && push) |=> (valid));
+
+// P3_EMPTY_HOLDS: an empty buffer remains empty without a push.
+p_empty_holds: assert property (@(posedge clk) disable iff (rst)
+    (!valid && !push) |=> (!valid));
+
+// P4_READY_CONSUMES: a ready receiver consumes a valid entry.
+p_ready_consumes: assert property (@(posedge clk) disable iff (rst)
+    (valid && ready) |=> (!valid));
+
+// P5_BACKPRESSURE_HOLDS: valid remains asserted while the receiver is not ready.
+p_backpressure_holds: assert property (@(posedge clk) disable iff (rst)
+    (valid && !ready) |=> (valid));

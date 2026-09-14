@@ -1,0 +1,206 @@
+{
+  "design_id": "timer_0003",
+  "category": "timer_watchdog",
+  "template": "cancellable_timeout",
+  "description": "A cancellable timeout controller. Start begins monitoring. Cancel from either active stage returns immediately to idle. Without cancellation, the controller progresses through warning to a one-cycle timeout.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "state": "IDLE"
+  },
+  "inputs": [
+    "start",
+    "cancel"
+  ],
+  "outputs": [
+    "active",
+    "warning",
+    "timeout"
+  ],
+  "states": [
+    "IDLE",
+    "RUN",
+    "WARNING",
+    "TIMEOUT"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "active": 0,
+      "warning": 0,
+      "timeout": 0
+    },
+    "RUN": {
+      "active": 1,
+      "warning": 0,
+      "timeout": 0
+    },
+    "WARNING": {
+      "active": 1,
+      "warning": 1,
+      "timeout": 0
+    },
+    "TIMEOUT": {
+      "active": 0,
+      "warning": 0,
+      "timeout": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "start",
+      "to": "RUN"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "RUN",
+      "when": "cancel",
+      "to": "IDLE"
+    },
+    {
+      "from": "RUN",
+      "when": "true",
+      "to": "WARNING"
+    },
+    {
+      "from": "WARNING",
+      "when": "cancel",
+      "to": "IDLE"
+    },
+    {
+      "from": "WARNING",
+      "when": "true",
+      "to": "TIMEOUT"
+    },
+    {
+      "from": "TIMEOUT",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_MUTEX",
+      "sva_name": "p_mutex",
+      "type": "invariant",
+      "natural_language": "timeout is never asserted while the timer is active",
+      "disable": "rst",
+      "expression": "!(active && timeout)"
+    },
+    {
+      "id": "P2_RESET_IDLE",
+      "sva_name": "p_reset_idle",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the timer to idle",
+      "antecedent": "rst",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P3_START",
+      "sva_name": "p_start",
+      "type": "next_cycle_implication",
+      "natural_language": "start begins timeout monitoring",
+      "disable": "rst",
+      "antecedent": "(!active && !warning && !timeout) && start",
+      "consequent": "active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P4_IDLE_HOLDS",
+      "sva_name": "p_idle_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "without start an idle timer remains idle",
+      "disable": "rst",
+      "antecedent": "(!active && !warning && !timeout) && !start",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P5_RUN_CANCEL",
+      "sva_name": "p_run_cancel",
+      "type": "next_cycle_implication",
+      "natural_language": "cancel during the first timing stage returns to idle",
+      "disable": "rst",
+      "antecedent": "active && !warning && cancel",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P6_RUN_PROGRESS",
+      "sva_name": "p_run_progress",
+      "type": "next_cycle_implication",
+      "natural_language": "without cancellation the timer progresses to warning",
+      "disable": "rst",
+      "antecedent": "active && !warning && !cancel",
+      "consequent": "active && warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P7_WARNING_CANCEL",
+      "sva_name": "p_warning_cancel",
+      "type": "next_cycle_implication",
+      "natural_language": "cancel during warning returns to idle without timeout",
+      "disable": "rst",
+      "antecedent": "active && warning && cancel",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P8_WARNING_TIMEOUT",
+      "sva_name": "p_warning_timeout",
+      "type": "next_cycle_implication",
+      "natural_language": "without cancellation the warning stage produces timeout",
+      "disable": "rst",
+      "antecedent": "active && warning && !cancel",
+      "consequent": "!active && !warning && timeout",
+      "delay": 1
+    },
+    {
+      "id": "P9_TIMEOUT_PULSE",
+      "sva_name": "p_timeout_pulse",
+      "type": "next_cycle_implication",
+      "natural_language": "timeout lasts exactly one cycle",
+      "disable": "rst",
+      "antecedent": "timeout",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_cancel",
+      "kind": "replace_transition_guard",
+      "from": "RUN",
+      "old": "cancel",
+      "new": "false"
+    },
+    {
+      "name": "premature_timeout",
+      "kind": "force_transition",
+      "from": "RUN",
+      "to": "TIMEOUT"
+    },
+    {
+      "name": "timeout_stuck",
+      "kind": "force_transition",
+      "from": "TIMEOUT",
+      "to": "TIMEOUT"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

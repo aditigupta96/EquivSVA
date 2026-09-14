@@ -1,0 +1,71 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "pending and ack are never asserted together",
+    "disable": "rst",
+    "expression": "!(pending && ack)"
+  },
+  {
+    "id": "P2_RESET_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears pending and acknowledgement",
+    "antecedent": "rst",
+    "consequent": "!pending && !ack",
+    "delay": 1
+  },
+  {
+    "id": "P3_REQUEST_TO_PENDING",
+    "type": "next_cycle_implication",
+    "natural_language": "a request while idle enters the pending state",
+    "disable": "rst",
+    "antecedent": "(!pending && !ack) && req",
+    "consequent": "pending",
+    "delay": 1
+  },
+  {
+    "id": "P4_IDLE_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "without a request the idle controller remains idle",
+    "disable": "rst",
+    "antecedent": "(!pending && !ack) && !req",
+    "consequent": "!pending && !ack",
+    "delay": 1
+  },
+  {
+    "id": "P5_GRANT_TO_ACK",
+    "type": "next_cycle_implication",
+    "natural_language": "granting a pending request raises acknowledgement",
+    "disable": "rst",
+    "antecedent": "pending && grant",
+    "consequent": "ack",
+    "delay": 1
+  },
+  {
+    "id": "P6_PENDING_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "a request remains pending until grant arrives",
+    "disable": "rst",
+    "antecedent": "pending && !grant",
+    "consequent": "pending",
+    "delay": 1
+  },
+  {
+    "id": "P7_ACK_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledgement remains asserted while req remains asserted",
+    "disable": "rst",
+    "antecedent": "ack && req",
+    "consequent": "ack",
+    "delay": 1
+  },
+  {
+    "id": "P8_RELEASE_TO_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "releasing req after acknowledgement returns the controller to idle",
+    "disable": "rst",
+    "antecedent": "ack && !req",
+    "consequent": "!pending && !ack",
+    "delay": 1
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "busy and ack are never asserted together",
+    "disable": "rst",
+    "expression": "!(busy && ack)"
+  },
+  {
+    "id": "P2_RESET_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "a reset cycle leaves the controller idle on the following cycle",
+    "antecedent": "rst",
+    "consequent": "!busy && !ack",
+    "delay": 1
+  },
+  {
+    "id": "P3_ACCEPT_TO_BUSY",
+    "type": "next_cycle_implication",
+    "natural_language": "an accepted request starts a transaction",
+    "disable": "rst",
+    "antecedent": "(!busy && !ack) && req && ready",
+    "consequent": "busy",
+    "delay": 1
+  },
+  {
+    "id": "P4_IDLE_STAYS_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "without an accepted request, an idle controller stays idle",
+    "disable": "rst",
+    "antecedent": "(!busy && !ack) && !(req && ready)",
+    "consequent": "!busy && !ack",
+    "delay": 1
+  },
+  {
+    "id": "P5_CANCEL_TO_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "cancellation while busy aborts the transaction",
+    "disable": "rst",
+    "antecedent": "busy && cancel",
+    "consequent": "!busy && !ack",
+    "delay": 1
+  },
+  {
+    "id": "P6_BUSY_TO_ACK",
+    "type": "next_cycle_implication",
+    "natural_language": "a non-cancelled busy transaction produces ack next cycle",
+    "disable": "rst",
+    "antecedent": "busy && !cancel",
+    "consequent": "ack",
+    "delay": 1
+  },
+  {
+    "id": "P7_ACK_TO_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "ack is a one-cycle state and returns to idle",
+    "disable": "rst",
+    "antecedent": "ack",
+    "consequent": "!busy && !ack",
+    "delay": 1
+  }
+]

@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: handshake_0001
+
+// P1_MUTEX: busy and ack are never asserted together.
+p_mutex: assert property (@(posedge clk) disable iff (rst)
+    !(busy && ack));
+
+// P2_RESET_IDLE: a reset cycle leaves the controller idle on the following cycle.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!busy && !ack));
+
+// P3_ACCEPT_TO_BUSY: an accepted request starts a transaction.
+p_accept_to_busy: assert property (@(posedge clk) disable iff (rst)
+    ((!busy && !ack) && req && ready) |=> (busy));
+
+// P4_IDLE_STAYS_IDLE: without an accepted request, an idle controller stays idle.
+p_idle_stays_idle: assert property (@(posedge clk) disable iff (rst)
+    ((!busy && !ack) && !(req && ready)) |=> (!busy && !ack));
+
+// P5_CANCEL_TO_IDLE: cancellation while busy aborts the transaction.
+p_cancel_to_idle: assert property (@(posedge clk) disable iff (rst)
+    (busy && cancel) |=> (!busy && !ack));
+
+// P6_BUSY_TO_ACK: a non-cancelled busy transaction produces ack next cycle.
+p_busy_to_ack: assert property (@(posedge clk) disable iff (rst)
+    (busy && !cancel) |=> (ack));
+
+// P7_ACK_TO_IDLE: ack is a one-cycle state and returns to idle.
+p_ack_to_idle: assert property (@(posedge clk) disable iff (rst)
+    (ack) |=> (!busy && !ack));

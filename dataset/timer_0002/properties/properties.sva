@@ -1,0 +1,46 @@
+// Generated from spec.json.
+// Design: timer_0002
+
+// P1_WINDOW_REQUIRES_ACTIVE: the service window can only be open while the watchdog is active.
+p_window_requires_active: assert property (@(posedge clk) disable iff (rst)
+    !window_open || active);
+
+// P2_RESET_IDLE: reset returns the watchdog to idle.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!active && !window_open && !serviced && !early_fault && !timeout));
+
+// P3_START_EARLY: starting an idle watchdog begins the early-service period.
+p_start_early: assert property (@(posedge clk) disable iff (rst)
+    (!active && !serviced && !early_fault && !timeout && start) |=> (active && !window_open && !serviced && !early_fault && !timeout));
+
+// P4_IDLE_HOLDS: without start an idle watchdog remains idle.
+p_idle_holds: assert property (@(posedge clk) disable iff (rst)
+    (!active && !serviced && !early_fault && !timeout && !start) |=> (!active && !window_open && !serviced && !early_fault && !timeout));
+
+// P5_EARLY_SERVICE_FAULT: servicing the watchdog before the valid window opens produces an early-service fault.
+p_early_service_fault: assert property (@(posedge clk) disable iff (rst)
+    (active && !window_open && service) |=> (!active && !window_open && !serviced && early_fault && !timeout));
+
+// P6_WINDOW_OPENS: without an early service attempt, the watchdog progresses to the valid service window.
+p_window_opens: assert property (@(posedge clk) disable iff (rst)
+    (active && !window_open && !service) |=> (active && window_open && !serviced && !early_fault && !timeout));
+
+// P7_VALID_SERVICE: servicing during the valid window successfully services the watchdog.
+p_valid_service: assert property (@(posedge clk) disable iff (rst)
+    (active && window_open && service) |=> (!active && !window_open && serviced && !early_fault && !timeout));
+
+// P8_WINDOW_TIMEOUT: failing to service the watchdog during its valid window produces timeout.
+p_window_timeout: assert property (@(posedge clk) disable iff (rst)
+    (active && window_open && !service) |=> (!active && !window_open && !serviced && !early_fault && timeout));
+
+// P9_SERVICED_PULSE: the serviced indication lasts one cycle.
+p_serviced_pulse: assert property (@(posedge clk) disable iff (rst)
+    (serviced) |=> (!active && !window_open && !serviced && !early_fault && !timeout));
+
+// P10_EARLY_FAULT_PULSE: the early-service fault indication lasts one cycle.
+p_early_fault_pulse: assert property (@(posedge clk) disable iff (rst)
+    (early_fault) |=> (!active && !window_open && !serviced && !early_fault && !timeout));
+
+// P11_TIMEOUT_PULSE: the timeout indication lasts one cycle.
+p_timeout_pulse: assert property (@(posedge clk) disable iff (rst)
+    (timeout) |=> (!active && !window_open && !serviced && !early_fault && !timeout));

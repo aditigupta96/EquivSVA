@@ -1,0 +1,134 @@
+{
+  "design_id": "handshake_0003",
+  "category": "handshake",
+  "template": "four_phase_request_ack",
+  "description": "A four-phase request/acknowledge controller. A request raises acknowledgement, acknowledgement remains asserted while request remains high, and acknowledgement drops after request is released.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "state": "IDLE"
+  },
+  "inputs": [
+    "req"
+  ],
+  "outputs": [
+    "ack"
+  ],
+  "states": [
+    "IDLE",
+    "ACK"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "ack": 0
+    },
+    "ACK": {
+      "ack": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "req",
+      "to": "ACK"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "ACK",
+      "when": "req",
+      "to": "ACK"
+    },
+    {
+      "from": "ACK",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_RESET_IDLE",
+      "sva_name": "p_reset_idle",
+      "type": "next_cycle_implication",
+      "natural_language": "reset clears acknowledgement",
+      "antecedent": "rst",
+      "consequent": "!ack",
+      "delay": 1
+    },
+    {
+      "id": "P2_REQUEST_TO_ACK",
+      "sva_name": "p_request_to_ack",
+      "type": "next_cycle_implication",
+      "natural_language": "a request while idle raises acknowledgement",
+      "disable": "rst",
+      "antecedent": "!ack && req",
+      "consequent": "ack",
+      "delay": 1
+    },
+    {
+      "id": "P3_IDLE_WITHOUT_REQUEST",
+      "sva_name": "p_idle_without_request",
+      "type": "next_cycle_implication",
+      "natural_language": "without a request the idle controller remains unacknowledged",
+      "disable": "rst",
+      "antecedent": "!ack && !req",
+      "consequent": "!ack",
+      "delay": 1
+    },
+    {
+      "id": "P4_ACK_HOLDS",
+      "sva_name": "p_ack_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "acknowledgement remains asserted while request remains asserted",
+      "disable": "rst",
+      "antecedent": "ack && req",
+      "consequent": "ack",
+      "delay": 1
+    },
+    {
+      "id": "P5_ACK_RELEASES",
+      "sva_name": "p_ack_releases",
+      "type": "next_cycle_implication",
+      "natural_language": "acknowledgement clears after request is released",
+      "disable": "rst",
+      "antecedent": "ack && !req",
+      "consequent": "!ack",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "spurious_ack",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "req",
+      "new": "true"
+    },
+    {
+      "name": "premature_drop",
+      "kind": "force_transition",
+      "from": "ACK",
+      "to": "IDLE"
+    },
+    {
+      "name": "ack_stuck",
+      "kind": "force_transition",
+      "from": "ACK",
+      "to": "ACK"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

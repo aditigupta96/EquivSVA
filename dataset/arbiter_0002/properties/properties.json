@@ -1,0 +1,89 @@
+[
+  {
+    "id": "P1_MUTUAL_EXCLUSION",
+    "type": "invariant",
+    "natural_language": "the arbiter never grants both requesters simultaneously",
+    "disable": "rst",
+    "expression": "!(grant0 && grant1)"
+  },
+  {
+    "id": "P2_RESET_NO_GRANT",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears both grants",
+    "antecedent": "rst",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P3_REQ0_GRANTED",
+    "type": "next_cycle_implication",
+    "natural_language": "request 0 receives ownership when the arbiter is idle",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && req0",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P4_REQ1_GRANTED",
+    "type": "next_cycle_implication",
+    "natural_language": "request 1 receives ownership when request 0 is absent",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !req0 && req1",
+    "consequent": "!grant0 && grant1",
+    "delay": 1
+  },
+  {
+    "id": "P5_PRIORITY",
+    "type": "next_cycle_implication",
+    "natural_language": "request 0 wins when both requests arrive while idle",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && req0 && req1",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P6_GRANT0_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "grant 0 remains asserted while request 0 remains asserted",
+    "disable": "rst",
+    "antecedent": "grant0 && req0",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P7_GRANT0_RELEASES",
+    "type": "next_cycle_implication",
+    "natural_language": "grant 0 is released when request 0 is deasserted",
+    "disable": "rst",
+    "antecedent": "grant0 && !req0",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P8_GRANT1_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "grant 1 remains asserted while request 1 remains asserted",
+    "disable": "rst",
+    "antecedent": "grant1 && req1",
+    "consequent": "!grant0 && grant1",
+    "delay": 1
+  },
+  {
+    "id": "P9_GRANT1_RELEASES",
+    "type": "next_cycle_implication",
+    "natural_language": "grant 1 is released when request 1 is deasserted",
+    "disable": "rst",
+    "antecedent": "grant1 && !req1",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P10_IDLE_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "without any request an idle arbiter remains idle",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !req0 && !req1",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  }
+]

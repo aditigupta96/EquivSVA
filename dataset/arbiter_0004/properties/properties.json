@@ -1,0 +1,98 @@
+[
+  {
+    "id": "P1_MUTUAL_EXCLUSION",
+    "type": "invariant",
+    "natural_language": "the arbiter never grants both requesters simultaneously",
+    "disable": "rst",
+    "expression": "!(grant0 && grant1)"
+  },
+  {
+    "id": "P2_RESET_NO_GRANT",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears both grants",
+    "antecedent": "rst",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P3_INITIAL_REQ0_PRIORITY",
+    "type": "next_cycle_implication",
+    "natural_language": "from idle, request 0 wins whenever it is asserted",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && req0",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P4_IDLE_REQ1",
+    "type": "next_cycle_implication",
+    "natural_language": "from idle, request 1 is granted when request 0 is absent",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !req0 && req1",
+    "consequent": "!grant0 && grant1",
+    "delay": 1
+  },
+  {
+    "id": "P5_AFTER_GRANT0_REQ1_PRIORITY",
+    "type": "next_cycle_implication",
+    "natural_language": "after granting requester 0, a waiting requester 1 receives the next grant",
+    "disable": "rst",
+    "antecedent": "grant0 && req1",
+    "consequent": "!grant0 && grant1",
+    "delay": 1
+  },
+  {
+    "id": "P6_GRANT0_REPEAT",
+    "type": "next_cycle_implication",
+    "natural_language": "requester 0 can continue receiving grants when requester 1 is absent",
+    "disable": "rst",
+    "antecedent": "grant0 && !req1 && req0",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P7_GRANT0_TO_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "the arbiter returns to idle after grant 0 when no requests remain",
+    "disable": "rst",
+    "antecedent": "grant0 && !req0 && !req1",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P8_AFTER_GRANT1_REQ0_PRIORITY",
+    "type": "next_cycle_implication",
+    "natural_language": "after granting requester 1, a waiting requester 0 receives the next grant",
+    "disable": "rst",
+    "antecedent": "grant1 && req0",
+    "consequent": "grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P9_GRANT1_REPEAT",
+    "type": "next_cycle_implication",
+    "natural_language": "requester 1 can continue receiving grants when requester 0 is absent",
+    "disable": "rst",
+    "antecedent": "grant1 && !req0 && req1",
+    "consequent": "!grant0 && grant1",
+    "delay": 1
+  },
+  {
+    "id": "P10_GRANT1_TO_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "the arbiter returns to idle after grant 1 when no requests remain",
+    "disable": "rst",
+    "antecedent": "grant1 && !req0 && !req1",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P11_IDLE_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "without requests an idle arbiter remains idle",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !req0 && !req1",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "id": "P1_RESET_EMPTY",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears valid",
+    "antecedent": "rst",
+    "consequent": "!valid",
+    "delay": 1
+  },
+  {
+    "id": "P2_PUSH_TO_VALID",
+    "type": "next_cycle_implication",
+    "natural_language": "a push into an empty buffer makes the output valid",
+    "disable": "rst",
+    "antecedent": "!valid && push",
+    "consequent": "valid",
+    "delay": 1
+  },
+  {
+    "id": "P3_EMPTY_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "an empty buffer remains empty without a push",
+    "disable": "rst",
+    "antecedent": "!valid && !push",
+    "consequent": "!valid",
+    "delay": 1
+  },
+  {
+    "id": "P4_READY_CONSUMES",
+    "type": "next_cycle_implication",
+    "natural_language": "a ready receiver consumes a valid entry",
+    "disable": "rst",
+    "antecedent": "valid && ready",
+    "consequent": "!valid",
+    "delay": 1
+  },
+  {
+    "id": "P5_BACKPRESSURE_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "valid remains asserted while the receiver is not ready",
+    "disable": "rst",
+    "antecedent": "valid && !ready",
+    "consequent": "valid",
+    "delay": 1
+  }
+]

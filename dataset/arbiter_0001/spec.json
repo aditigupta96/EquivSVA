@@ -1,0 +1,176 @@
+{
+  "design_id": "arbiter_0001",
+  "category": "arbiter",
+  "template": "two_request_fixed_priority",
+  "description": "A two-request fixed-priority arbiter. Request 0 has priority over request 1 when both are asserted. Grants are mutually exclusive and last for one cycle.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "state": "IDLE"
+  },
+  "inputs": [
+    "req0",
+    "req1"
+  ],
+  "outputs": [
+    "grant0",
+    "grant1"
+  ],
+  "states": [
+    "IDLE",
+    "GRANT0",
+    "GRANT1"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "grant0": 0,
+      "grant1": 0
+    },
+    "GRANT0": {
+      "grant0": 1,
+      "grant1": 0
+    },
+    "GRANT1": {
+      "grant0": 0,
+      "grant1": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "req0",
+      "to": "GRANT0"
+    },
+    {
+      "from": "IDLE",
+      "when": "req1",
+      "to": "GRANT1"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "GRANT0",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "GRANT1",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_MUTUAL_EXCLUSION",
+      "sva_name": "p_mutual_exclusion",
+      "type": "invariant",
+      "natural_language": "the arbiter never grants both requesters at the same time",
+      "disable": "rst",
+      "expression": "!(grant0 && grant1)"
+    },
+    {
+      "id": "P2_RESET_NO_GRANT",
+      "sva_name": "p_reset_no_grant",
+      "type": "next_cycle_implication",
+      "natural_language": "reset clears both grants",
+      "antecedent": "rst",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P3_REQ0_GRANTED",
+      "sva_name": "p_req0_granted",
+      "type": "next_cycle_implication",
+      "natural_language": "request 0 receives the next grant whenever the arbiter is idle",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && req0",
+      "consequent": "grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P4_REQ1_GRANTED",
+      "sva_name": "p_req1_granted",
+      "type": "next_cycle_implication",
+      "natural_language": "request 1 receives the next grant when request 0 is absent",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && !req0 && req1",
+      "consequent": "!grant0 && grant1",
+      "delay": 1
+    },
+    {
+      "id": "P5_PRIORITY",
+      "sva_name": "p_priority",
+      "type": "next_cycle_implication",
+      "natural_language": "request 0 wins when both requesters arrive together",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && req0 && req1",
+      "consequent": "grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P6_IDLE_WITHOUT_REQUEST",
+      "sva_name": "p_idle_without_request",
+      "type": "next_cycle_implication",
+      "natural_language": "without any request the arbiter remains idle",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && !req0 && !req1",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P7_GRANT0_ONE_CYCLE",
+      "sva_name": "p_grant0_one_cycle",
+      "type": "next_cycle_implication",
+      "natural_language": "grant 0 lasts one cycle",
+      "disable": "rst",
+      "antecedent": "grant0",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P8_GRANT1_ONE_CYCLE",
+      "sva_name": "p_grant1_one_cycle",
+      "type": "next_cycle_implication",
+      "natural_language": "grant 1 lasts one cycle",
+      "disable": "rst",
+      "antecedent": "grant1",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "reverse_priority",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "req0",
+      "new": "req0 && !req1"
+    },
+    {
+      "name": "grant0_stuck",
+      "kind": "force_transition",
+      "from": "GRANT0",
+      "to": "GRANT0"
+    },
+    {
+      "name": "grant1_stuck",
+      "kind": "force_transition",
+      "from": "GRANT1",
+      "to": "GRANT1"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

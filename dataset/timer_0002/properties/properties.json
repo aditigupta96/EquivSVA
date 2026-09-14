@@ -1,0 +1,98 @@
+[
+  {
+    "id": "P1_WINDOW_REQUIRES_ACTIVE",
+    "type": "invariant",
+    "natural_language": "the service window can only be open while the watchdog is active",
+    "disable": "rst",
+    "expression": "!window_open || active"
+  },
+  {
+    "id": "P2_RESET_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the watchdog to idle",
+    "antecedent": "rst",
+    "consequent": "!active && !window_open && !serviced && !early_fault && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P3_START_EARLY",
+    "type": "next_cycle_implication",
+    "natural_language": "starting an idle watchdog begins the early-service period",
+    "disable": "rst",
+    "antecedent": "!active && !serviced && !early_fault && !timeout && start",
+    "consequent": "active && !window_open && !serviced && !early_fault && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P4_IDLE_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "without start an idle watchdog remains idle",
+    "disable": "rst",
+    "antecedent": "!active && !serviced && !early_fault && !timeout && !start",
+    "consequent": "!active && !window_open && !serviced && !early_fault && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P5_EARLY_SERVICE_FAULT",
+    "type": "next_cycle_implication",
+    "natural_language": "servicing the watchdog before the valid window opens produces an early-service fault",
+    "disable": "rst",
+    "antecedent": "active && !window_open && service",
+    "consequent": "!active && !window_open && !serviced && early_fault && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P6_WINDOW_OPENS",
+    "type": "next_cycle_implication",
+    "natural_language": "without an early service attempt, the watchdog progresses to the valid service window",
+    "disable": "rst",
+    "antecedent": "active && !window_open && !service",
+    "consequent": "active && window_open && !serviced && !early_fault && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P7_VALID_SERVICE",
+    "type": "next_cycle_implication",
+    "natural_language": "servicing during the valid window successfully services the watchdog",
+    "disable": "rst",
+    "antecedent": "active && window_open && service",
+    "consequent": "!active && !window_open && serviced && !early_fault && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P8_WINDOW_TIMEOUT",
+    "type": "next_cycle_implication",
+    "natural_language": "failing to service the watchdog during its valid window produces timeout",
+    "disable": "rst",
+    "antecedent": "active && window_open && !service",
+    "consequent": "!active && !window_open && !serviced && !early_fault && timeout",
+    "delay": 1
+  },
+  {
+    "id": "P9_SERVICED_PULSE",
+    "type": "next_cycle_implication",
+    "natural_language": "the serviced indication lasts one cycle",
+    "disable": "rst",
+    "antecedent": "serviced",
+    "consequent": "!active && !window_open && !serviced && !early_fault && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P10_EARLY_FAULT_PULSE",
+    "type": "next_cycle_implication",
+    "natural_language": "the early-service fault indication lasts one cycle",
+    "disable": "rst",
+    "antecedent": "early_fault",
+    "consequent": "!active && !window_open && !serviced && !early_fault && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P11_TIMEOUT_PULSE",
+    "type": "next_cycle_implication",
+    "natural_language": "the timeout indication lasts one cycle",
+    "disable": "rst",
+    "antecedent": "timeout",
+    "consequent": "!active && !window_open && !serviced && !early_fault && !timeout",
+    "delay": 1
+  }
+]

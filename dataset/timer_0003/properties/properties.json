@@ -1,0 +1,80 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "timeout is never asserted while the timer is active",
+    "disable": "rst",
+    "expression": "!(active && timeout)"
+  },
+  {
+    "id": "P2_RESET_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the timer to idle",
+    "antecedent": "rst",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P3_START",
+    "type": "next_cycle_implication",
+    "natural_language": "start begins timeout monitoring",
+    "disable": "rst",
+    "antecedent": "(!active && !warning && !timeout) && start",
+    "consequent": "active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P4_IDLE_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "without start an idle timer remains idle",
+    "disable": "rst",
+    "antecedent": "(!active && !warning && !timeout) && !start",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P5_RUN_CANCEL",
+    "type": "next_cycle_implication",
+    "natural_language": "cancel during the first timing stage returns to idle",
+    "disable": "rst",
+    "antecedent": "active && !warning && cancel",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P6_RUN_PROGRESS",
+    "type": "next_cycle_implication",
+    "natural_language": "without cancellation the timer progresses to warning",
+    "disable": "rst",
+    "antecedent": "active && !warning && !cancel",
+    "consequent": "active && warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P7_WARNING_CANCEL",
+    "type": "next_cycle_implication",
+    "natural_language": "cancel during warning returns to idle without timeout",
+    "disable": "rst",
+    "antecedent": "active && warning && cancel",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P8_WARNING_TIMEOUT",
+    "type": "next_cycle_implication",
+    "natural_language": "without cancellation the warning stage produces timeout",
+    "disable": "rst",
+    "antecedent": "active && warning && !cancel",
+    "consequent": "!active && !warning && timeout",
+    "delay": 1
+  },
+  {
+    "id": "P9_TIMEOUT_PULSE",
+    "type": "next_cycle_implication",
+    "natural_language": "timeout lasts exactly one cycle",
+    "disable": "rst",
+    "antecedent": "timeout",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  }
+]

@@ -1,0 +1,538 @@
+{
+  "benchmark": "EquivSVA",
+  "categories": {
+    "arbiter": {
+      "families": 5,
+      "mutants": 15,
+      "properties": 52,
+      "rtl_variants": 20
+    },
+    "handshake": {
+      "families": 5,
+      "mutants": 15,
+      "properties": 32,
+      "rtl_variants": 20
+    },
+    "timer_watchdog": {
+      "families": 5,
+      "mutants": 15,
+      "properties": 43,
+      "rtl_variants": 20
+    }
+  },
+  "families": [
+    {
+      "category": "arbiter",
+      "description": "A two-request fixed-priority arbiter. Request 0 has priority over request 1 when both are asserted. Grants are mutually exclusive and last for one cycle.",
+      "design_id": "arbiter_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "GRANT0",
+        "GRANT1"
+      ],
+      "template": "two_request_fixed_priority",
+      "validation": {
+        "report": "build/validation/arbiter_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "arbiter",
+      "description": "A two-request fixed-priority arbiter with held grants. Request 0 has priority when both requests arrive while idle. Once granted, ownership is retained until the winning requester deasserts its request.",
+      "design_id": "arbiter_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1"
+      ],
+      "property_count": 10,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "GRANT0",
+        "GRANT1"
+      ],
+      "template": "held_grant_fixed_priority",
+      "validation": {
+        "report": "build/validation/arbiter_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "arbiter",
+      "description": "A two-request fixed-priority arbiter with held ownership and direct handoff. Request 0 has priority while idle. A grant remains asserted while its requester remains active. When the current requester releases, ownership transfers directly to a waiting competing requester without an idle cycle.",
+      "design_id": "arbiter_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1"
+      ],
+      "property_count": 12,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "GRANT0",
+        "GRANT1"
+      ],
+      "template": "held_grant_direct_handoff",
+      "validation": {
+        "report": "build/validation/arbiter_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "arbiter",
+      "description": "A two-request arbiter that alternates priority under sustained contention. Request 0 has initial priority from idle. After granting one requester, the other requester receives priority on the next arbitration cycle. If all requests disappear, the arbiter returns to idle and initial priority resets to request 0.",
+      "design_id": "arbiter_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1"
+      ],
+      "property_count": 11,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "GRANT0",
+        "GRANT1"
+      ],
+      "template": "alternating_round_robin",
+      "validation": {
+        "report": "build/validation/arbiter_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "arbiter",
+      "description": "A three-request fixed-priority arbiter. Request 0 has highest priority, followed by request 1 and then request 2. Grants are mutually exclusive and last for one cycle.",
+      "design_id": "arbiter_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1",
+        "req2"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1",
+        "grant2"
+      ],
+      "property_count": 11,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "GRANT0",
+        "GRANT1",
+        "GRANT2"
+      ],
+      "template": "three_request_fixed_priority",
+      "validation": {
+        "report": "build/validation/arbiter_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "Three-state request/acknowledge controller with cancellation.",
+      "design_id": "handshake_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req",
+        "ready",
+        "cancel"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "busy",
+        "ack"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "WAIT",
+        "ACK"
+      ],
+      "template": null,
+      "validation": {
+        "report": "build/validation/handshake_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "A request starts an operation. The controller remains busy until done is observed, acknowledges completion for one cycle, then returns to idle.",
+      "design_id": "handshake_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req",
+        "done"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "busy",
+        "ack"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "BUSY",
+        "ACK"
+      ],
+      "template": "request_done_ack",
+      "validation": {
+        "report": "build/validation/handshake_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "A four-phase request/acknowledge controller. A request raises acknowledgement, acknowledgement remains asserted while request remains high, and acknowledgement drops after request is released.",
+      "design_id": "handshake_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "ack"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "ACK"
+      ],
+      "template": "four_phase_request_ack",
+      "validation": {
+        "report": "build/validation/handshake_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "A one-entry valid/ready buffer. A push makes data valid, valid remains asserted while the receiver is not ready, and a ready cycle consumes the entry.",
+      "design_id": "handshake_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "ready"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "valid"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "EMPTY",
+        "FULL"
+      ],
+      "template": "valid_ready_buffer",
+      "validation": {
+        "report": "build/validation/handshake_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "A request enters a pending state until grant arrives. Grant raises acknowledgement, which remains asserted until the requester releases req.",
+      "design_id": "handshake_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req",
+        "grant"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "pending",
+        "ack"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "WAIT",
+        "ACK"
+      ],
+      "template": "request_grant_ack_release",
+      "validation": {
+        "report": "build/validation/handshake_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "A watchdog controller with an early-warning stage. Start begins monitoring, kick restarts the watchdog, warning is asserted before expiration, and timeout is asserted for one cycle if no kick arrives.",
+      "design_id": "timer_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "kick"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "running",
+        "warning",
+        "timeout"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "RUN",
+        "WARNING",
+        "TIMEOUT"
+      ],
+      "template": "watchdog_with_early_warning",
+      "validation": {
+        "report": "build/validation/timer_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "A windowed watchdog. Start begins monitoring in an early-service period. Servicing during the early period is an error. After the service window opens, servicing succeeds; otherwise the watchdog times out.",
+      "design_id": "timer_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "service"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "active",
+        "window_open",
+        "serviced",
+        "early_fault",
+        "timeout"
+      ],
+      "property_count": 11,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "EARLY",
+        "WINDOW",
+        "SERVICED",
+        "EARLY_FAULT",
+        "TIMEOUT"
+      ],
+      "template": "windowed_watchdog",
+      "validation": {
+        "report": "build/validation/timer_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "A cancellable timeout controller. Start begins monitoring. Cancel from either active stage returns immediately to idle. Without cancellation, the controller progresses through warning to a one-cycle timeout.",
+      "design_id": "timer_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "cancel"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "active",
+        "warning",
+        "timeout"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "RUN",
+        "WARNING",
+        "TIMEOUT"
+      ],
+      "template": "cancellable_timeout",
+      "validation": {
+        "report": "build/validation/timer_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "A periodic timer. Start activates the timer, the running stage produces a one-cycle tick, and the timer automatically rearms after each tick.",
+      "design_id": "timer_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "active",
+        "tick"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "RUN",
+        "TICK"
+      ],
+      "template": "periodic_auto_rearm_timer",
+      "validation": {
+        "report": "build/validation/timer_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "An explicitly enabled watchdog. Raising enable starts monitoring. Deasserting enable from any active stage disables the watchdog. If enable remains asserted, the watchdog progresses through warning to a one-cycle timeout.",
+      "design_id": "timer_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "enable"
+      ],
+      "mutant_count": 3,
+      "outputs": [
+        "active",
+        "warning",
+        "timeout"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "RUN",
+        "WARNING",
+        "TIMEOUT"
+      ],
+      "template": "enable_disable_watchdog",
+      "validation": {
+        "report": "build/validation/timer_0005.json",
+        "status": "passed"
+      }
+    }
+  ],
+  "schema_version": "1.0",
+  "summary": {
+    "categories": 3,
+    "expected_formal_jobs": 255,
+    "families": 15,
+    "mutants": 45,
+    "properties": 127,
+    "rtl_variants": 60
+  }
+}

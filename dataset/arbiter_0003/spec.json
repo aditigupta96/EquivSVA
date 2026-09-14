@@ -1,0 +1,238 @@
+{
+  "design_id": "arbiter_0003",
+  "category": "arbiter",
+  "template": "held_grant_direct_handoff",
+  "description": "A two-request fixed-priority arbiter with held ownership and direct handoff. Request 0 has priority while idle. A grant remains asserted while its requester remains active. When the current requester releases, ownership transfers directly to a waiting competing requester without an idle cycle.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "state": "IDLE"
+  },
+  "inputs": [
+    "req0",
+    "req1"
+  ],
+  "outputs": [
+    "grant0",
+    "grant1"
+  ],
+  "states": [
+    "IDLE",
+    "GRANT0",
+    "GRANT1"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "grant0": 0,
+      "grant1": 0
+    },
+    "GRANT0": {
+      "grant0": 1,
+      "grant1": 0
+    },
+    "GRANT1": {
+      "grant0": 0,
+      "grant1": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "req0",
+      "to": "GRANT0"
+    },
+    {
+      "from": "IDLE",
+      "when": "req1",
+      "to": "GRANT1"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "GRANT0",
+      "when": "!req0 && req1",
+      "to": "GRANT1"
+    },
+    {
+      "from": "GRANT0",
+      "when": "!req0",
+      "to": "IDLE"
+    },
+    {
+      "from": "GRANT0",
+      "when": "true",
+      "to": "GRANT0"
+    },
+    {
+      "from": "GRANT1",
+      "when": "!req1 && req0",
+      "to": "GRANT0"
+    },
+    {
+      "from": "GRANT1",
+      "when": "!req1",
+      "to": "IDLE"
+    },
+    {
+      "from": "GRANT1",
+      "when": "true",
+      "to": "GRANT1"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_MUTUAL_EXCLUSION",
+      "sva_name": "p_mutual_exclusion",
+      "type": "invariant",
+      "natural_language": "the arbiter never grants both requesters simultaneously",
+      "disable": "rst",
+      "expression": "!(grant0 && grant1)"
+    },
+    {
+      "id": "P2_RESET_NO_GRANT",
+      "sva_name": "p_reset_no_grant",
+      "type": "next_cycle_implication",
+      "natural_language": "reset clears both grants",
+      "antecedent": "rst",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P3_REQ0_GRANTED",
+      "sva_name": "p_req0_granted",
+      "type": "next_cycle_implication",
+      "natural_language": "request 0 receives ownership when the arbiter is idle",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && req0",
+      "consequent": "grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P4_REQ1_GRANTED",
+      "sva_name": "p_req1_granted",
+      "type": "next_cycle_implication",
+      "natural_language": "request 1 receives ownership while idle when request 0 is absent",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && !req0 && req1",
+      "consequent": "!grant0 && grant1",
+      "delay": 1
+    },
+    {
+      "id": "P5_IDLE_PRIORITY",
+      "sva_name": "p_idle_priority",
+      "type": "next_cycle_implication",
+      "natural_language": "request 0 wins when both requests arrive while idle",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && req0 && req1",
+      "consequent": "grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P6_GRANT0_HOLDS",
+      "sva_name": "p_grant0_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "grant 0 remains asserted while request 0 remains active",
+      "disable": "rst",
+      "antecedent": "grant0 && req0",
+      "consequent": "grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P7_GRANT0_HANDOFF",
+      "sva_name": "p_grant0_handoff",
+      "type": "next_cycle_implication",
+      "natural_language": "when requester 0 releases and requester 1 is waiting, ownership transfers directly to requester 1",
+      "disable": "rst",
+      "antecedent": "grant0 && !req0 && req1",
+      "consequent": "!grant0 && grant1",
+      "delay": 1
+    },
+    {
+      "id": "P8_GRANT0_RELEASE",
+      "sva_name": "p_grant0_release",
+      "type": "next_cycle_implication",
+      "natural_language": "when requester 0 releases with no competing request, the arbiter returns to idle",
+      "disable": "rst",
+      "antecedent": "grant0 && !req0 && !req1",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P9_GRANT1_HOLDS",
+      "sva_name": "p_grant1_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "grant 1 remains asserted while request 1 remains active",
+      "disable": "rst",
+      "antecedent": "grant1 && req1",
+      "consequent": "!grant0 && grant1",
+      "delay": 1
+    },
+    {
+      "id": "P10_GRANT1_HANDOFF",
+      "sva_name": "p_grant1_handoff",
+      "type": "next_cycle_implication",
+      "natural_language": "when requester 1 releases and requester 0 is waiting, ownership transfers directly to requester 0",
+      "disable": "rst",
+      "antecedent": "grant1 && !req1 && req0",
+      "consequent": "grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P11_GRANT1_RELEASE",
+      "sva_name": "p_grant1_release",
+      "type": "next_cycle_implication",
+      "natural_language": "when requester 1 releases with no competing request, the arbiter returns to idle",
+      "disable": "rst",
+      "antecedent": "grant1 && !req1 && !req0",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P12_IDLE_HOLDS",
+      "sva_name": "p_idle_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "without any request an idle arbiter remains idle",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && !req0 && !req1",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "reverse_idle_priority",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "req0",
+      "new": "req0 && !req1"
+    },
+    {
+      "name": "bubble_after_grant0",
+      "kind": "replace_transition_guard",
+      "from": "GRANT0",
+      "old": "!req0 && req1",
+      "new": "false"
+    },
+    {
+      "name": "bubble_after_grant1",
+      "kind": "replace_transition_guard",
+      "from": "GRANT1",
+      "old": "!req1 && req0",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

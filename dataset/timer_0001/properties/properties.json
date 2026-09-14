@@ -1,0 +1,71 @@
+[
+  {
+    "id": "P1_OUTPUT_CONSISTENCY",
+    "type": "invariant",
+    "natural_language": "timeout is never asserted while the watchdog is running",
+    "disable": "rst",
+    "expression": "!(running && timeout)"
+  },
+  {
+    "id": "P2_RESET_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the watchdog to idle",
+    "antecedent": "rst",
+    "consequent": "!running && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P3_START_TO_RUNNING",
+    "type": "next_cycle_implication",
+    "natural_language": "starting an idle watchdog begins monitoring",
+    "disable": "rst",
+    "antecedent": "(!running && !warning && !timeout) && start",
+    "consequent": "running && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P4_IDLE_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "an idle watchdog remains idle without start",
+    "disable": "rst",
+    "antecedent": "(!running && !warning && !timeout) && !start",
+    "consequent": "!running && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P5_RUN_TO_WARNING",
+    "type": "next_cycle_implication",
+    "natural_language": "without a kick the running watchdog reaches the warning stage",
+    "disable": "rst",
+    "antecedent": "running && !warning && !kick",
+    "consequent": "running && warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P6_WARNING_TO_TIMEOUT",
+    "type": "next_cycle_implication",
+    "natural_language": "without a kick the warning stage expires into timeout",
+    "disable": "rst",
+    "antecedent": "running && warning && !kick",
+    "consequent": "!running && !warning && timeout",
+    "delay": 1
+  },
+  {
+    "id": "P7_KICK_RESTARTS",
+    "type": "next_cycle_implication",
+    "natural_language": "a kick while monitoring restarts the watchdog before warning",
+    "disable": "rst",
+    "antecedent": "running && kick",
+    "consequent": "running && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P8_TIMEOUT_PULSE",
+    "type": "next_cycle_implication",
+    "natural_language": "timeout lasts one cycle before returning idle",
+    "disable": "rst",
+    "antecedent": "timeout",
+    "consequent": "!running && !warning && !timeout",
+    "delay": 1
+  }
+]

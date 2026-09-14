@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "busy and ack are never asserted together",
+    "disable": "rst",
+    "expression": "!(busy && ack)"
+  },
+  {
+    "id": "P2_RESET_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to idle",
+    "antecedent": "rst",
+    "consequent": "!busy && !ack",
+    "delay": 1
+  },
+  {
+    "id": "P3_REQUEST_TO_BUSY",
+    "type": "next_cycle_implication",
+    "natural_language": "a request presented while idle starts an operation",
+    "disable": "rst",
+    "antecedent": "(!busy && !ack) && req",
+    "consequent": "busy",
+    "delay": 1
+  },
+  {
+    "id": "P4_IDLE_STAYS_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "an idle controller remains idle without a request",
+    "disable": "rst",
+    "antecedent": "(!busy && !ack) && !req",
+    "consequent": "!busy && !ack",
+    "delay": 1
+  },
+  {
+    "id": "P5_DONE_TO_ACK",
+    "type": "next_cycle_implication",
+    "natural_language": "completion while busy produces an acknowledgement",
+    "disable": "rst",
+    "antecedent": "busy && done",
+    "consequent": "ack",
+    "delay": 1
+  },
+  {
+    "id": "P6_BUSY_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "the controller remains busy until completion",
+    "disable": "rst",
+    "antecedent": "busy && !done",
+    "consequent": "busy",
+    "delay": 1
+  },
+  {
+    "id": "P7_ACK_TO_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledgement lasts one cycle before returning idle",
+    "disable": "rst",
+    "antecedent": "ack",
+    "consequent": "!busy && !ack",
+    "delay": 1
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "benchmark": "EquivSVA",
+  "version": "0.1",
+  "split_unit": "behavior_family",
+  "policy": "Family-safe stratified pilot split. All RTL variants, properties, and mutants for a behavior family remain in the same split.",
+  "seed": 20260913,
+
+  "train": [
+    "handshake_0003",
+    "handshake_0004",
+    "handshake_0005",
+
+    "timer_0001",
+    "timer_0002",
+    "timer_0003",
+
+    "arbiter_0001",
+    "arbiter_0002",
+    "arbiter_0005"
+  ],
+
+  "dev": [
+    "handshake_0002",
+    "timer_0005",
+    "arbiter_0004"
+  ],
+
+  "test": [
+    "handshake_0001",
+    "timer_0004",
+    "arbiter_0003"
+  ]
+}

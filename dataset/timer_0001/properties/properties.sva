@@ -1,0 +1,34 @@
+// Generated from spec.json.
+// Design: timer_0001
+
+// P1_OUTPUT_CONSISTENCY: timeout is never asserted while the watchdog is running.
+p_output_consistency: assert property (@(posedge clk) disable iff (rst)
+    !(running && timeout));
+
+// P2_RESET_IDLE: reset returns the watchdog to idle.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!running && !warning && !timeout));
+
+// P3_START_TO_RUNNING: starting an idle watchdog begins monitoring.
+p_start_to_running: assert property (@(posedge clk) disable iff (rst)
+    ((!running && !warning && !timeout) && start) |=> (running && !warning && !timeout));
+
+// P4_IDLE_HOLDS: an idle watchdog remains idle without start.
+p_idle_holds: assert property (@(posedge clk) disable iff (rst)
+    ((!running && !warning && !timeout) && !start) |=> (!running && !warning && !timeout));
+
+// P5_RUN_TO_WARNING: without a kick the running watchdog reaches the warning stage.
+p_run_to_warning: assert property (@(posedge clk) disable iff (rst)
+    (running && !warning && !kick) |=> (running && warning && !timeout));
+
+// P6_WARNING_TO_TIMEOUT: without a kick the warning stage expires into timeout.
+p_warning_to_timeout: assert property (@(posedge clk) disable iff (rst)
+    (running && warning && !kick) |=> (!running && !warning && timeout));
+
+// P7_KICK_RESTARTS: a kick while monitoring restarts the watchdog before warning.
+p_kick_restarts: assert property (@(posedge clk) disable iff (rst)
+    (running && kick) |=> (running && !warning && !timeout));
+
+// P8_TIMEOUT_PULSE: timeout lasts one cycle before returning idle.
+p_timeout_pulse: assert property (@(posedge clk) disable iff (rst)
+    (timeout) |=> (!running && !warning && !timeout));

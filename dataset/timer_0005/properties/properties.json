@@ -1,0 +1,80 @@
+[
+  {
+    "id": "P1_TIMEOUT_MUTEX",
+    "type": "invariant",
+    "natural_language": "timeout is never asserted while the watchdog is active",
+    "disable": "rst",
+    "expression": "!(active && timeout)"
+  },
+  {
+    "id": "P2_RESET_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "reset disables the watchdog",
+    "antecedent": "rst",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P3_ENABLE_STARTS",
+    "type": "next_cycle_implication",
+    "natural_language": "asserting enable while idle starts watchdog monitoring",
+    "disable": "rst",
+    "antecedent": "(!active && !warning && !timeout) && enable",
+    "consequent": "active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P4_DISABLED_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "an idle watchdog remains disabled while enable is low",
+    "disable": "rst",
+    "antecedent": "(!active && !warning && !timeout) && !enable",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P5_RUN_DISABLE",
+    "type": "next_cycle_implication",
+    "natural_language": "deasserting enable during the first stage disables the watchdog",
+    "disable": "rst",
+    "antecedent": "active && !warning && !enable",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P6_RUN_PROGRESS",
+    "type": "next_cycle_implication",
+    "natural_language": "while enable remains asserted the watchdog progresses to warning",
+    "disable": "rst",
+    "antecedent": "active && !warning && enable",
+    "consequent": "active && warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P7_WARNING_DISABLE",
+    "type": "next_cycle_implication",
+    "natural_language": "deasserting enable during warning disables the watchdog without timeout",
+    "disable": "rst",
+    "antecedent": "active && warning && !enable",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  },
+  {
+    "id": "P8_WARNING_TIMEOUT",
+    "type": "next_cycle_implication",
+    "natural_language": "remaining enabled through warning produces timeout",
+    "disable": "rst",
+    "antecedent": "active && warning && enable",
+    "consequent": "!active && !warning && timeout",
+    "delay": 1
+  },
+  {
+    "id": "P9_TIMEOUT_PULSE",
+    "type": "next_cycle_implication",
+    "natural_language": "timeout lasts one cycle before returning idle",
+    "disable": "rst",
+    "antecedent": "timeout",
+    "consequent": "!active && !warning && !timeout",
+    "delay": 1
+  }
+]

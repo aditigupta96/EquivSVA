@@ -1,0 +1,46 @@
+[
+  {
+    "id": "P1_RESET_IDLE",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears acknowledgement",
+    "antecedent": "rst",
+    "consequent": "!ack",
+    "delay": 1
+  },
+  {
+    "id": "P2_REQUEST_TO_ACK",
+    "type": "next_cycle_implication",
+    "natural_language": "a request while idle raises acknowledgement",
+    "disable": "rst",
+    "antecedent": "!ack && req",
+    "consequent": "ack",
+    "delay": 1
+  },
+  {
+    "id": "P3_IDLE_WITHOUT_REQUEST",
+    "type": "next_cycle_implication",
+    "natural_language": "without a request the idle controller remains unacknowledged",
+    "disable": "rst",
+    "antecedent": "!ack && !req",
+    "consequent": "!ack",
+    "delay": 1
+  },
+  {
+    "id": "P4_ACK_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledgement remains asserted while request remains asserted",
+    "disable": "rst",
+    "antecedent": "ack && req",
+    "consequent": "ack",
+    "delay": 1
+  },
+  {
+    "id": "P5_ACK_RELEASES",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledgement clears after request is released",
+    "disable": "rst",
+    "antecedent": "ack && !req",
+    "consequent": "!ack",
+    "delay": 1
+  }
+]

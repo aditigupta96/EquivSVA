@@ -1,0 +1,227 @@
+{
+  "design_id": "arbiter_0004",
+  "category": "arbiter",
+  "template": "alternating_round_robin",
+  "description": "A two-request arbiter that alternates priority under sustained contention. Request 0 has initial priority from idle. After granting one requester, the other requester receives priority on the next arbitration cycle. If all requests disappear, the arbiter returns to idle and initial priority resets to request 0.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "state": "IDLE"
+  },
+  "inputs": [
+    "req0",
+    "req1"
+  ],
+  "outputs": [
+    "grant0",
+    "grant1"
+  ],
+  "states": [
+    "IDLE",
+    "GRANT0",
+    "GRANT1"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "grant0": 0,
+      "grant1": 0
+    },
+    "GRANT0": {
+      "grant0": 1,
+      "grant1": 0
+    },
+    "GRANT1": {
+      "grant0": 0,
+      "grant1": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "req0",
+      "to": "GRANT0"
+    },
+    {
+      "from": "IDLE",
+      "when": "req1",
+      "to": "GRANT1"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "GRANT0",
+      "when": "req1",
+      "to": "GRANT1"
+    },
+    {
+      "from": "GRANT0",
+      "when": "req0",
+      "to": "GRANT0"
+    },
+    {
+      "from": "GRANT0",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "GRANT1",
+      "when": "req0",
+      "to": "GRANT0"
+    },
+    {
+      "from": "GRANT1",
+      "when": "req1",
+      "to": "GRANT1"
+    },
+    {
+      "from": "GRANT1",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_MUTUAL_EXCLUSION",
+      "sva_name": "p_mutual_exclusion",
+      "type": "invariant",
+      "natural_language": "the arbiter never grants both requesters simultaneously",
+      "disable": "rst",
+      "expression": "!(grant0 && grant1)"
+    },
+    {
+      "id": "P2_RESET_NO_GRANT",
+      "sva_name": "p_reset_no_grant",
+      "type": "next_cycle_implication",
+      "natural_language": "reset clears both grants",
+      "antecedent": "rst",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P3_INITIAL_REQ0_PRIORITY",
+      "sva_name": "p_initial_req0_priority",
+      "type": "next_cycle_implication",
+      "natural_language": "from idle, request 0 wins whenever it is asserted",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && req0",
+      "consequent": "grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P4_IDLE_REQ1",
+      "sva_name": "p_idle_req1",
+      "type": "next_cycle_implication",
+      "natural_language": "from idle, request 1 is granted when request 0 is absent",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && !req0 && req1",
+      "consequent": "!grant0 && grant1",
+      "delay": 1
+    },
+    {
+      "id": "P5_AFTER_GRANT0_REQ1_PRIORITY",
+      "sva_name": "p_after_grant0_req1_priority",
+      "type": "next_cycle_implication",
+      "natural_language": "after granting requester 0, a waiting requester 1 receives the next grant",
+      "disable": "rst",
+      "antecedent": "grant0 && req1",
+      "consequent": "!grant0 && grant1",
+      "delay": 1
+    },
+    {
+      "id": "P6_GRANT0_REPEAT",
+      "sva_name": "p_grant0_repeat",
+      "type": "next_cycle_implication",
+      "natural_language": "requester 0 can continue receiving grants when requester 1 is absent",
+      "disable": "rst",
+      "antecedent": "grant0 && !req1 && req0",
+      "consequent": "grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P7_GRANT0_TO_IDLE",
+      "sva_name": "p_grant0_to_idle",
+      "type": "next_cycle_implication",
+      "natural_language": "the arbiter returns to idle after grant 0 when no requests remain",
+      "disable": "rst",
+      "antecedent": "grant0 && !req0 && !req1",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P8_AFTER_GRANT1_REQ0_PRIORITY",
+      "sva_name": "p_after_grant1_req0_priority",
+      "type": "next_cycle_implication",
+      "natural_language": "after granting requester 1, a waiting requester 0 receives the next grant",
+      "disable": "rst",
+      "antecedent": "grant1 && req0",
+      "consequent": "grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P9_GRANT1_REPEAT",
+      "sva_name": "p_grant1_repeat",
+      "type": "next_cycle_implication",
+      "natural_language": "requester 1 can continue receiving grants when requester 0 is absent",
+      "disable": "rst",
+      "antecedent": "grant1 && !req0 && req1",
+      "consequent": "!grant0 && grant1",
+      "delay": 1
+    },
+    {
+      "id": "P10_GRANT1_TO_IDLE",
+      "sva_name": "p_grant1_to_idle",
+      "type": "next_cycle_implication",
+      "natural_language": "the arbiter returns to idle after grant 1 when no requests remain",
+      "disable": "rst",
+      "antecedent": "grant1 && !req0 && !req1",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    },
+    {
+      "id": "P11_IDLE_HOLDS",
+      "sva_name": "p_idle_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "without requests an idle arbiter remains idle",
+      "disable": "rst",
+      "antecedent": "!grant0 && !grant1 && !req0 && !req1",
+      "consequent": "!grant0 && !grant1",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "req0_dominates_after_grant0",
+      "kind": "replace_transition_guard",
+      "from": "GRANT0",
+      "old": "req1",
+      "new": "req1 && !req0"
+    },
+    {
+      "name": "req1_dominates_after_grant1",
+      "kind": "replace_transition_guard",
+      "from": "GRANT1",
+      "old": "req0",
+      "new": "req0 && !req1"
+    },
+    {
+      "name": "grant0_stuck",
+      "kind": "force_transition",
+      "from": "GRANT0",
+      "to": "GRANT0"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

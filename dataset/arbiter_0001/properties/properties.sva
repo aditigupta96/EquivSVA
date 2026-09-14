@@ -1,0 +1,34 @@
+// Generated from spec.json.
+// Design: arbiter_0001
+
+// P1_MUTUAL_EXCLUSION: the arbiter never grants both requesters at the same time.
+p_mutual_exclusion: assert property (@(posedge clk) disable iff (rst)
+    !(grant0 && grant1));
+
+// P2_RESET_NO_GRANT: reset clears both grants.
+p_reset_no_grant: assert property (@(posedge clk)
+    (rst) |=> (!grant0 && !grant1));
+
+// P3_REQ0_GRANTED: request 0 receives the next grant whenever the arbiter is idle.
+p_req0_granted: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && req0) |=> (grant0 && !grant1));
+
+// P4_REQ1_GRANTED: request 1 receives the next grant when request 0 is absent.
+p_req1_granted: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !req0 && req1) |=> (!grant0 && grant1));
+
+// P5_PRIORITY: request 0 wins when both requesters arrive together.
+p_priority: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && req0 && req1) |=> (grant0 && !grant1));
+
+// P6_IDLE_WITHOUT_REQUEST: without any request the arbiter remains idle.
+p_idle_without_request: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !req0 && !req1) |=> (!grant0 && !grant1));
+
+// P7_GRANT0_ONE_CYCLE: grant 0 lasts one cycle.
+p_grant0_one_cycle: assert property (@(posedge clk) disable iff (rst)
+    (grant0) |=> (!grant0 && !grant1));
+
+// P8_GRANT1_ONE_CYCLE: grant 1 lasts one cycle.
+p_grant1_one_cycle: assert property (@(posedge clk) disable iff (rst)
+    (grant1) |=> (!grant0 && !grant1));

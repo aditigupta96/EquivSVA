@@ -1,0 +1,98 @@
+[
+  {
+    "id": "P1_MUTUAL_EXCLUSION",
+    "type": "invariant",
+    "natural_language": "at most one requester is granted at a time",
+    "disable": "rst",
+    "expression": "!((grant0 && grant1) || (grant0 && grant2) || (grant1 && grant2))"
+  },
+  {
+    "id": "P2_RESET_NO_GRANT",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears every grant",
+    "antecedent": "rst",
+    "consequent": "!grant0 && !grant1 && !grant2",
+    "delay": 1
+  },
+  {
+    "id": "P3_REQ0_GRANTED",
+    "type": "next_cycle_implication",
+    "natural_language": "request 0 receives the next grant whenever the arbiter is idle",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !grant2 && req0",
+    "consequent": "grant0 && !grant1 && !grant2",
+    "delay": 1
+  },
+  {
+    "id": "P4_REQ1_GRANTED",
+    "type": "next_cycle_implication",
+    "natural_language": "request 1 is granted when request 0 is absent",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !grant2 && !req0 && req1",
+    "consequent": "!grant0 && grant1 && !grant2",
+    "delay": 1
+  },
+  {
+    "id": "P5_REQ2_GRANTED",
+    "type": "next_cycle_implication",
+    "natural_language": "request 2 is granted when requests 0 and 1 are absent",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !grant2 && !req0 && !req1 && req2",
+    "consequent": "!grant0 && !grant1 && grant2",
+    "delay": 1
+  },
+  {
+    "id": "P6_REQ0_HIGHEST_PRIORITY",
+    "type": "next_cycle_implication",
+    "natural_language": "request 0 wins whenever all three requests arrive together",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !grant2 && req0 && req1 && req2",
+    "consequent": "grant0 && !grant1 && !grant2",
+    "delay": 1
+  },
+  {
+    "id": "P7_REQ1_OVER_REQ2",
+    "type": "next_cycle_implication",
+    "natural_language": "request 1 wins over request 2 when request 0 is absent",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !grant2 && !req0 && req1 && req2",
+    "consequent": "!grant0 && grant1 && !grant2",
+    "delay": 1
+  },
+  {
+    "id": "P8_IDLE_HOLDS",
+    "type": "next_cycle_implication",
+    "natural_language": "without requests an idle arbiter remains idle",
+    "disable": "rst",
+    "antecedent": "!grant0 && !grant1 && !grant2 && !req0 && !req1 && !req2",
+    "consequent": "!grant0 && !grant1 && !grant2",
+    "delay": 1
+  },
+  {
+    "id": "P9_GRANT0_ONE_CYCLE",
+    "type": "next_cycle_implication",
+    "natural_language": "grant 0 lasts one cycle",
+    "disable": "rst",
+    "antecedent": "grant0",
+    "consequent": "!grant0 && !grant1 && !grant2",
+    "delay": 1
+  },
+  {
+    "id": "P10_GRANT1_ONE_CYCLE",
+    "type": "next_cycle_implication",
+    "natural_language": "grant 1 lasts one cycle",
+    "disable": "rst",
+    "antecedent": "grant1",
+    "consequent": "!grant0 && !grant1 && !grant2",
+    "delay": 1
+  },
+  {
+    "id": "P11_GRANT2_ONE_CYCLE",
+    "type": "next_cycle_implication",
+    "natural_language": "grant 2 lasts one cycle",
+    "disable": "rst",
+    "antecedent": "grant2",
+    "consequent": "!grant0 && !grant1 && !grant2",
+    "delay": 1
+  }
+]

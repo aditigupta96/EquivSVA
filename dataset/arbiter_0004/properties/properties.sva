@@ -1,0 +1,46 @@
+// Generated from spec.json.
+// Design: arbiter_0004
+
+// P1_MUTUAL_EXCLUSION: the arbiter never grants both requesters simultaneously.
+p_mutual_exclusion: assert property (@(posedge clk) disable iff (rst)
+    !(grant0 && grant1));
+
+// P2_RESET_NO_GRANT: reset clears both grants.
+p_reset_no_grant: assert property (@(posedge clk)
+    (rst) |=> (!grant0 && !grant1));
+
+// P3_INITIAL_REQ0_PRIORITY: from idle, request 0 wins whenever it is asserted.
+p_initial_req0_priority: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && req0) |=> (grant0 && !grant1));
+
+// P4_IDLE_REQ1: from idle, request 1 is granted when request 0 is absent.
+p_idle_req1: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !req0 && req1) |=> (!grant0 && grant1));
+
+// P5_AFTER_GRANT0_REQ1_PRIORITY: after granting requester 0, a waiting requester 1 receives the next grant.
+p_after_grant0_req1_priority: assert property (@(posedge clk) disable iff (rst)
+    (grant0 && req1) |=> (!grant0 && grant1));
+
+// P6_GRANT0_REPEAT: requester 0 can continue receiving grants when requester 1 is absent.
+p_grant0_repeat: assert property (@(posedge clk) disable iff (rst)
+    (grant0 && !req1 && req0) |=> (grant0 && !grant1));
+
+// P7_GRANT0_TO_IDLE: the arbiter returns to idle after grant 0 when no requests remain.
+p_grant0_to_idle: assert property (@(posedge clk) disable iff (rst)
+    (grant0 && !req0 && !req1) |=> (!grant0 && !grant1));
+
+// P8_AFTER_GRANT1_REQ0_PRIORITY: after granting requester 1, a waiting requester 0 receives the next grant.
+p_after_grant1_req0_priority: assert property (@(posedge clk) disable iff (rst)
+    (grant1 && req0) |=> (grant0 && !grant1));
+
+// P9_GRANT1_REPEAT: requester 1 can continue receiving grants when requester 0 is absent.
+p_grant1_repeat: assert property (@(posedge clk) disable iff (rst)
+    (grant1 && !req0 && req1) |=> (!grant0 && grant1));
+
+// P10_GRANT1_TO_IDLE: the arbiter returns to idle after grant 1 when no requests remain.
+p_grant1_to_idle: assert property (@(posedge clk) disable iff (rst)
+    (grant1 && !req0 && !req1) |=> (!grant0 && !grant1));
+
+// P11_IDLE_HOLDS: without requests an idle arbiter remains idle.
+p_idle_holds: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && !req0 && !req1) |=> (!grant0 && !grant1));

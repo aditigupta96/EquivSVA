@@ -1,0 +1,34 @@
+// Generated from spec.json.
+// Design: handshake_0005
+
+// P1_MUTEX: pending and ack are never asserted together.
+p_mutex: assert property (@(posedge clk) disable iff (rst)
+    !(pending && ack));
+
+// P2_RESET_IDLE: reset clears pending and acknowledgement.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!pending && !ack));
+
+// P3_REQUEST_TO_PENDING: a request while idle enters the pending state.
+p_request_to_pending: assert property (@(posedge clk) disable iff (rst)
+    ((!pending && !ack) && req) |=> (pending));
+
+// P4_IDLE_HOLDS: without a request the idle controller remains idle.
+p_idle_holds: assert property (@(posedge clk) disable iff (rst)
+    ((!pending && !ack) && !req) |=> (!pending && !ack));
+
+// P5_GRANT_TO_ACK: granting a pending request raises acknowledgement.
+p_grant_to_ack: assert property (@(posedge clk) disable iff (rst)
+    (pending && grant) |=> (ack));
+
+// P6_PENDING_HOLDS: a request remains pending until grant arrives.
+p_pending_holds: assert property (@(posedge clk) disable iff (rst)
+    (pending && !grant) |=> (pending));
+
+// P7_ACK_HOLDS: acknowledgement remains asserted while req remains asserted.
+p_ack_holds: assert property (@(posedge clk) disable iff (rst)
+    (ack && req) |=> (ack));
+
+// P8_RELEASE_TO_IDLE: releasing req after acknowledgement returns the controller to idle.
+p_release_to_idle: assert property (@(posedge clk) disable iff (rst)
+    (ack && !req) |=> (!pending && !ack));

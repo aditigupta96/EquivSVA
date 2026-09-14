@@ -1,0 +1,150 @@
+{
+  "design_id": "timer_0004",
+  "category": "timer_watchdog",
+  "template": "periodic_auto_rearm_timer",
+  "description": "A periodic timer. Start activates the timer, the running stage produces a one-cycle tick, and the timer automatically rearms after each tick.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "state": "IDLE"
+  },
+  "inputs": [
+    "start"
+  ],
+  "outputs": [
+    "active",
+    "tick"
+  ],
+  "states": [
+    "IDLE",
+    "RUN",
+    "TICK"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "active": 0,
+      "tick": 0
+    },
+    "RUN": {
+      "active": 1,
+      "tick": 0
+    },
+    "TICK": {
+      "active": 1,
+      "tick": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "start",
+      "to": "RUN"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "RUN",
+      "when": "true",
+      "to": "TICK"
+    },
+    {
+      "from": "TICK",
+      "when": "true",
+      "to": "RUN"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_TICK_REQUIRES_ACTIVE",
+      "sva_name": "p_tick_requires_active",
+      "type": "invariant",
+      "natural_language": "tick is only asserted while the periodic timer is active",
+      "disable": "rst",
+      "expression": "!tick || active"
+    },
+    {
+      "id": "P2_RESET_IDLE",
+      "sva_name": "p_reset_idle",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the periodic timer to idle",
+      "antecedent": "rst",
+      "consequent": "!active && !tick",
+      "delay": 1
+    },
+    {
+      "id": "P3_START",
+      "sva_name": "p_start",
+      "type": "next_cycle_implication",
+      "natural_language": "start activates the periodic timer",
+      "disable": "rst",
+      "antecedent": "!active && !tick && start",
+      "consequent": "active && !tick",
+      "delay": 1
+    },
+    {
+      "id": "P4_IDLE_HOLDS",
+      "sva_name": "p_idle_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "without start the timer remains idle",
+      "disable": "rst",
+      "antecedent": "!active && !tick && !start",
+      "consequent": "!active && !tick",
+      "delay": 1
+    },
+    {
+      "id": "P5_RUN_TO_TICK",
+      "sva_name": "p_run_to_tick",
+      "type": "next_cycle_implication",
+      "natural_language": "the running timer produces a tick on the following cycle",
+      "disable": "rst",
+      "antecedent": "active && !tick",
+      "consequent": "active && tick",
+      "delay": 1
+    },
+    {
+      "id": "P6_TICK_REARMS",
+      "sva_name": "p_tick_rearms",
+      "type": "next_cycle_implication",
+      "natural_language": "after a tick the periodic timer automatically rearms",
+      "disable": "rst",
+      "antecedent": "active && tick",
+      "consequent": "active && !tick",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "spurious_start",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "start",
+      "new": "true"
+    },
+    {
+      "name": "no_tick",
+      "kind": "force_transition",
+      "from": "RUN",
+      "to": "RUN"
+    },
+    {
+      "name": "tick_stuck",
+      "kind": "force_transition",
+      "from": "TICK",
+      "to": "TICK"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

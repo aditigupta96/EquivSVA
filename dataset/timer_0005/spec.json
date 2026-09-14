@@ -1,0 +1,205 @@
+{
+  "design_id": "timer_0005",
+  "category": "timer_watchdog",
+  "template": "enable_disable_watchdog",
+  "description": "An explicitly enabled watchdog. Raising enable starts monitoring. Deasserting enable from any active stage disables the watchdog. If enable remains asserted, the watchdog progresses through warning to a one-cycle timeout.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "state": "IDLE"
+  },
+  "inputs": [
+    "enable"
+  ],
+  "outputs": [
+    "active",
+    "warning",
+    "timeout"
+  ],
+  "states": [
+    "IDLE",
+    "RUN",
+    "WARNING",
+    "TIMEOUT"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "active": 0,
+      "warning": 0,
+      "timeout": 0
+    },
+    "RUN": {
+      "active": 1,
+      "warning": 0,
+      "timeout": 0
+    },
+    "WARNING": {
+      "active": 1,
+      "warning": 1,
+      "timeout": 0
+    },
+    "TIMEOUT": {
+      "active": 0,
+      "warning": 0,
+      "timeout": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "enable",
+      "to": "RUN"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "RUN",
+      "when": "!enable",
+      "to": "IDLE"
+    },
+    {
+      "from": "RUN",
+      "when": "true",
+      "to": "WARNING"
+    },
+    {
+      "from": "WARNING",
+      "when": "!enable",
+      "to": "IDLE"
+    },
+    {
+      "from": "WARNING",
+      "when": "true",
+      "to": "TIMEOUT"
+    },
+    {
+      "from": "TIMEOUT",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_TIMEOUT_MUTEX",
+      "sva_name": "p_timeout_mutex",
+      "type": "invariant",
+      "natural_language": "timeout is never asserted while the watchdog is active",
+      "disable": "rst",
+      "expression": "!(active && timeout)"
+    },
+    {
+      "id": "P2_RESET_IDLE",
+      "sva_name": "p_reset_idle",
+      "type": "next_cycle_implication",
+      "natural_language": "reset disables the watchdog",
+      "antecedent": "rst",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P3_ENABLE_STARTS",
+      "sva_name": "p_enable_starts",
+      "type": "next_cycle_implication",
+      "natural_language": "asserting enable while idle starts watchdog monitoring",
+      "disable": "rst",
+      "antecedent": "(!active && !warning && !timeout) && enable",
+      "consequent": "active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P4_DISABLED_HOLDS",
+      "sva_name": "p_disabled_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "an idle watchdog remains disabled while enable is low",
+      "disable": "rst",
+      "antecedent": "(!active && !warning && !timeout) && !enable",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P5_RUN_DISABLE",
+      "sva_name": "p_run_disable",
+      "type": "next_cycle_implication",
+      "natural_language": "deasserting enable during the first stage disables the watchdog",
+      "disable": "rst",
+      "antecedent": "active && !warning && !enable",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P6_RUN_PROGRESS",
+      "sva_name": "p_run_progress",
+      "type": "next_cycle_implication",
+      "natural_language": "while enable remains asserted the watchdog progresses to warning",
+      "disable": "rst",
+      "antecedent": "active && !warning && enable",
+      "consequent": "active && warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P7_WARNING_DISABLE",
+      "sva_name": "p_warning_disable",
+      "type": "next_cycle_implication",
+      "natural_language": "deasserting enable during warning disables the watchdog without timeout",
+      "disable": "rst",
+      "antecedent": "active && warning && !enable",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    },
+    {
+      "id": "P8_WARNING_TIMEOUT",
+      "sva_name": "p_warning_timeout",
+      "type": "next_cycle_implication",
+      "natural_language": "remaining enabled through warning produces timeout",
+      "disable": "rst",
+      "antecedent": "active && warning && enable",
+      "consequent": "!active && !warning && timeout",
+      "delay": 1
+    },
+    {
+      "id": "P9_TIMEOUT_PULSE",
+      "sva_name": "p_timeout_pulse",
+      "type": "next_cycle_implication",
+      "natural_language": "timeout lasts one cycle before returning idle",
+      "disable": "rst",
+      "antecedent": "timeout",
+      "consequent": "!active && !warning && !timeout",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_disable",
+      "kind": "replace_transition_guard",
+      "from": "RUN",
+      "old": "!enable",
+      "new": "false"
+    },
+    {
+      "name": "premature_timeout",
+      "kind": "force_transition",
+      "from": "RUN",
+      "to": "TIMEOUT"
+    },
+    {
+      "name": "timeout_stuck",
+      "kind": "force_transition",
+      "from": "TIMEOUT",
+      "to": "TIMEOUT"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}
