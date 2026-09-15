@@ -1,0 +1,147 @@
+{
+  "design_id": "interrupt_0001",
+  "category": "interrupt_control",
+  "template": "latched_interrupt",
+  "description": "Interrupt request is latched until acknowledged.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "irq",
+    "ack"
+  ],
+  "outputs": [
+    "pending"
+  ],
+  "states": [
+    "IDLE",
+    "PENDING"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "pending": 0
+    },
+    "PENDING": {
+      "pending": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "irq",
+      "to": "PENDING"
+    },
+    {
+      "from": "IDLE",
+      "when": "!irq",
+      "to": "IDLE"
+    },
+    {
+      "from": "PENDING",
+      "when": "ack",
+      "to": "IDLE"
+    },
+    {
+      "from": "PENDING",
+      "when": "!ack",
+      "to": "PENDING"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "properties": [
+    {
+      "id": "P1_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset leaves no interrupt pending",
+      "antecedent": "rst",
+      "consequent": "!pending",
+      "delay": 1
+    },
+    {
+      "id": "P2_LATCH",
+      "sva_name": "p_latch",
+      "type": "next_cycle_implication",
+      "natural_language": "an interrupt request becomes pending",
+      "disable": "rst",
+      "antecedent": "!pending && irq",
+      "consequent": "pending",
+      "delay": 1
+    },
+    {
+      "id": "P3_IDLE_HOLD",
+      "sva_name": "p_idle_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "without an interrupt the idle controller remains idle",
+      "disable": "rst",
+      "antecedent": "!pending && !irq",
+      "consequent": "!pending",
+      "delay": 1
+    },
+    {
+      "id": "P4_PENDING_HOLD",
+      "sva_name": "p_pending_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "an unacknowledged interrupt remains pending",
+      "disable": "rst",
+      "antecedent": "pending && !ack",
+      "consequent": "pending",
+      "delay": 1
+    },
+    {
+      "id": "P5_ACK_CLEAR",
+      "sva_name": "p_ack_clear",
+      "type": "next_cycle_implication",
+      "natural_language": "acknowledgement clears a pending interrupt",
+      "disable": "rst",
+      "antecedent": "pending && ack",
+      "consequent": "!pending",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_irq",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "irq",
+      "new": "false"
+    },
+    {
+      "name": "ignore_ack",
+      "kind": "replace_transition_guard",
+      "from": "PENDING",
+      "old": "ack",
+      "new": "false"
+    },
+    {
+      "name": "pending_stuck",
+      "kind": "force_transition",
+      "from": "PENDING",
+      "to": "PENDING"
+    }
+  ]
+}

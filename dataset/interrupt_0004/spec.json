@@ -1,0 +1,204 @@
+{
+  "design_id": "interrupt_0004",
+  "category": "interrupt_control",
+  "template": "preemptive_priority_interrupt",
+  "description": "High-priority interrupts can preempt low-priority service, with direct handoff after high-priority acknowledgement.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "irq0",
+    "irq1",
+    "ack"
+  ],
+  "outputs": [
+    "busy",
+    "high_active",
+    "low_active"
+  ],
+  "states": [
+    "IDLE",
+    "HIGH",
+    "LOW"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "busy": 0,
+      "high_active": 0,
+      "low_active": 0
+    },
+    "HIGH": {
+      "busy": 1,
+      "high_active": 1,
+      "low_active": 0
+    },
+    "LOW": {
+      "busy": 1,
+      "high_active": 0,
+      "low_active": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "irq0",
+      "to": "HIGH"
+    },
+    {
+      "from": "IDLE",
+      "when": "irq1",
+      "to": "LOW"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "LOW",
+      "when": "irq0",
+      "to": "HIGH"
+    },
+    {
+      "from": "LOW",
+      "when": "ack",
+      "to": "IDLE"
+    },
+    {
+      "from": "LOW",
+      "when": "true",
+      "to": "LOW"
+    },
+    {
+      "from": "HIGH",
+      "when": "ack && irq1",
+      "to": "LOW"
+    },
+    {
+      "from": "HIGH",
+      "when": "ack",
+      "to": "IDLE"
+    },
+    {
+      "from": "HIGH",
+      "when": "true",
+      "to": "HIGH"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "properties": [
+    {
+      "id": "P1_MUTEX",
+      "sva_name": "p_mutex",
+      "type": "invariant",
+      "natural_language": "high and low service are mutually exclusive",
+      "disable": "rst",
+      "expression": "!(high_active && low_active)"
+    },
+    {
+      "id": "P2_INITIAL_PRIORITY",
+      "sva_name": "p_initial_priority",
+      "type": "next_cycle_implication",
+      "natural_language": "high priority wins simultaneous requests from idle",
+      "disable": "rst",
+      "antecedent": "!busy && irq0 && irq1",
+      "consequent": "high_active",
+      "delay": 1
+    },
+    {
+      "id": "P3_PREEMPT",
+      "sva_name": "p_preempt",
+      "type": "next_cycle_implication",
+      "natural_language": "a high-priority request preempts low-priority service",
+      "disable": "rst",
+      "antecedent": "low_active && irq0",
+      "consequent": "high_active",
+      "delay": 1
+    },
+    {
+      "id": "P4_LOW_HOLD",
+      "sva_name": "p_low_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "low service continues without acknowledgement or preemption",
+      "disable": "rst",
+      "antecedent": "low_active && !irq0 && !ack",
+      "consequent": "low_active",
+      "delay": 1
+    },
+    {
+      "id": "P5_HIGH_HOLD",
+      "sva_name": "p_high_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "high service continues without acknowledgement",
+      "disable": "rst",
+      "antecedent": "high_active && !ack",
+      "consequent": "high_active",
+      "delay": 1
+    },
+    {
+      "id": "P6_HANDOFF",
+      "sva_name": "p_handoff",
+      "type": "next_cycle_implication",
+      "natural_language": "acknowledging high service hands directly to waiting low priority work",
+      "disable": "rst",
+      "antecedent": "high_active && ack && irq1",
+      "consequent": "low_active",
+      "delay": 1
+    },
+    {
+      "id": "P7_HIGH_CLEAR",
+      "sva_name": "p_high_clear",
+      "type": "next_cycle_implication",
+      "natural_language": "high service returns idle when acknowledged without a waiting low interrupt",
+      "disable": "rst",
+      "antecedent": "high_active && ack && !irq1",
+      "consequent": "!busy",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "no_preemption",
+      "kind": "replace_transition_guard",
+      "from": "LOW",
+      "old": "irq0",
+      "new": "false"
+    },
+    {
+      "name": "drop_waiting_low",
+      "kind": "replace_transition_guard",
+      "from": "HIGH",
+      "old": "ack && irq1",
+      "new": "false"
+    },
+    {
+      "name": "low_stuck",
+      "kind": "force_transition",
+      "from": "LOW",
+      "to": "LOW"
+    }
+  ]
+}

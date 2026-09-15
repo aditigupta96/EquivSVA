@@ -1,0 +1,63 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "high and low service are mutually exclusive",
+    "disable": "rst",
+    "expression": "!(high_active && low_active)"
+  },
+  {
+    "id": "P2_INITIAL_PRIORITY",
+    "type": "next_cycle_implication",
+    "natural_language": "high priority wins simultaneous requests from idle",
+    "disable": "rst",
+    "antecedent": "!busy && irq0 && irq1",
+    "consequent": "high_active",
+    "delay": 1
+  },
+  {
+    "id": "P3_PREEMPT",
+    "type": "next_cycle_implication",
+    "natural_language": "a high-priority request preempts low-priority service",
+    "disable": "rst",
+    "antecedent": "low_active && irq0",
+    "consequent": "high_active",
+    "delay": 1
+  },
+  {
+    "id": "P4_LOW_HOLD",
+    "type": "next_cycle_implication",
+    "natural_language": "low service continues without acknowledgement or preemption",
+    "disable": "rst",
+    "antecedent": "low_active && !irq0 && !ack",
+    "consequent": "low_active",
+    "delay": 1
+  },
+  {
+    "id": "P5_HIGH_HOLD",
+    "type": "next_cycle_implication",
+    "natural_language": "high service continues without acknowledgement",
+    "disable": "rst",
+    "antecedent": "high_active && !ack",
+    "consequent": "high_active",
+    "delay": 1
+  },
+  {
+    "id": "P6_HANDOFF",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledging high service hands directly to waiting low priority work",
+    "disable": "rst",
+    "antecedent": "high_active && ack && irq1",
+    "consequent": "low_active",
+    "delay": 1
+  },
+  {
+    "id": "P7_HIGH_CLEAR",
+    "type": "next_cycle_implication",
+    "natural_language": "high service returns idle when acknowledged without a waiting low interrupt",
+    "disable": "rst",
+    "antecedent": "high_active && ack && !irq1",
+    "consequent": "!busy",
+    "delay": 1
+  }
+]

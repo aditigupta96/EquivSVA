@@ -1,0 +1,61 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "the two interrupt sources are never serviced simultaneously",
+    "disable": "rst",
+    "expression": "!(service0 && service1)"
+  },
+  {
+    "id": "P2_BUSY",
+    "type": "invariant",
+    "natural_language": "busy agrees with servicing either interrupt",
+    "disable": "rst",
+    "expression": "busy == (service0 || service1)"
+  },
+  {
+    "id": "P3_PRIORITY",
+    "type": "next_cycle_implication",
+    "natural_language": "source zero wins when both unmasked sources request simultaneously",
+    "disable": "rst",
+    "antecedent": "!busy && irq0 && !mask0 && irq1 && !mask1",
+    "consequent": "service0",
+    "delay": 1
+  },
+  {
+    "id": "P4_SOURCE1",
+    "type": "next_cycle_implication",
+    "natural_language": "source one is serviced when source zero is unavailable",
+    "disable": "rst",
+    "antecedent": "!busy && !(irq0 && !mask0) && irq1 && !mask1",
+    "consequent": "service1",
+    "delay": 1
+  },
+  {
+    "id": "P5_HOLD0",
+    "type": "next_cycle_implication",
+    "natural_language": "source zero remains active until acknowledgement",
+    "disable": "rst",
+    "antecedent": "service0 && !ack",
+    "consequent": "service0",
+    "delay": 1
+  },
+  {
+    "id": "P6_HOLD1",
+    "type": "next_cycle_implication",
+    "natural_language": "source one remains active until acknowledgement",
+    "disable": "rst",
+    "antecedent": "service1 && !ack",
+    "consequent": "service1",
+    "delay": 1
+  },
+  {
+    "id": "P7_ACK_CLEAR",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledgement returns the controller to idle",
+    "disable": "rst",
+    "antecedent": "busy && ack",
+    "consequent": "!busy",
+    "delay": 1
+  }
+]

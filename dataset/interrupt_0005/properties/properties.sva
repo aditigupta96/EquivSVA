@@ -1,0 +1,34 @@
+// Generated from spec.json.
+// Design: interrupt_0005
+
+// P1_EXCLUSIVE: pending busy and cooldown phases never overlap.
+p_exclusive: assert property (@(posedge clk) disable iff (rst)
+    !((pending && busy) || (pending && cooldown) || (busy && cooldown)));
+
+// P2_RESET: reset returns the controller to idle.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (!pending && !busy && !cooldown));
+
+// P3_IRQ_PENDING: an interrupt enters pending state.
+p_irq_pending: assert property (@(posedge clk) disable iff (rst)
+    (!pending && !busy && !cooldown && irq) |=> (pending));
+
+// P4_PENDING_HOLD: pending state waits for service acceptance.
+p_pending_hold: assert property (@(posedge clk) disable iff (rst)
+    (pending && !accept) |=> (pending));
+
+// P5_ACCEPT_SERVICE: acceptance begins interrupt service.
+p_accept_service: assert property (@(posedge clk) disable iff (rst)
+    (pending && accept) |=> (busy));
+
+// P6_DONE_COOLDOWN: completed service enters cooldown.
+p_done_cooldown: assert property (@(posedge clk) disable iff (rst)
+    (busy && done) |=> (cooldown));
+
+// P7_COOLDOWN_HOLD: cooldown remains active while the interrupt stays asserted.
+p_cooldown_hold: assert property (@(posedge clk) disable iff (rst)
+    (cooldown && irq) |=> (cooldown));
+
+// P8_REARM: cooldown returns idle after the interrupt is released.
+p_rearm: assert property (@(posedge clk) disable iff (rst)
+    (cooldown && !irq) |=> (!pending && !busy && !cooldown));

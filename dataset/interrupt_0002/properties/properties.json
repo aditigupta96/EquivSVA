@@ -1,0 +1,46 @@
+[
+  {
+    "id": "P1_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears pending state",
+    "antecedent": "rst",
+    "consequent": "!pending",
+    "delay": 1
+  },
+  {
+    "id": "P2_ACCEPT_UNMASKED",
+    "type": "next_cycle_implication",
+    "natural_language": "an unmasked interrupt becomes pending",
+    "disable": "rst",
+    "antecedent": "!pending && irq && !mask",
+    "consequent": "pending",
+    "delay": 1
+  },
+  {
+    "id": "P3_MASKED_IGNORED",
+    "type": "next_cycle_implication",
+    "natural_language": "a masked interrupt is ignored",
+    "disable": "rst",
+    "antecedent": "!pending && irq && mask",
+    "consequent": "!pending",
+    "delay": 1
+  },
+  {
+    "id": "P4_PENDING_HOLD",
+    "type": "next_cycle_implication",
+    "natural_language": "masking does not erase an already pending interrupt",
+    "disable": "rst",
+    "antecedent": "pending && !ack",
+    "consequent": "pending",
+    "delay": 1
+  },
+  {
+    "id": "P5_ACK_CLEAR",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledgement clears pending state",
+    "disable": "rst",
+    "antecedent": "pending && ack",
+    "consequent": "!pending",
+    "delay": 1
+  }
+]

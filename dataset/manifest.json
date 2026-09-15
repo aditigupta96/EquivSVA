@@ -25,6 +25,12 @@
       "properties": 32,
       "rtl_variants": 20
     },
+    "interrupt_control": {
+      "families": 5,
+      "mutants": 15,
+      "properties": 32,
+      "rtl_variants": 20
+    },
     "timer_watchdog": {
       "families": 5,
       "mutants": 15,
@@ -692,6 +698,182 @@
       }
     },
     {
+      "category": "interrupt_control",
+      "description": "Interrupt request is latched until acknowledged.",
+      "design_id": "interrupt_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq",
+        "ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "pending"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "PENDING"
+      ],
+      "template": "latched_interrupt",
+      "validation": {
+        "report": "build/validation/interrupt_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "interrupt_control",
+      "description": "Masked interrupts are ignored while accepted interrupts remain latched until acknowledgement.",
+      "design_id": "interrupt_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq",
+        "mask",
+        "ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "pending"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "PENDING"
+      ],
+      "template": "masked_interrupt",
+      "validation": {
+        "report": "build/validation/interrupt_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "interrupt_control",
+      "description": "Two-source interrupt controller with masks and fixed priority for source zero.",
+      "design_id": "interrupt_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq0",
+        "irq1",
+        "mask0",
+        "mask1",
+        "ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "busy",
+        "service0",
+        "service1"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "SERVE0",
+        "SERVE1"
+      ],
+      "template": "two_source_masked_priority",
+      "validation": {
+        "report": "build/validation/interrupt_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "interrupt_control",
+      "description": "High-priority interrupts can preempt low-priority service, with direct handoff after high-priority acknowledgement.",
+      "design_id": "interrupt_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq0",
+        "irq1",
+        "ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "busy",
+        "high_active",
+        "low_active"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "HIGH",
+        "LOW"
+      ],
+      "template": "preemptive_priority_interrupt",
+      "validation": {
+        "report": "build/validation/interrupt_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "interrupt_control",
+      "description": "Interrupt progresses through pending, service, and cooldown phases before rearming.",
+      "design_id": "interrupt_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq",
+        "accept",
+        "done"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "pending",
+        "busy",
+        "cooldown"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "PENDING",
+        "SERVICE",
+        "COOLDOWN"
+      ],
+      "template": "interrupt_service_lifecycle",
+      "validation": {
+        "report": "build/validation/interrupt_0005.json",
+        "status": "passed"
+      }
+    },
+    {
       "category": "timer_watchdog",
       "description": "A watchdog controller with an early-warning stage. Start begins monitoring, kick restarts the watchdog, warning is asserted before expiration, and timeout is asserted for one cycle if no kick arrives.",
       "design_id": "timer_0001",
@@ -874,11 +1056,11 @@
   ],
   "schema_version": "1.0",
   "summary": {
-    "categories": 5,
-    "expected_formal_jobs": 425,
-    "families": 25,
-    "mutants": 75,
-    "properties": 187,
-    "rtl_variants": 100
+    "categories": 6,
+    "expected_formal_jobs": 510,
+    "families": 30,
+    "mutants": 90,
+    "properties": 219,
+    "rtl_variants": 120
   }
 }

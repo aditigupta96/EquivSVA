@@ -1,0 +1,22 @@
+// Generated from spec.json.
+// Design: interrupt_0001
+
+// P1_RESET: reset leaves no interrupt pending.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (!pending));
+
+// P2_LATCH: an interrupt request becomes pending.
+p_latch: assert property (@(posedge clk) disable iff (rst)
+    (!pending && irq) |=> (pending));
+
+// P3_IDLE_HOLD: without an interrupt the idle controller remains idle.
+p_idle_hold: assert property (@(posedge clk) disable iff (rst)
+    (!pending && !irq) |=> (!pending));
+
+// P4_PENDING_HOLD: an unacknowledged interrupt remains pending.
+p_pending_hold: assert property (@(posedge clk) disable iff (rst)
+    (pending && !ack) |=> (pending));
+
+// P5_ACK_CLEAR: acknowledgement clears a pending interrupt.
+p_ack_clear: assert property (@(posedge clk) disable iff (rst)
+    (pending && ack) |=> (!pending));

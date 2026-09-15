@@ -1,0 +1,149 @@
+{
+  "design_id": "interrupt_0002",
+  "category": "interrupt_control",
+  "template": "masked_interrupt",
+  "description": "Masked interrupts are ignored while accepted interrupts remain latched until acknowledgement.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "irq",
+    "mask",
+    "ack"
+  ],
+  "outputs": [
+    "pending"
+  ],
+  "states": [
+    "IDLE",
+    "PENDING"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "pending": 0
+    },
+    "PENDING": {
+      "pending": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "irq && !mask",
+      "to": "PENDING"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "PENDING",
+      "when": "ack",
+      "to": "IDLE"
+    },
+    {
+      "from": "PENDING",
+      "when": "true",
+      "to": "PENDING"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "properties": [
+    {
+      "id": "P1_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset clears pending state",
+      "antecedent": "rst",
+      "consequent": "!pending",
+      "delay": 1
+    },
+    {
+      "id": "P2_ACCEPT_UNMASKED",
+      "sva_name": "p_accept_unmasked",
+      "type": "next_cycle_implication",
+      "natural_language": "an unmasked interrupt becomes pending",
+      "disable": "rst",
+      "antecedent": "!pending && irq && !mask",
+      "consequent": "pending",
+      "delay": 1
+    },
+    {
+      "id": "P3_MASKED_IGNORED",
+      "sva_name": "p_masked_ignored",
+      "type": "next_cycle_implication",
+      "natural_language": "a masked interrupt is ignored",
+      "disable": "rst",
+      "antecedent": "!pending && irq && mask",
+      "consequent": "!pending",
+      "delay": 1
+    },
+    {
+      "id": "P4_PENDING_HOLD",
+      "sva_name": "p_pending_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "masking does not erase an already pending interrupt",
+      "disable": "rst",
+      "antecedent": "pending && !ack",
+      "consequent": "pending",
+      "delay": 1
+    },
+    {
+      "id": "P5_ACK_CLEAR",
+      "sva_name": "p_ack_clear",
+      "type": "next_cycle_implication",
+      "natural_language": "acknowledgement clears pending state",
+      "disable": "rst",
+      "antecedent": "pending && ack",
+      "consequent": "!pending",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_mask",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "irq && !mask",
+      "new": "irq"
+    },
+    {
+      "name": "mask_clears_pending",
+      "kind": "replace_transition_guard",
+      "from": "PENDING",
+      "old": "ack",
+      "new": "ack || mask"
+    },
+    {
+      "name": "ignore_ack",
+      "kind": "replace_transition_guard",
+      "from": "PENDING",
+      "old": "ack",
+      "new": "false"
+    }
+  ]
+}

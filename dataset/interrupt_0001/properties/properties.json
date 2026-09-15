@@ -1,0 +1,46 @@
+[
+  {
+    "id": "P1_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset leaves no interrupt pending",
+    "antecedent": "rst",
+    "consequent": "!pending",
+    "delay": 1
+  },
+  {
+    "id": "P2_LATCH",
+    "type": "next_cycle_implication",
+    "natural_language": "an interrupt request becomes pending",
+    "disable": "rst",
+    "antecedent": "!pending && irq",
+    "consequent": "pending",
+    "delay": 1
+  },
+  {
+    "id": "P3_IDLE_HOLD",
+    "type": "next_cycle_implication",
+    "natural_language": "without an interrupt the idle controller remains idle",
+    "disable": "rst",
+    "antecedent": "!pending && !irq",
+    "consequent": "!pending",
+    "delay": 1
+  },
+  {
+    "id": "P4_PENDING_HOLD",
+    "type": "next_cycle_implication",
+    "natural_language": "an unacknowledged interrupt remains pending",
+    "disable": "rst",
+    "antecedent": "pending && !ack",
+    "consequent": "pending",
+    "delay": 1
+  },
+  {
+    "id": "P5_ACK_CLEAR",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledgement clears a pending interrupt",
+    "disable": "rst",
+    "antecedent": "pending && ack",
+    "consequent": "!pending",
+    "delay": 1
+  }
+]

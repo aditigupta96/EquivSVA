@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: interrupt_0004
+
+// P1_MUTEX: high and low service are mutually exclusive.
+p_mutex: assert property (@(posedge clk) disable iff (rst)
+    !(high_active && low_active));
+
+// P2_INITIAL_PRIORITY: high priority wins simultaneous requests from idle.
+p_initial_priority: assert property (@(posedge clk) disable iff (rst)
+    (!busy && irq0 && irq1) |=> (high_active));
+
+// P3_PREEMPT: a high-priority request preempts low-priority service.
+p_preempt: assert property (@(posedge clk) disable iff (rst)
+    (low_active && irq0) |=> (high_active));
+
+// P4_LOW_HOLD: low service continues without acknowledgement or preemption.
+p_low_hold: assert property (@(posedge clk) disable iff (rst)
+    (low_active && !irq0 && !ack) |=> (low_active));
+
+// P5_HIGH_HOLD: high service continues without acknowledgement.
+p_high_hold: assert property (@(posedge clk) disable iff (rst)
+    (high_active && !ack) |=> (high_active));
+
+// P6_HANDOFF: acknowledging high service hands directly to waiting low priority work.
+p_handoff: assert property (@(posedge clk) disable iff (rst)
+    (high_active && ack && irq1) |=> (low_active));
+
+// P7_HIGH_CLEAR: high service returns idle when acknowledged without a waiting low interrupt.
+p_high_clear: assert property (@(posedge clk) disable iff (rst)
+    (high_active && ack && !irq1) |=> (!busy));

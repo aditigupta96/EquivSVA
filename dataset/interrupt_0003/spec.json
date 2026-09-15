@@ -1,0 +1,194 @@
+{
+  "design_id": "interrupt_0003",
+  "category": "interrupt_control",
+  "template": "two_source_masked_priority",
+  "description": "Two-source interrupt controller with masks and fixed priority for source zero.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "irq0",
+    "irq1",
+    "mask0",
+    "mask1",
+    "ack"
+  ],
+  "outputs": [
+    "busy",
+    "service0",
+    "service1"
+  ],
+  "states": [
+    "IDLE",
+    "SERVE0",
+    "SERVE1"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "busy": 0,
+      "service0": 0,
+      "service1": 0
+    },
+    "SERVE0": {
+      "busy": 1,
+      "service0": 1,
+      "service1": 0
+    },
+    "SERVE1": {
+      "busy": 1,
+      "service0": 0,
+      "service1": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "irq0 && !mask0",
+      "to": "SERVE0"
+    },
+    {
+      "from": "IDLE",
+      "when": "irq1 && !mask1",
+      "to": "SERVE1"
+    },
+    {
+      "from": "IDLE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "SERVE0",
+      "when": "ack",
+      "to": "IDLE"
+    },
+    {
+      "from": "SERVE0",
+      "when": "true",
+      "to": "SERVE0"
+    },
+    {
+      "from": "SERVE1",
+      "when": "ack",
+      "to": "IDLE"
+    },
+    {
+      "from": "SERVE1",
+      "when": "true",
+      "to": "SERVE1"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "properties": [
+    {
+      "id": "P1_MUTEX",
+      "sva_name": "p_mutex",
+      "type": "invariant",
+      "natural_language": "the two interrupt sources are never serviced simultaneously",
+      "disable": "rst",
+      "expression": "!(service0 && service1)"
+    },
+    {
+      "id": "P2_BUSY",
+      "sva_name": "p_busy",
+      "type": "invariant",
+      "natural_language": "busy agrees with servicing either interrupt",
+      "disable": "rst",
+      "expression": "busy == (service0 || service1)"
+    },
+    {
+      "id": "P3_PRIORITY",
+      "sva_name": "p_priority",
+      "type": "next_cycle_implication",
+      "natural_language": "source zero wins when both unmasked sources request simultaneously",
+      "disable": "rst",
+      "antecedent": "!busy && irq0 && !mask0 && irq1 && !mask1",
+      "consequent": "service0",
+      "delay": 1
+    },
+    {
+      "id": "P4_SOURCE1",
+      "sva_name": "p_source1",
+      "type": "next_cycle_implication",
+      "natural_language": "source one is serviced when source zero is unavailable",
+      "disable": "rst",
+      "antecedent": "!busy && !(irq0 && !mask0) && irq1 && !mask1",
+      "consequent": "service1",
+      "delay": 1
+    },
+    {
+      "id": "P5_HOLD0",
+      "sva_name": "p_hold0",
+      "type": "next_cycle_implication",
+      "natural_language": "source zero remains active until acknowledgement",
+      "disable": "rst",
+      "antecedent": "service0 && !ack",
+      "consequent": "service0",
+      "delay": 1
+    },
+    {
+      "id": "P6_HOLD1",
+      "sva_name": "p_hold1",
+      "type": "next_cycle_implication",
+      "natural_language": "source one remains active until acknowledgement",
+      "disable": "rst",
+      "antecedent": "service1 && !ack",
+      "consequent": "service1",
+      "delay": 1
+    },
+    {
+      "id": "P7_ACK_CLEAR",
+      "sva_name": "p_ack_clear",
+      "type": "next_cycle_implication",
+      "natural_language": "acknowledgement returns the controller to idle",
+      "disable": "rst",
+      "antecedent": "busy && ack",
+      "consequent": "!busy",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "wrong_priority",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "irq0 && !mask0",
+      "new": "irq0 && !mask0 && !(irq1 && !mask1)"
+    },
+    {
+      "name": "ignore_mask0",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "irq0 && !mask0",
+      "new": "irq0"
+    },
+    {
+      "name": "service0_stuck",
+      "kind": "force_transition",
+      "from": "SERVE0",
+      "to": "SERVE0"
+    }
+  ]
+}

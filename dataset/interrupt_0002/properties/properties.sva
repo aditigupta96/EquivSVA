@@ -1,0 +1,22 @@
+// Generated from spec.json.
+// Design: interrupt_0002
+
+// P1_RESET: reset clears pending state.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (!pending));
+
+// P2_ACCEPT_UNMASKED: an unmasked interrupt becomes pending.
+p_accept_unmasked: assert property (@(posedge clk) disable iff (rst)
+    (!pending && irq && !mask) |=> (pending));
+
+// P3_MASKED_IGNORED: a masked interrupt is ignored.
+p_masked_ignored: assert property (@(posedge clk) disable iff (rst)
+    (!pending && irq && mask) |=> (!pending));
+
+// P4_PENDING_HOLD: masking does not erase an already pending interrupt.
+p_pending_hold: assert property (@(posedge clk) disable iff (rst)
+    (pending && !ack) |=> (pending));
+
+// P5_ACK_CLEAR: acknowledgement clears pending state.
+p_ack_clear: assert property (@(posedge clk) disable iff (rst)
+    (pending && ack) |=> (!pending));

@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: interrupt_0003
+
+// P1_MUTEX: the two interrupt sources are never serviced simultaneously.
+p_mutex: assert property (@(posedge clk) disable iff (rst)
+    !(service0 && service1));
+
+// P2_BUSY: busy agrees with servicing either interrupt.
+p_busy: assert property (@(posedge clk) disable iff (rst)
+    busy == (service0 || service1));
+
+// P3_PRIORITY: source zero wins when both unmasked sources request simultaneously.
+p_priority: assert property (@(posedge clk) disable iff (rst)
+    (!busy && irq0 && !mask0 && irq1 && !mask1) |=> (service0));
+
+// P4_SOURCE1: source one is serviced when source zero is unavailable.
+p_source1: assert property (@(posedge clk) disable iff (rst)
+    (!busy && !(irq0 && !mask0) && irq1 && !mask1) |=> (service1));
+
+// P5_HOLD0: source zero remains active until acknowledgement.
+p_hold0: assert property (@(posedge clk) disable iff (rst)
+    (service0 && !ack) |=> (service0));
+
+// P6_HOLD1: source one remains active until acknowledgement.
+p_hold1: assert property (@(posedge clk) disable iff (rst)
+    (service1 && !ack) |=> (service1));
+
+// P7_ACK_CLEAR: acknowledgement returns the controller to idle.
+p_ack_clear: assert property (@(posedge clk) disable iff (rst)
+    (busy && ack) |=> (!busy));

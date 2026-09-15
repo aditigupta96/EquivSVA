@@ -1,0 +1,214 @@
+{
+  "design_id": "interrupt_0005",
+  "category": "interrupt_control",
+  "template": "interrupt_service_lifecycle",
+  "description": "Interrupt progresses through pending, service, and cooldown phases before rearming.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "irq",
+    "accept",
+    "done"
+  ],
+  "outputs": [
+    "pending",
+    "busy",
+    "cooldown"
+  ],
+  "states": [
+    "IDLE",
+    "PENDING",
+    "SERVICE",
+    "COOLDOWN"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "pending": 0,
+      "busy": 0,
+      "cooldown": 0
+    },
+    "PENDING": {
+      "pending": 1,
+      "busy": 0,
+      "cooldown": 0
+    },
+    "SERVICE": {
+      "pending": 0,
+      "busy": 1,
+      "cooldown": 0
+    },
+    "COOLDOWN": {
+      "pending": 0,
+      "busy": 0,
+      "cooldown": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "irq",
+      "to": "PENDING"
+    },
+    {
+      "from": "IDLE",
+      "when": "!irq",
+      "to": "IDLE"
+    },
+    {
+      "from": "PENDING",
+      "when": "accept",
+      "to": "SERVICE"
+    },
+    {
+      "from": "PENDING",
+      "when": "!accept",
+      "to": "PENDING"
+    },
+    {
+      "from": "SERVICE",
+      "when": "done",
+      "to": "COOLDOWN"
+    },
+    {
+      "from": "SERVICE",
+      "when": "!done",
+      "to": "SERVICE"
+    },
+    {
+      "from": "COOLDOWN",
+      "when": "!irq",
+      "to": "IDLE"
+    },
+    {
+      "from": "COOLDOWN",
+      "when": "irq",
+      "to": "COOLDOWN"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "properties": [
+    {
+      "id": "P1_EXCLUSIVE",
+      "sva_name": "p_exclusive",
+      "type": "invariant",
+      "natural_language": "pending busy and cooldown phases never overlap",
+      "disable": "rst",
+      "expression": "!((pending && busy) || (pending && cooldown) || (busy && cooldown))"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to idle",
+      "antecedent": "rst",
+      "consequent": "!pending && !busy && !cooldown",
+      "delay": 1
+    },
+    {
+      "id": "P3_IRQ_PENDING",
+      "sva_name": "p_irq_pending",
+      "type": "next_cycle_implication",
+      "natural_language": "an interrupt enters pending state",
+      "disable": "rst",
+      "antecedent": "!pending && !busy && !cooldown && irq",
+      "consequent": "pending",
+      "delay": 1
+    },
+    {
+      "id": "P4_PENDING_HOLD",
+      "sva_name": "p_pending_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "pending state waits for service acceptance",
+      "disable": "rst",
+      "antecedent": "pending && !accept",
+      "consequent": "pending",
+      "delay": 1
+    },
+    {
+      "id": "P5_ACCEPT_SERVICE",
+      "sva_name": "p_accept_service",
+      "type": "next_cycle_implication",
+      "natural_language": "acceptance begins interrupt service",
+      "disable": "rst",
+      "antecedent": "pending && accept",
+      "consequent": "busy",
+      "delay": 1
+    },
+    {
+      "id": "P6_DONE_COOLDOWN",
+      "sva_name": "p_done_cooldown",
+      "type": "next_cycle_implication",
+      "natural_language": "completed service enters cooldown",
+      "disable": "rst",
+      "antecedent": "busy && done",
+      "consequent": "cooldown",
+      "delay": 1
+    },
+    {
+      "id": "P7_COOLDOWN_HOLD",
+      "sva_name": "p_cooldown_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "cooldown remains active while the interrupt stays asserted",
+      "disable": "rst",
+      "antecedent": "cooldown && irq",
+      "consequent": "cooldown",
+      "delay": 1
+    },
+    {
+      "id": "P8_REARM",
+      "sva_name": "p_rearm",
+      "type": "next_cycle_implication",
+      "natural_language": "cooldown returns idle after the interrupt is released",
+      "disable": "rst",
+      "antecedent": "cooldown && !irq",
+      "consequent": "!pending && !busy && !cooldown",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_accept",
+      "kind": "replace_transition_guard",
+      "from": "PENDING",
+      "old": "accept",
+      "new": "false"
+    },
+    {
+      "name": "ignore_done",
+      "kind": "replace_transition_guard",
+      "from": "SERVICE",
+      "old": "done",
+      "new": "false"
+    },
+    {
+      "name": "cooldown_stuck",
+      "kind": "force_transition",
+      "from": "COOLDOWN",
+      "to": "COOLDOWN"
+    }
+  ]
+}

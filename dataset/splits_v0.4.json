@@ -1,0 +1,43 @@
+{
+  "benchmark": "EquivSVA",
+  "version": "0.4",
+  "split_unit": "behavior_family",
+  "policy": "Family-safe stratified split. All RTL variants, properties, and mutants for a behavior family remain in the same split. Existing v0.3 assignments are preserved.",
+  "seed": 20260913,
+  "train": [
+    "handshake_0003",
+    "handshake_0004",
+    "handshake_0005",
+    "timer_0001",
+    "timer_0002",
+    "timer_0003",
+    "arbiter_0001",
+    "arbiter_0002",
+    "arbiter_0005",
+    "counter_0001",
+    "counter_0002",
+    "counter_0005",
+    "fifo_0001",
+    "fifo_0002",
+    "fifo_0005",
+    "interrupt_0001",
+    "interrupt_0002",
+    "interrupt_0005"
+  ],
+  "dev": [
+    "handshake_0002",
+    "timer_0005",
+    "arbiter_0004",
+    "counter_0004",
+    "fifo_0004",
+    "interrupt_0004"
+  ],
+  "test": [
+    "handshake_0001",
+    "timer_0004",
+    "arbiter_0003",
+    "counter_0003",
+    "fifo_0003",
+    "interrupt_0003"
+  ]
+}

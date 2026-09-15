@@ -1,0 +1,71 @@
+[
+  {
+    "id": "P1_EXCLUSIVE",
+    "type": "invariant",
+    "natural_language": "pending busy and cooldown phases never overlap",
+    "disable": "rst",
+    "expression": "!((pending && busy) || (pending && cooldown) || (busy && cooldown))"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to idle",
+    "antecedent": "rst",
+    "consequent": "!pending && !busy && !cooldown",
+    "delay": 1
+  },
+  {
+    "id": "P3_IRQ_PENDING",
+    "type": "next_cycle_implication",
+    "natural_language": "an interrupt enters pending state",
+    "disable": "rst",
+    "antecedent": "!pending && !busy && !cooldown && irq",
+    "consequent": "pending",
+    "delay": 1
+  },
+  {
+    "id": "P4_PENDING_HOLD",
+    "type": "next_cycle_implication",
+    "natural_language": "pending state waits for service acceptance",
+    "disable": "rst",
+    "antecedent": "pending && !accept",
+    "consequent": "pending",
+    "delay": 1
+  },
+  {
+    "id": "P5_ACCEPT_SERVICE",
+    "type": "next_cycle_implication",
+    "natural_language": "acceptance begins interrupt service",
+    "disable": "rst",
+    "antecedent": "pending && accept",
+    "consequent": "busy",
+    "delay": 1
+  },
+  {
+    "id": "P6_DONE_COOLDOWN",
+    "type": "next_cycle_implication",
+    "natural_language": "completed service enters cooldown",
+    "disable": "rst",
+    "antecedent": "busy && done",
+    "consequent": "cooldown",
+    "delay": 1
+  },
+  {
+    "id": "P7_COOLDOWN_HOLD",
+    "type": "next_cycle_implication",
+    "natural_language": "cooldown remains active while the interrupt stays asserted",
+    "disable": "rst",
+    "antecedent": "cooldown && irq",
+    "consequent": "cooldown",
+    "delay": 1
+  },
+  {
+    "id": "P8_REARM",
+    "type": "next_cycle_implication",
+    "natural_language": "cooldown returns idle after the interrupt is released",
+    "disable": "rst",
+    "antecedent": "cooldown && !irq",
+    "consequent": "!pending && !busy && !cooldown",
+    "delay": 1
+  }
+]
