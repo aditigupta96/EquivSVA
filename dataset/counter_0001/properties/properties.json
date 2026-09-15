@@ -1,0 +1,59 @@
+[
+  {
+    "id": "P1_AT_MAX_CONSISTENT",
+    "sva_name": "p_at_max_consistent",
+    "type": "invariant",
+    "natural_language": "at_max is asserted exactly when count equals three",
+    "disable": "rst",
+    "expression": "at_max == (count == 2'd3)"
+  },
+  {
+    "id": "P2_RESET_ZERO",
+    "sva_name": "p_reset_zero",
+    "type": "next_cycle_implication",
+    "natural_language": "a reset cycle leaves the counter at zero",
+    "antecedent": "rst",
+    "consequent": "(count == 2'd0) && !at_max",
+    "delay": 1
+  },
+  {
+    "id": "P3_CLEAR_ZERO",
+    "sva_name": "p_clear_zero",
+    "type": "next_cycle_implication",
+    "natural_language": "clear has priority and resets the count to zero",
+    "disable": "rst",
+    "antecedent": "clear",
+    "consequent": "(count == 2'd0) && !at_max",
+    "delay": 1
+  },
+  {
+    "id": "P4_DISABLED_HOLDS",
+    "sva_name": "p_disabled_holds",
+    "type": "next_cycle_implication",
+    "natural_language": "without clear or enable the counter holds its value",
+    "disable": "rst",
+    "antecedent": "!clear && !enable",
+    "consequent": "count == $past(count)",
+    "delay": 1
+  },
+  {
+    "id": "P5_ENABLED_INCREMENTS",
+    "sva_name": "p_enabled_increments",
+    "type": "next_cycle_implication",
+    "natural_language": "when enabled below the maximum the counter increments by one",
+    "disable": "rst",
+    "antecedent": "!clear && enable && (count < 2'd3)",
+    "consequent": "count == ($past(count) + 2'd1)",
+    "delay": 1
+  },
+  {
+    "id": "P6_MAX_SATURATES",
+    "sva_name": "p_max_saturates",
+    "type": "next_cycle_implication",
+    "natural_language": "when enabled at the maximum the counter remains saturated",
+    "disable": "rst",
+    "antecedent": "!clear && enable && (count == 2'd3)",
+    "consequent": "(count == 2'd3) && at_max",
+    "delay": 1
+  }
+]

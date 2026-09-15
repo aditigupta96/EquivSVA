@@ -31,6 +31,13 @@ for spec_path in specs:
     print(f"Validating {design_id}")
     print("=" * 60)
 
+    family_summary_path = SUMMARY_DIR / f"{design_id}.json"
+
+    # Remove any previous report so a generation/setup failure
+    # cannot be mistaken for fresh validation results.
+    if family_summary_path.exists():
+        family_summary_path.unlink()
+
     result = subprocess.run(
         [
             sys.executable,
@@ -40,8 +47,6 @@ for spec_path in specs:
         cwd=ROOT,
         text=True,
     )
-
-    family_summary_path = SUMMARY_DIR / f"{design_id}.json"
 
     jobs = []
 

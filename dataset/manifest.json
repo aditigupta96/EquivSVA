@@ -7,6 +7,12 @@
       "properties": 52,
       "rtl_variants": 20
     },
+    "counter": {
+      "families": 5,
+      "mutants": 15,
+      "properties": 31,
+      "rtl_variants": 20
+    },
     "handshake": {
       "families": 5,
       "mutants": 15,
@@ -30,6 +36,7 @@
         "req0",
         "req1"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "grant0",
@@ -63,6 +70,7 @@
         "req0",
         "req1"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "grant0",
@@ -96,6 +104,7 @@
         "req0",
         "req1"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "grant0",
@@ -129,6 +138,7 @@
         "req0",
         "req1"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "grant0",
@@ -163,6 +173,7 @@
         "req1",
         "req2"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "grant0",
@@ -190,6 +201,162 @@
       }
     },
     {
+      "category": "counter",
+      "description": "Two-bit saturating up-counter with synchronous clear and enable.",
+      "design_id": "counter_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "enable"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "at_max"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "saturating_up_counter",
+      "validation": {
+        "report": "build/validation/counter_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "counter",
+      "description": "Two-bit modulo up-counter that wraps from three to zero.",
+      "design_id": "counter_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "enable"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "is_zero"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "modulo_up_counter",
+      "validation": {
+        "report": "build/validation/counter_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "counter",
+      "description": "Two-bit saturating counter that increments or decrements under direction control.",
+      "design_id": "counter_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "enable",
+        "down"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "at_min",
+        "at_max"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "bidirectional_saturating_counter",
+      "validation": {
+        "report": "build/validation/counter_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "counter",
+      "description": "Two-bit saturating up-counter with a programmable synchronous load value.",
+      "design_id": "counter_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "load",
+        "enable",
+        "load_value"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "at_max"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "programmable_load_up_counter",
+      "validation": {
+        "report": "build/validation/counter_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "counter",
+      "description": "Two-bit programmable down-counter that decrements on tick and stops at zero.",
+      "design_id": "counter_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "load",
+        "tick",
+        "load_value"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "expired"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "programmable_down_counter",
+      "validation": {
+        "report": "build/validation/counter_0005.json",
+        "status": "passed"
+      }
+    },
+    {
       "category": "handshake",
       "description": "Three-state request/acknowledge controller with cancellation.",
       "design_id": "handshake_0001",
@@ -199,6 +366,7 @@
         "ready",
         "cancel"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "busy",
@@ -232,6 +400,7 @@
         "req",
         "done"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "busy",
@@ -264,6 +433,7 @@
       "inputs": [
         "req"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "ack"
@@ -295,6 +465,7 @@
         "push",
         "ready"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "valid"
@@ -326,6 +497,7 @@
         "req",
         "grant"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "pending",
@@ -359,6 +531,7 @@
         "start",
         "kick"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "running",
@@ -394,6 +567,7 @@
         "start",
         "service"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "active",
@@ -433,6 +607,7 @@
         "start",
         "cancel"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "active",
@@ -467,6 +642,7 @@
       "inputs": [
         "start"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "active",
@@ -499,6 +675,7 @@
       "inputs": [
         "enable"
       ],
+      "model_type": "fsm",
       "mutant_count": 3,
       "outputs": [
         "active",
@@ -528,11 +705,11 @@
   ],
   "schema_version": "1.0",
   "summary": {
-    "categories": 3,
-    "expected_formal_jobs": 255,
-    "families": 15,
-    "mutants": 45,
-    "properties": 127,
-    "rtl_variants": 60
+    "categories": 4,
+    "expected_formal_jobs": 340,
+    "families": 20,
+    "mutants": 60,
+    "properties": 158,
+    "rtl_variants": 80
   }
 }

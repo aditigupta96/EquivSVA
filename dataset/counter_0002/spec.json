@@ -1,0 +1,170 @@
+{
+  "design_id": "counter_0002",
+  "category": "counter",
+  "model_type": "register_rules",
+  "template": "modulo_up_counter",
+  "description": "Two-bit modulo up-counter that wraps from three to zero.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "clear",
+    "enable"
+  ],
+  "outputs": [
+    "count",
+    "is_zero"
+  ],
+  "signal_widths": {
+    "count": 2
+  },
+  "registers": [
+    {
+      "name": "count",
+      "width": 2,
+      "reset_value": "2'd0",
+      "observable": true
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "The count register is interface-visible.",
+    "All benchmark properties use interface-visible signals only.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "is_zero": "count == 2'd0"
+  },
+  "update_rules": [
+    {
+      "when": "clear",
+      "value": "2'd0"
+    },
+    {
+      "when": "enable && (count == 2'd3)",
+      "value": "2'd0"
+    },
+    {
+      "when": "enable && (count < 2'd3)",
+      "value": "count + 2'd1"
+    },
+    {
+      "when": "true",
+      "value": "count"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_ZERO_FLAG",
+      "sva_name": "p_zero_flag",
+      "type": "invariant",
+      "natural_language": "is_zero is asserted exactly when count is zero",
+      "disable": "rst",
+      "expression": "is_zero == (count == 2'd0)"
+    },
+    {
+      "id": "P2_RESET_ZERO",
+      "sva_name": "p_reset_zero",
+      "type": "next_cycle_implication",
+      "natural_language": "reset leaves the counter at zero",
+      "antecedent": "rst",
+      "consequent": "(count == 2'd0) && is_zero",
+      "delay": 1
+    },
+    {
+      "id": "P3_CLEAR_ZERO",
+      "sva_name": "p_clear_zero",
+      "type": "next_cycle_implication",
+      "natural_language": "clear resets the counter to zero",
+      "disable": "rst",
+      "antecedent": "clear",
+      "consequent": "(count == 2'd0) && is_zero",
+      "delay": 1
+    },
+    {
+      "id": "P4_HOLD",
+      "sva_name": "p_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "when disabled the counter holds its value",
+      "disable": "rst",
+      "antecedent": "!clear && !enable",
+      "consequent": "count == $past(count)",
+      "delay": 1
+    },
+    {
+      "id": "P5_INCREMENT",
+      "sva_name": "p_increment",
+      "type": "next_cycle_implication",
+      "natural_language": "below the maximum an enabled counter increments",
+      "disable": "rst",
+      "antecedent": "!clear && enable && (count < 2'd3)",
+      "consequent": "count == ($past(count) + 2'd1)",
+      "delay": 1
+    },
+    {
+      "id": "P6_WRAP",
+      "sva_name": "p_wrap",
+      "type": "next_cycle_implication",
+      "natural_language": "an enabled maximum count wraps to zero",
+      "disable": "rst",
+      "antecedent": "!clear && enable && (count == 2'd3)",
+      "consequent": "(count == 2'd0) && is_zero",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "saturate_at_max",
+      "kind": "replace_update_value",
+      "when": "enable && (count == 2'd3)",
+      "old": "2'd0",
+      "new": "count"
+    },
+    {
+      "name": "ignore_enable",
+      "kind": "replace_update_guard",
+      "old": "enable && (count < 2'd3)",
+      "new": "count < 2'd3"
+    },
+    {
+      "name": "ignore_clear",
+      "kind": "replace_update_guard",
+      "old": "clear",
+      "new": "false"
+    }
+  ]
+}

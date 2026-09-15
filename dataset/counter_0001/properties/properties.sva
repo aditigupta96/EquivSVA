@@ -1,0 +1,37 @@
+// Gold interface properties for counter_0001
+
+// P1_AT_MAX_CONSISTENT: at_max is asserted exactly when count equals three
+property p_at_max_consistent;
+    @(posedge clk) disable iff (rst) (at_max == (count == 2'd3));
+endproperty
+assert property (p_at_max_consistent);
+
+// P2_RESET_ZERO: a reset cycle leaves the counter at zero
+property p_reset_zero;
+    @(posedge clk) (rst) |=> ((count == 2'd0) && !at_max);
+endproperty
+assert property (p_reset_zero);
+
+// P3_CLEAR_ZERO: clear has priority and resets the count to zero
+property p_clear_zero;
+    @(posedge clk) disable iff (rst) (clear) |=> ((count == 2'd0) && !at_max);
+endproperty
+assert property (p_clear_zero);
+
+// P4_DISABLED_HOLDS: without clear or enable the counter holds its value
+property p_disabled_holds;
+    @(posedge clk) disable iff (rst) (!clear && !enable) |=> (count == $past(count));
+endproperty
+assert property (p_disabled_holds);
+
+// P5_ENABLED_INCREMENTS: when enabled below the maximum the counter increments by one
+property p_enabled_increments;
+    @(posedge clk) disable iff (rst) (!clear && enable && (count < 2'd3)) |=> (count == ($past(count) + 2'd1));
+endproperty
+assert property (p_enabled_increments);
+
+// P6_MAX_SATURATES: when enabled at the maximum the counter remains saturated
+property p_max_saturates;
+    @(posedge clk) disable iff (rst) (!clear && enable && (count == 2'd3)) |=> ((count == 2'd3) && at_max);
+endproperty
+assert property (p_max_saturates);

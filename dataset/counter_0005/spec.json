@@ -1,0 +1,174 @@
+{
+  "design_id": "counter_0005",
+  "category": "counter",
+  "model_type": "register_rules",
+  "template": "programmable_down_counter",
+  "description": "Two-bit programmable down-counter that decrements on tick and stops at zero.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "clear",
+    "load",
+    "tick",
+    "load_value"
+  ],
+  "outputs": [
+    "count",
+    "expired"
+  ],
+  "signal_widths": {
+    "count": 2,
+    "load_value": 2
+  },
+  "registers": [
+    {
+      "name": "count",
+      "width": 2,
+      "reset_value": "2'd0",
+      "observable": true
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "The count register is interface-visible.",
+    "All benchmark properties use interface-visible signals only.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "expired": "count == 2'd0"
+  },
+  "update_rules": [
+    {
+      "when": "clear",
+      "value": "2'd0"
+    },
+    {
+      "when": "load",
+      "value": "load_value"
+    },
+    {
+      "when": "tick && (count > 2'd0)",
+      "value": "count - 2'd1"
+    },
+    {
+      "when": "true",
+      "value": "count"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_EXPIRED_FLAG",
+      "sva_name": "p_expired_flag",
+      "type": "invariant",
+      "natural_language": "expired is asserted exactly when the count is zero",
+      "disable": "rst",
+      "expression": "expired == (count == 2'd0)"
+    },
+    {
+      "id": "P2_CLEAR",
+      "sva_name": "p_clear",
+      "type": "next_cycle_implication",
+      "natural_language": "clear resets the counter and marks it expired",
+      "disable": "rst",
+      "antecedent": "clear",
+      "consequent": "(count == 2'd0) && expired",
+      "delay": 1
+    },
+    {
+      "id": "P3_LOAD",
+      "sva_name": "p_load",
+      "type": "next_cycle_implication",
+      "natural_language": "load installs the requested starting count",
+      "disable": "rst",
+      "antecedent": "!clear && load",
+      "consequent": "count == $past(load_value)",
+      "delay": 1
+    },
+    {
+      "id": "P4_TICK_DECREMENTS",
+      "sva_name": "p_tick_decrements",
+      "type": "next_cycle_implication",
+      "natural_language": "a tick decrements a nonzero count",
+      "disable": "rst",
+      "antecedent": "!clear && !load && tick && (count > 2'd0)",
+      "consequent": "count == ($past(count) - 2'd1)",
+      "delay": 1
+    },
+    {
+      "id": "P5_NO_TICK_HOLDS",
+      "sva_name": "p_no_tick_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "without a tick the counter holds",
+      "disable": "rst",
+      "antecedent": "!clear && !load && !tick",
+      "consequent": "count == $past(count)",
+      "delay": 1
+    },
+    {
+      "id": "P6_ZERO_STICKS",
+      "sva_name": "p_zero_sticks",
+      "type": "next_cycle_implication",
+      "natural_language": "a tick at zero cannot underflow the counter",
+      "disable": "rst",
+      "antecedent": "!clear && !load && tick && (count == 2'd0)",
+      "consequent": "(count == 2'd0) && expired",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "underflow_at_zero",
+      "kind": "insert_update_rule",
+      "before": "true",
+      "when": "tick && (count == 2'd0)",
+      "value": "2'd3"
+    },
+    {
+      "name": "ignore_load",
+      "kind": "replace_update_guard",
+      "old": "load",
+      "new": "false"
+    },
+    {
+      "name": "decrement_without_tick",
+      "kind": "replace_update_guard",
+      "old": "tick && (count > 2'd0)",
+      "new": "count > 2'd0"
+    }
+  ]
+}

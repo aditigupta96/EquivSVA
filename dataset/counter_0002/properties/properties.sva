@@ -1,0 +1,37 @@
+// Gold interface properties for counter_0002
+
+// P1_ZERO_FLAG: is_zero is asserted exactly when count is zero
+property p_zero_flag;
+    @(posedge clk) disable iff (rst) (is_zero == (count == 2'd0));
+endproperty
+assert property (p_zero_flag);
+
+// P2_RESET_ZERO: reset leaves the counter at zero
+property p_reset_zero;
+    @(posedge clk) (rst) |=> ((count == 2'd0) && is_zero);
+endproperty
+assert property (p_reset_zero);
+
+// P3_CLEAR_ZERO: clear resets the counter to zero
+property p_clear_zero;
+    @(posedge clk) disable iff (rst) (clear) |=> ((count == 2'd0) && is_zero);
+endproperty
+assert property (p_clear_zero);
+
+// P4_HOLD: when disabled the counter holds its value
+property p_hold;
+    @(posedge clk) disable iff (rst) (!clear && !enable) |=> (count == $past(count));
+endproperty
+assert property (p_hold);
+
+// P5_INCREMENT: below the maximum an enabled counter increments
+property p_increment;
+    @(posedge clk) disable iff (rst) (!clear && enable && (count < 2'd3)) |=> (count == ($past(count) + 2'd1));
+endproperty
+assert property (p_increment);
+
+// P6_WRAP: an enabled maximum count wraps to zero
+property p_wrap;
+    @(posedge clk) disable iff (rst) (!clear && enable && (count == 2'd3)) |=> ((count == 2'd0) && is_zero);
+endproperty
+assert property (p_wrap);

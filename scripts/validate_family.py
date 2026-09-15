@@ -58,9 +58,24 @@ if run([
 
 
 # Generate RTL/properties/mutants from BehaviorSpec.
+model_type = spec.get("model_type", "fsm")
+
+if model_type == "fsm":
+    generator = ROOT / "generator" / "generate_family.py"
+elif model_type == "register_rules":
+    generator = (
+        ROOT
+        / "generator"
+        / "generate_register_family.py"
+    )
+else:
+    raise SystemExit(
+        f"Unsupported model_type: {model_type}"
+    )
+
 if run([
     sys.executable,
-    str(ROOT / "generator" / "generate_family.py"),
+    str(generator),
     "--spec",
     str(SPEC),
 ]).returncode != 0:

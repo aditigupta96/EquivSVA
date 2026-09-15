@@ -1,0 +1,167 @@
+{
+  "design_id": "counter_0001",
+  "category": "counter",
+  "model_type": "register_rules",
+  "template": "saturating_up_counter",
+  "description": "Two-bit saturating up-counter with synchronous clear and enable.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "clear",
+    "enable"
+  ],
+  "outputs": [
+    "count",
+    "at_max"
+  ],
+  "signal_widths": {
+    "count": 2
+  },
+  "registers": [
+    {
+      "name": "count",
+      "width": 2,
+      "reset_value": "2'd0",
+      "observable": true
+    }
+  ],
+  "derived_outputs": {
+    "at_max": "count == 2'd3"
+  },
+  "update_rules": [
+    {
+      "when": "clear",
+      "value": "2'd0"
+    },
+    {
+      "when": "enable && (count < 2'd3)",
+      "value": "count + 2'd1"
+    },
+    {
+      "when": "true",
+      "value": "count"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "The count register is interface-visible and is therefore part of observable equivalence.",
+    "All benchmark properties use interface-visible signals only.",
+    "The counter saturates at three rather than wrapping.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "properties": [
+    {
+      "id": "P1_AT_MAX_CONSISTENT",
+      "sva_name": "p_at_max_consistent",
+      "type": "invariant",
+      "natural_language": "at_max is asserted exactly when count equals three",
+      "disable": "rst",
+      "expression": "at_max == (count == 2'd3)"
+    },
+    {
+      "id": "P2_RESET_ZERO",
+      "sva_name": "p_reset_zero",
+      "type": "next_cycle_implication",
+      "natural_language": "a reset cycle leaves the counter at zero",
+      "antecedent": "rst",
+      "consequent": "(count == 2'd0) && !at_max",
+      "delay": 1
+    },
+    {
+      "id": "P3_CLEAR_ZERO",
+      "sva_name": "p_clear_zero",
+      "type": "next_cycle_implication",
+      "natural_language": "clear has priority and resets the count to zero",
+      "disable": "rst",
+      "antecedent": "clear",
+      "consequent": "(count == 2'd0) && !at_max",
+      "delay": 1
+    },
+    {
+      "id": "P4_DISABLED_HOLDS",
+      "sva_name": "p_disabled_holds",
+      "type": "next_cycle_implication",
+      "natural_language": "without clear or enable the counter holds its value",
+      "disable": "rst",
+      "antecedent": "!clear && !enable",
+      "consequent": "count == $past(count)",
+      "delay": 1
+    },
+    {
+      "id": "P5_ENABLED_INCREMENTS",
+      "sva_name": "p_enabled_increments",
+      "type": "next_cycle_implication",
+      "natural_language": "when enabled below the maximum the counter increments by one",
+      "disable": "rst",
+      "antecedent": "!clear && enable && (count < 2'd3)",
+      "consequent": "count == ($past(count) + 2'd1)",
+      "delay": 1
+    },
+    {
+      "id": "P6_MAX_SATURATES",
+      "sva_name": "p_max_saturates",
+      "type": "next_cycle_implication",
+      "natural_language": "when enabled at the maximum the counter remains saturated",
+      "disable": "rst",
+      "antecedent": "!clear && enable && (count == 2'd3)",
+      "consequent": "(count == 2'd3) && at_max",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "wrap_at_max",
+      "kind": "insert_update_rule",
+      "before": "true",
+      "when": "enable && (count == 2'd3)",
+      "value": "2'd0"
+    },
+    {
+      "name": "ignore_enable",
+      "kind": "replace_update_guard",
+      "old": "enable && (count < 2'd3)",
+      "new": "count < 2'd3"
+    },
+    {
+      "name": "ignore_clear",
+      "kind": "replace_update_guard",
+      "old": "clear",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

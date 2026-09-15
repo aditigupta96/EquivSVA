@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
 from collections import Counter
 from pathlib import Path
@@ -8,16 +9,39 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATASET = ROOT / "dataset"
 
-SPLITS_PATH = DATASET / "splits_v0.1.json"
-
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Validate EquivSVA family-safe splits."
+    )
+    parser.add_argument(
+        "--splits",
+        default=str(DATASET / "splits_v0.2.json"),
+        help="Split JSON to validate.",
+    )
+    args = parser.parse_args()
+
+    splits_path = Path(args.splits).resolve()
+
+    if not splits_path.exists():
+        raise SystemExit(
+            f"Split file not found: {splits_path}"
+        )
+
+    manifest_path = DATASET / "manifest.json"
+
+    if not manifest_path.exists():
+        raise SystemExit(
+            "dataset/manifest.json not found. "
+            "Run scripts/build_manifest.py first."
+        )
+
     manifest = json.loads(
-        (DATASET / "manifest.json").read_text()
+        manifest_path.read_text()
     )
 
     splits = json.loads(
-        SPLITS_PATH.read_text()
+        splits_path.read_text()
     )
 
     family_to_category = {
@@ -26,7 +50,6 @@ def main():
     }
 
     expected = set(family_to_category)
-
     seen = {}
     problems = []
 
@@ -65,9 +88,10 @@ def main():
 
     print("EquivSVA Split Validation")
     print("=========================")
+    print(f"Split file: {splits_path.name}")
 
     for split in ["train", "dev", "test"]:
-        families = splits[split]
+        families = splits.get(split, [])
 
         categories = Counter(
             family_to_category[f]
@@ -76,7 +100,10 @@ def main():
         )
 
         print()
-        print(f"{split.upper()}: {len(families)} families")
+        print(
+            f"{split.upper()}: "
+            f"{len(families)} families"
+        )
 
         for category in sorted(categories):
             print(

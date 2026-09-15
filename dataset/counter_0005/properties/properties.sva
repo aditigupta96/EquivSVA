@@ -1,0 +1,37 @@
+// Gold interface properties for counter_0005
+
+// P1_EXPIRED_FLAG: expired is asserted exactly when the count is zero
+property p_expired_flag;
+    @(posedge clk) disable iff (rst) (expired == (count == 2'd0));
+endproperty
+assert property (p_expired_flag);
+
+// P2_CLEAR: clear resets the counter and marks it expired
+property p_clear;
+    @(posedge clk) disable iff (rst) (clear) |=> ((count == 2'd0) && expired);
+endproperty
+assert property (p_clear);
+
+// P3_LOAD: load installs the requested starting count
+property p_load;
+    @(posedge clk) disable iff (rst) (!clear && load) |=> (count == $past(load_value));
+endproperty
+assert property (p_load);
+
+// P4_TICK_DECREMENTS: a tick decrements a nonzero count
+property p_tick_decrements;
+    @(posedge clk) disable iff (rst) (!clear && !load && tick && (count > 2'd0)) |=> (count == ($past(count) - 2'd1));
+endproperty
+assert property (p_tick_decrements);
+
+// P5_NO_TICK_HOLDS: without a tick the counter holds
+property p_no_tick_holds;
+    @(posedge clk) disable iff (rst) (!clear && !load && !tick) |=> (count == $past(count));
+endproperty
+assert property (p_no_tick_holds);
+
+// P6_ZERO_STICKS: a tick at zero cannot underflow the counter
+property p_zero_sticks;
+    @(posedge clk) disable iff (rst) (!clear && !load && tick && (count == 2'd0)) |=> ((count == 2'd0) && expired);
+endproperty
+assert property (p_zero_sticks);

@@ -32,6 +32,25 @@ reset = spec["reset"]["name"]
 inputs = spec["inputs"]
 outputs = spec["outputs"]
 
+# Optional widths for multi-bit interface signals.
+# Existing v0.1 specs omit this and therefore remain 1-bit.
+signal_widths = spec.get("signal_widths", {})
+
+
+def signal_range(signal):
+    width = int(signal_widths.get(signal, 1))
+
+    if width < 1:
+        raise ValueError(
+            f"Invalid width for {signal}: {width}"
+        )
+
+    if width == 1:
+        return ""
+
+    return f"[{width - 1}:0] "
+
+
 if not outputs:
     raise SystemExit("A family must have at least one observable output.")
 
@@ -44,24 +63,56 @@ if BUILD.exists():
 BUILD.mkdir(parents=True, exist_ok=True)
 GENERATED.mkdir(parents=True, exist_ok=True)
 
-variants = {
-    "canonical": (
-        f"{module_prefix}_canonical_case",
-        DATA / "rtl" / "canonical_case.sv"
-    ),
-    "onehot": (
-        f"{module_prefix}_onehot_case",
-        DATA / "rtl" / "onehot_case.sv"
-    ),
-    "nested_if": (
-        f"{module_prefix}_nested_if",
-        DATA / "rtl" / "nested_if.sv"
-    ),
-    "factored": (
-        f"{module_prefix}_factored_flags",
-        DATA / "rtl" / "factored_flags.sv"
-    ),
-}
+# RTL implementation metadata.
+#
+# Existing v0.1 families retain the original four FSM variants.
+# Newer families may opt into configurable variants by supplying
+# rtl_variants as a list of dictionaries with:
+#   name, module_suffix, file
+raw_variants = spec.get("rtl_variants")
+
+configurable_variants = (
+    isinstance(raw_variants, list)
+    and len(raw_variants) > 0
+    and all(
+        isinstance(variant, dict)
+        and {"name", "module_suffix", "file"} <= set(variant)
+        for variant in raw_variants
+    )
+)
+
+if configurable_variants:
+    variants = {}
+
+    for variant in raw_variants:
+        name = variant["name"]
+        module_suffix = variant["module_suffix"]
+        filename = variant["file"]
+
+        variants[name] = (
+            f"{module_prefix}_{module_suffix}",
+            DATA / "rtl" / filename,
+        )
+else:
+    variants = {
+        "canonical": (
+            f"{module_prefix}_canonical_case",
+            DATA / "rtl" / "canonical_case.sv"
+        ),
+        "onehot": (
+            f"{module_prefix}_onehot_case",
+            DATA / "rtl" / "onehot_case.sv"
+        ),
+        "nested_if": (
+            f"{module_prefix}_nested_if",
+            DATA / "rtl" / "nested_if.sv"
+        ),
+        "factored": (
+            f"{module_prefix}_factored_flags",
+            DATA / "rtl" / "factored_flags.sv"
+        ),
+    }
+
 
 mutants = {
     mutant["name"]: (
@@ -115,13 +166,20 @@ def render_interface_harness(mode: str) -> str:
     ]
 
     for signal in inputs:
-        lines.append(f"    (* anyseq *) reg {signal};")
+        lines.append(
+            f"    (* anyseq *) reg "
+            f"{signal_range(signal)}{signal};"
+        )
 
     lines.append("")
 
     for signal in outputs:
-        lines.append(f"    wire gold_{signal};")
-        lines.append(f"    wire gate_{signal};")
+        lines.append(
+            f"    wire {signal_range(signal)}gold_{signal};"
+        )
+        lines.append(
+            f"    wire {signal_range(signal)}gate_{signal};"
+        )
 
     interface_inputs = [clock, reset] + inputs
 

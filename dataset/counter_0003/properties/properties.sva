@@ -1,0 +1,43 @@
+// Gold interface properties for counter_0003
+
+// P1_MIN_FLAG: at_min matches count equal to zero
+property p_min_flag;
+    @(posedge clk) disable iff (rst) (at_min == (count == 2'd0));
+endproperty
+assert property (p_min_flag);
+
+// P2_MAX_FLAG: at_max matches count equal to three
+property p_max_flag;
+    @(posedge clk) disable iff (rst) (at_max == (count == 2'd3));
+endproperty
+assert property (p_max_flag);
+
+// P3_CLEAR: clear resets the counter
+property p_clear;
+    @(posedge clk) disable iff (rst) (clear) |=> ((count == 2'd0) && at_min);
+endproperty
+assert property (p_clear);
+
+// P4_INCREMENT: up direction increments below maximum
+property p_increment;
+    @(posedge clk) disable iff (rst) (!clear && enable && !down && (count < 2'd3)) |=> (count == ($past(count) + 2'd1));
+endproperty
+assert property (p_increment);
+
+// P5_DECREMENT: down direction decrements above zero
+property p_decrement;
+    @(posedge clk) disable iff (rst) (!clear && enable && down && (count > 2'd0)) |=> (count == ($past(count) - 2'd1));
+endproperty
+assert property (p_decrement);
+
+// P6_SATURATE_MAX: incrementing at maximum holds the maximum
+property p_saturate_max;
+    @(posedge clk) disable iff (rst) (!clear && enable && !down && (count == 2'd3)) |=> ((count == 2'd3) && at_max);
+endproperty
+assert property (p_saturate_max);
+
+// P7_SATURATE_MIN: decrementing at zero holds zero
+property p_saturate_min;
+    @(posedge clk) disable iff (rst) (!clear && enable && down && (count == 2'd0)) |=> ((count == 2'd0) && at_min);
+endproperty
+assert property (p_saturate_min);

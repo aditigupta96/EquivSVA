@@ -1,0 +1,59 @@
+[
+  {
+    "id": "P1_ZERO_FLAG",
+    "sva_name": "p_zero_flag",
+    "type": "invariant",
+    "natural_language": "is_zero is asserted exactly when count is zero",
+    "disable": "rst",
+    "expression": "is_zero == (count == 2'd0)"
+  },
+  {
+    "id": "P2_RESET_ZERO",
+    "sva_name": "p_reset_zero",
+    "type": "next_cycle_implication",
+    "natural_language": "reset leaves the counter at zero",
+    "antecedent": "rst",
+    "consequent": "(count == 2'd0) && is_zero",
+    "delay": 1
+  },
+  {
+    "id": "P3_CLEAR_ZERO",
+    "sva_name": "p_clear_zero",
+    "type": "next_cycle_implication",
+    "natural_language": "clear resets the counter to zero",
+    "disable": "rst",
+    "antecedent": "clear",
+    "consequent": "(count == 2'd0) && is_zero",
+    "delay": 1
+  },
+  {
+    "id": "P4_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "when disabled the counter holds its value",
+    "disable": "rst",
+    "antecedent": "!clear && !enable",
+    "consequent": "count == $past(count)",
+    "delay": 1
+  },
+  {
+    "id": "P5_INCREMENT",
+    "sva_name": "p_increment",
+    "type": "next_cycle_implication",
+    "natural_language": "below the maximum an enabled counter increments",
+    "disable": "rst",
+    "antecedent": "!clear && enable && (count < 2'd3)",
+    "consequent": "count == ($past(count) + 2'd1)",
+    "delay": 1
+  },
+  {
+    "id": "P6_WRAP",
+    "sva_name": "p_wrap",
+    "type": "next_cycle_implication",
+    "natural_language": "an enabled maximum count wraps to zero",
+    "disable": "rst",
+    "antecedent": "!clear && enable && (count == 2'd3)",
+    "consequent": "(count == 2'd0) && is_zero",
+    "delay": 1
+  }
+]

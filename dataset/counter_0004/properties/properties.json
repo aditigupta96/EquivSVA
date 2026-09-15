@@ -1,0 +1,60 @@
+[
+  {
+    "id": "P1_MAX_FLAG",
+    "sva_name": "p_max_flag",
+    "type": "invariant",
+    "natural_language": "at_max matches count equal to three",
+    "disable": "rst",
+    "expression": "at_max == (count == 2'd3)"
+  },
+  {
+    "id": "P2_CLEAR_PRIORITY",
+    "sva_name": "p_clear_priority",
+    "type": "next_cycle_implication",
+    "natural_language": "clear has priority over load and enable",
+    "disable": "rst",
+    "antecedent": "clear",
+    "consequent": "count == 2'd0",
+    "delay": 1
+  },
+  {
+    "id": "P3_LOAD",
+    "sva_name": "p_load",
+    "type": "next_cycle_implication",
+    "natural_language": "a load cycle installs the supplied load value",
+    "disable": "rst",
+    "antecedent": "!clear && load",
+    "consequent": "count == $past(load_value)",
+    "delay": 1
+  },
+  {
+    "id": "P4_INCREMENT",
+    "sva_name": "p_increment",
+    "type": "next_cycle_implication",
+    "natural_language": "without clear or load an enabled counter increments below maximum",
+    "disable": "rst",
+    "antecedent": "!clear && !load && enable && (count < 2'd3)",
+    "consequent": "count == ($past(count) + 2'd1)",
+    "delay": 1
+  },
+  {
+    "id": "P5_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "without clear load or enable the count is retained",
+    "disable": "rst",
+    "antecedent": "!clear && !load && !enable",
+    "consequent": "count == $past(count)",
+    "delay": 1
+  },
+  {
+    "id": "P6_SATURATE",
+    "sva_name": "p_saturate",
+    "type": "next_cycle_implication",
+    "natural_language": "incrementing at maximum remains saturated",
+    "disable": "rst",
+    "antecedent": "!clear && !load && enable && (count == 2'd3)",
+    "consequent": "(count == 2'd3) && at_max",
+    "delay": 1
+  }
+]

@@ -9,12 +9,46 @@ ROOT = Path(__file__).resolve().parents[1]
 DATASET = ROOT / "dataset"
 BUILD_VALIDATION = ROOT / "build" / "validation"
 
-RTL_VARIANTS = [
+DEFAULT_RTL_VARIANTS = [
     "canonical_case.sv",
     "onehot_case.sv",
     "nested_if.sv",
     "factored_flags.sv",
 ]
+
+
+def expected_rtl_variants(spec):
+    raw = spec.get("rtl_variants")
+
+    if not raw:
+        return list(DEFAULT_RTL_VARIANTS)
+
+    result = []
+
+    for variant in raw:
+        if isinstance(variant, str):
+            filename = (
+                variant
+                if variant.endswith(".sv")
+                else f"{variant}.sv"
+            )
+        elif isinstance(variant, dict):
+            filename = variant.get("file")
+
+            if not filename:
+                raise ValueError(
+                    f"{spec['design_id']}: RTL variant "
+                    "dictionary is missing 'file'"
+                )
+        else:
+            raise ValueError(
+                f"{spec['design_id']}: unsupported "
+                "rtl_variants entry"
+            )
+
+        result.append(filename)
+
+    return result
 
 
 def validation_status(design_id):
@@ -170,15 +204,17 @@ def main():
         rtl_dir = family_dir / "rtl"
         mutant_dir = family_dir / "mutants"
 
+        expected_rtl = expected_rtl_variants(spec)
+
         present_rtl = [
             name
-            for name in RTL_VARIANTS
+            for name in expected_rtl
             if (rtl_dir / name).exists()
         ]
 
         missing_rtl = [
             name
-            for name in RTL_VARIANTS
+            for name in expected_rtl
             if name not in present_rtl
         ]
 
@@ -216,6 +252,7 @@ def main():
         family = {
             "design_id": design_id,
             "category": category,
+            "model_type": spec.get("model_type", "fsm"),
             "template": spec.get("template"),
             "description": spec.get("description"),
             "inputs": spec.get("inputs", []),

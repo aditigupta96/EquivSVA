@@ -1,0 +1,183 @@
+{
+  "design_id": "counter_0003",
+  "category": "counter",
+  "model_type": "register_rules",
+  "template": "bidirectional_saturating_counter",
+  "description": "Two-bit saturating counter that increments or decrements under direction control.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "clear",
+    "enable",
+    "down"
+  ],
+  "outputs": [
+    "count",
+    "at_min",
+    "at_max"
+  ],
+  "signal_widths": {
+    "count": 2
+  },
+  "registers": [
+    {
+      "name": "count",
+      "width": 2,
+      "reset_value": "2'd0",
+      "observable": true
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "The count register is interface-visible.",
+    "All benchmark properties use interface-visible signals only.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "at_min": "count == 2'd0",
+    "at_max": "count == 2'd3"
+  },
+  "update_rules": [
+    {
+      "when": "clear",
+      "value": "2'd0"
+    },
+    {
+      "when": "enable && down && (count > 2'd0)",
+      "value": "count - 2'd1"
+    },
+    {
+      "when": "enable && !down && (count < 2'd3)",
+      "value": "count + 2'd1"
+    },
+    {
+      "when": "true",
+      "value": "count"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_MIN_FLAG",
+      "sva_name": "p_min_flag",
+      "type": "invariant",
+      "natural_language": "at_min matches count equal to zero",
+      "disable": "rst",
+      "expression": "at_min == (count == 2'd0)"
+    },
+    {
+      "id": "P2_MAX_FLAG",
+      "sva_name": "p_max_flag",
+      "type": "invariant",
+      "natural_language": "at_max matches count equal to three",
+      "disable": "rst",
+      "expression": "at_max == (count == 2'd3)"
+    },
+    {
+      "id": "P3_CLEAR",
+      "sva_name": "p_clear",
+      "type": "next_cycle_implication",
+      "natural_language": "clear resets the counter",
+      "disable": "rst",
+      "antecedent": "clear",
+      "consequent": "(count == 2'd0) && at_min",
+      "delay": 1
+    },
+    {
+      "id": "P4_INCREMENT",
+      "sva_name": "p_increment",
+      "type": "next_cycle_implication",
+      "natural_language": "up direction increments below maximum",
+      "disable": "rst",
+      "antecedent": "!clear && enable && !down && (count < 2'd3)",
+      "consequent": "count == ($past(count) + 2'd1)",
+      "delay": 1
+    },
+    {
+      "id": "P5_DECREMENT",
+      "sva_name": "p_decrement",
+      "type": "next_cycle_implication",
+      "natural_language": "down direction decrements above zero",
+      "disable": "rst",
+      "antecedent": "!clear && enable && down && (count > 2'd0)",
+      "consequent": "count == ($past(count) - 2'd1)",
+      "delay": 1
+    },
+    {
+      "id": "P6_SATURATE_MAX",
+      "sva_name": "p_saturate_max",
+      "type": "next_cycle_implication",
+      "natural_language": "incrementing at maximum holds the maximum",
+      "disable": "rst",
+      "antecedent": "!clear && enable && !down && (count == 2'd3)",
+      "consequent": "(count == 2'd3) && at_max",
+      "delay": 1
+    },
+    {
+      "id": "P7_SATURATE_MIN",
+      "sva_name": "p_saturate_min",
+      "type": "next_cycle_implication",
+      "natural_language": "decrementing at zero holds zero",
+      "disable": "rst",
+      "antecedent": "!clear && enable && down && (count == 2'd0)",
+      "consequent": "(count == 2'd0) && at_min",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "underflow_at_zero",
+      "kind": "insert_update_rule",
+      "before": "true",
+      "when": "enable && down && (count == 2'd0)",
+      "value": "2'd3"
+    },
+    {
+      "name": "overflow_at_max",
+      "kind": "insert_update_rule",
+      "before": "true",
+      "when": "enable && !down && (count == 2'd3)",
+      "value": "2'd0"
+    },
+    {
+      "name": "ignore_direction",
+      "kind": "replace_update_guard",
+      "old": "enable && down && (count > 2'd0)",
+      "new": "enable && (count > 2'd0)"
+    }
+  ]
+}

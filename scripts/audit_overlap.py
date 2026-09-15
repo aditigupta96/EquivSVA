@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import hashlib
 import json
 import re
@@ -35,71 +36,7 @@ def replace_identifiers(text, mapping):
     return result
 
 
-def canonical_behavior(spec):
-    """
-    Build a behavior representation that ignores superficial names such as:
-
-        req   vs request
-        WAIT  vs BUSY
-        ack   vs grant
-
-    while preserving transition ordering, because transition ordering
-    represents priority semantics.
-    """
-
-    inputs = spec.get("inputs", [])
-    outputs = spec.get("outputs", [])
-    states = spec.get("states", [])
-
-    mapping = {}
-
-    for i, name in enumerate(inputs):
-        mapping[name] = f"I{i}"
-
-    for i, name in enumerate(outputs):
-        mapping[name] = f"O{i}"
-
-    for i, name in enumerate(states):
-        mapping[name] = f"S{i}"
-
-    reset = spec.get("reset", {})
-
-    state_outputs = []
-
-    for state in states:
-        output_values = spec.get(
-            "state_outputs",
-            {}
-        ).get(state, {})
-
-        canonical_outputs = [
-            (
-                mapping[output],
-                output_values.get(output, 0),
-            )
-            for output in outputs
-        ]
-
-        state_outputs.append(
-            (
-                mapping[state],
-                canonical_outputs,
-            )
-        )
-
-    transitions = []
-
-    # Preserve transition order.
-    for transition in spec.get("transitions", []):
-        transitions.append({
-            "from": mapping[transition["from"]],
-            "when": replace_identifiers(
-                transition["when"],
-                mapping,
-            ),
-            "to": mapping[transition["to"]],
-        })
-
+def canonical_properties(spec, mapping):
     properties = []
 
     for prop in spec.get("properties", []):
@@ -126,9 +63,167 @@ def canonical_behavior(spec):
 
         properties.append(canonical_property)
 
-    return {
+    return properties
+
+
+def canonical_behavior(spec):
+    """
+    Build a behavior representation that removes superficial
+    identifier choices while retaining behavioral structure.
+
+    FSM families preserve ordered transitions.
+
+    register_rules families preserve register widths, ordered
+    update rules, derived outputs, and interface properties.
+    """
+    model_type = spec.get("model_type", "fsm")
+
+    inputs = spec.get("inputs", [])
+    outputs = spec.get("outputs", [])
+
+    mapping = {}
+
+    for i, name in enumerate(inputs):
+        mapping[name] = f"I{i}"
+
+    for i, name in enumerate(outputs):
+        mapping[name] = f"O{i}"
+
+    widths = spec.get("signal_widths", {})
+
+    common = {
+        "model_type": model_type,
         "input_count": len(inputs),
         "output_count": len(outputs),
+        "input_widths": [
+            int(widths.get(name, 1))
+            for name in inputs
+        ],
+        "output_widths": [
+            int(widths.get(name, 1))
+            for name in outputs
+        ],
+    }
+
+    if model_type == "register_rules":
+        registers = spec.get("registers", [])
+
+        for i, register in enumerate(registers):
+            name = register["name"]
+
+            if name not in mapping:
+                mapping[name] = f"R{i}"
+
+        canonical_registers = []
+
+        for register in registers:
+            canonical_registers.append({
+                "name": mapping[register["name"]],
+                "width": int(register["width"]),
+                "reset_value": replace_identifiers(
+                    register.get("reset_value"),
+                    mapping,
+                ),
+                "observable": bool(
+                    register.get("observable", False)
+                ),
+            })
+
+        derived_outputs = []
+
+        for output in outputs:
+            expression = spec.get(
+                "derived_outputs",
+                {},
+            ).get(output)
+
+            if expression is not None:
+                derived_outputs.append({
+                    "output": mapping[output],
+                    "expression": replace_identifiers(
+                        expression,
+                        mapping,
+                    ),
+                })
+
+        update_rules = []
+
+        # Rule ordering is semantically significant because it
+        # defines update priority.
+        for rule in spec.get("update_rules", []):
+            update_rules.append({
+                "when": replace_identifiers(
+                    rule["when"],
+                    mapping,
+                ),
+                "value": replace_identifiers(
+                    rule["value"],
+                    mapping,
+                ),
+            })
+
+        common.update({
+            "registers": canonical_registers,
+            "derived_outputs": derived_outputs,
+            "update_rules": update_rules,
+            "properties": canonical_properties(
+                spec,
+                mapping,
+            ),
+        })
+
+        return common
+
+    if model_type != "fsm":
+        raise ValueError(
+            f"Unsupported model_type for overlap audit: "
+            f"{model_type}"
+        )
+
+    states = spec.get("states", [])
+
+    for i, name in enumerate(states):
+        mapping[name] = f"S{i}"
+
+    reset = spec.get("reset", {})
+
+    state_outputs = []
+
+    for state in states:
+        output_values = spec.get(
+            "state_outputs",
+            {},
+        ).get(state, {})
+
+        canonical_outputs = [
+            (
+                mapping[output],
+                output_values.get(output, 0),
+            )
+            for output in outputs
+        ]
+
+        state_outputs.append(
+            (
+                mapping[state],
+                canonical_outputs,
+            )
+        )
+
+    transitions = []
+
+    # Preserve transition order because it encodes priority.
+    for transition in spec.get("transitions", []):
+        transitions.append({
+            "from": mapping[transition["from"]],
+            "when": replace_identifiers(
+                transition["when"],
+                mapping,
+            ),
+            "to": mapping[transition["to"]],
+        })
+
+    common.update({
         "state_count": len(states),
         "reset_state": mapping.get(
             reset.get("state"),
@@ -136,8 +231,13 @@ def canonical_behavior(spec):
         ),
         "state_outputs": state_outputs,
         "transitions": transitions,
-        "properties": properties,
-    }
+        "properties": canonical_properties(
+            spec,
+            mapping,
+        ),
+    })
+
+    return common
 
 
 def canonical_text(behavior):
@@ -185,14 +285,11 @@ def jaccard(a, b):
     return len(a & b) / len(union)
 
 
-def load_splits():
-    path = DATASET / "splits_v0.1.json"
-
+def load_splits(path):
     if not path.exists():
         return {}
 
     data = json.loads(path.read_text())
-
     mapping = {}
 
     for split in ["train", "dev", "test"]:
@@ -203,6 +300,18 @@ def load_splits():
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Audit internal EquivSVA behavior overlap."
+    )
+    parser.add_argument(
+        "--splits",
+        default=str(DATASET / "splits_v0.2.json"),
+        help="Split file used for split annotations.",
+    )
+    args = parser.parse_args()
+
+    split_path = Path(args.splits).resolve()
+
     specs = sorted(DATASET.glob("*/spec.json"))
 
     if not specs:
@@ -210,7 +319,7 @@ def main():
             "No dataset families found."
         )
 
-    split_map = load_splits()
+    split_map = load_splits(split_path)
 
     families = []
 

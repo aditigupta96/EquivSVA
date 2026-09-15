@@ -1,0 +1,60 @@
+[
+  {
+    "id": "P1_EXPIRED_FLAG",
+    "sva_name": "p_expired_flag",
+    "type": "invariant",
+    "natural_language": "expired is asserted exactly when the count is zero",
+    "disable": "rst",
+    "expression": "expired == (count == 2'd0)"
+  },
+  {
+    "id": "P2_CLEAR",
+    "sva_name": "p_clear",
+    "type": "next_cycle_implication",
+    "natural_language": "clear resets the counter and marks it expired",
+    "disable": "rst",
+    "antecedent": "clear",
+    "consequent": "(count == 2'd0) && expired",
+    "delay": 1
+  },
+  {
+    "id": "P3_LOAD",
+    "sva_name": "p_load",
+    "type": "next_cycle_implication",
+    "natural_language": "load installs the requested starting count",
+    "disable": "rst",
+    "antecedent": "!clear && load",
+    "consequent": "count == $past(load_value)",
+    "delay": 1
+  },
+  {
+    "id": "P4_TICK_DECREMENTS",
+    "sva_name": "p_tick_decrements",
+    "type": "next_cycle_implication",
+    "natural_language": "a tick decrements a nonzero count",
+    "disable": "rst",
+    "antecedent": "!clear && !load && tick && (count > 2'd0)",
+    "consequent": "count == ($past(count) - 2'd1)",
+    "delay": 1
+  },
+  {
+    "id": "P5_NO_TICK_HOLDS",
+    "sva_name": "p_no_tick_holds",
+    "type": "next_cycle_implication",
+    "natural_language": "without a tick the counter holds",
+    "disable": "rst",
+    "antecedent": "!clear && !load && !tick",
+    "consequent": "count == $past(count)",
+    "delay": 1
+  },
+  {
+    "id": "P6_ZERO_STICKS",
+    "sva_name": "p_zero_sticks",
+    "type": "next_cycle_implication",
+    "natural_language": "a tick at zero cannot underflow the counter",
+    "disable": "rst",
+    "antecedent": "!clear && !load && tick && (count == 2'd0)",
+    "consequent": "(count == 2'd0) && expired",
+    "delay": 1
+  }
+]

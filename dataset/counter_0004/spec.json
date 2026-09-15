@@ -1,0 +1,174 @@
+{
+  "design_id": "counter_0004",
+  "category": "counter",
+  "model_type": "register_rules",
+  "template": "programmable_load_up_counter",
+  "description": "Two-bit saturating up-counter with a programmable synchronous load value.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "clear",
+    "load",
+    "enable",
+    "load_value"
+  ],
+  "outputs": [
+    "count",
+    "at_max"
+  ],
+  "signal_widths": {
+    "count": 2,
+    "load_value": 2
+  },
+  "registers": [
+    {
+      "name": "count",
+      "width": 2,
+      "reset_value": "2'd0",
+      "observable": true
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "The count register is interface-visible.",
+    "All benchmark properties use interface-visible signals only.",
+    "All variants must be equivalent after the required initial reset cycle."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "at_max": "count == 2'd3"
+  },
+  "update_rules": [
+    {
+      "when": "clear",
+      "value": "2'd0"
+    },
+    {
+      "when": "load",
+      "value": "load_value"
+    },
+    {
+      "when": "enable && (count < 2'd3)",
+      "value": "count + 2'd1"
+    },
+    {
+      "when": "true",
+      "value": "count"
+    }
+  ],
+  "properties": [
+    {
+      "id": "P1_MAX_FLAG",
+      "sva_name": "p_max_flag",
+      "type": "invariant",
+      "natural_language": "at_max matches count equal to three",
+      "disable": "rst",
+      "expression": "at_max == (count == 2'd3)"
+    },
+    {
+      "id": "P2_CLEAR_PRIORITY",
+      "sva_name": "p_clear_priority",
+      "type": "next_cycle_implication",
+      "natural_language": "clear has priority over load and enable",
+      "disable": "rst",
+      "antecedent": "clear",
+      "consequent": "count == 2'd0",
+      "delay": 1
+    },
+    {
+      "id": "P3_LOAD",
+      "sva_name": "p_load",
+      "type": "next_cycle_implication",
+      "natural_language": "a load cycle installs the supplied load value",
+      "disable": "rst",
+      "antecedent": "!clear && load",
+      "consequent": "count == $past(load_value)",
+      "delay": 1
+    },
+    {
+      "id": "P4_INCREMENT",
+      "sva_name": "p_increment",
+      "type": "next_cycle_implication",
+      "natural_language": "without clear or load an enabled counter increments below maximum",
+      "disable": "rst",
+      "antecedent": "!clear && !load && enable && (count < 2'd3)",
+      "consequent": "count == ($past(count) + 2'd1)",
+      "delay": 1
+    },
+    {
+      "id": "P5_HOLD",
+      "sva_name": "p_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "without clear load or enable the count is retained",
+      "disable": "rst",
+      "antecedent": "!clear && !load && !enable",
+      "consequent": "count == $past(count)",
+      "delay": 1
+    },
+    {
+      "id": "P6_SATURATE",
+      "sva_name": "p_saturate",
+      "type": "next_cycle_implication",
+      "natural_language": "incrementing at maximum remains saturated",
+      "disable": "rst",
+      "antecedent": "!clear && !load && enable && (count == 2'd3)",
+      "consequent": "(count == 2'd3) && at_max",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "load_off_by_one",
+      "kind": "replace_update_value",
+      "when": "load",
+      "old": "load_value",
+      "new": "load_value + 2'd1"
+    },
+    {
+      "name": "ignore_load",
+      "kind": "replace_update_guard",
+      "old": "load",
+      "new": "false"
+    },
+    {
+      "name": "increment_when_disabled",
+      "kind": "replace_update_guard",
+      "old": "enable && (count < 2'd3)",
+      "new": "count < 2'd3"
+    }
+  ]
+}
