@@ -308,6 +308,15 @@ def equiv_cfg(
     mode = "cover" if difference else "prove"
     depth = 24 if difference else 30
 
+    engine = (
+        "abc pdr"
+        if (
+            not difference
+            and spec.get("model_type") == "multi_register_rules"
+        )
+        else f"smtbmc {SOLVER}"
+    )
+
     return f"""[options]
 mode {mode}
 depth {depth}
@@ -315,7 +324,7 @@ expect pass
 multiclock on
 
 [engines]
-smtbmc {SOLVER}
+{engine}
 
 [script]
 read -formal -sv -DGOLD_MODULE={gold_mod} -DGATE_MODULE={gate_mod} {gold_rtl.name} {gate_rtl.name} {harness.name}
