@@ -1,0 +1,41 @@
+// P1_BOUNDS: queue occupancy never exceeds two
+property p_bounds;
+    @(posedge clk) disable iff (rst) (count <= 2'd2);
+endproperty
+assert property (p_bounds);
+
+// P2_FLAGS: empty full and ready agree with occupancy
+property p_flags;
+    @(posedge clk) disable iff (rst) ((empty == (count == 2'd0)) && (full == (count == 2'd2)) && (ready == (count < 2'd2)));
+endproperty
+assert property (p_flags);
+
+// P3_RESET: reset produces an empty queue
+property p_reset;
+    @(posedge clk) (rst) |=> ((count == 2'd0) && empty);
+endproperty
+assert property (p_reset);
+
+// P4_FIRST_PUSH: a push into an empty queue creates the head item
+property p_first_push;
+    @(posedge clk) disable iff (rst) ((count == 2'd0) && push) |=> ((count == 2'd1) && (dout == $past(din)));
+endproperty
+assert property (p_first_push);
+
+// P5_SECOND_PUSH: a second push without pop fills the queue
+property p_second_push;
+    @(posedge clk) disable iff (rst) ((count == 2'd1) && push && !pop) |=> ((count == 2'd2) && full);
+endproperty
+assert property (p_second_push);
+
+// P6_POP_ONE: popping the only item empties the queue
+property p_pop_one;
+    @(posedge clk) disable iff (rst) ((count == 2'd1) && pop && !push) |=> ((count == 2'd0) && empty);
+endproperty
+assert property (p_pop_one);
+
+// P7_POP_FULL: popping a full queue reduces occupancy to one
+property p_pop_full;
+    @(posedge clk) disable iff (rst) ((count == 2'd2) && pop) |=> (count == 2'd1);
+endproperty
+assert property (p_pop_full);

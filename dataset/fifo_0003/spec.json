@@ -1,0 +1,178 @@
+{
+  "design_id": "fifo_0003",
+  "category": "fifo_control",
+  "model_type": "multi_register_rules",
+  "template": "overwrite_mailbox",
+  "description": "Single-entry mailbox where a new push always replaces the stored item.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "push",
+    "pop",
+    "din"
+  ],
+  "outputs": [
+    "dout",
+    "valid",
+    "ready"
+  ],
+  "signal_widths": {
+    "din": 2,
+    "dout": 2
+  },
+  "registers": [
+    {
+      "name": "data_reg",
+      "width": 2,
+      "reset_value": "2'd0"
+    },
+    {
+      "name": "valid_reg",
+      "width": 1,
+      "reset_value": "1'b0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior.",
+    "All variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "dout": "data_reg",
+    "valid": "valid_reg",
+    "ready": "1'b1"
+  },
+  "update_rules": {
+    "data_reg": [
+      {
+        "when": "push",
+        "value": "din"
+      },
+      {
+        "when": "true",
+        "value": "data_reg"
+      }
+    ],
+    "valid_reg": [
+      {
+        "when": "push",
+        "value": "1'b1"
+      },
+      {
+        "when": "pop && valid_reg",
+        "value": "1'b0"
+      },
+      {
+        "when": "true",
+        "value": "valid_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_ALWAYS_READY",
+      "sva_name": "p_always_ready",
+      "type": "invariant",
+      "natural_language": "the overwrite mailbox is always ready",
+      "disable": "rst",
+      "expression": "ready"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset empties the mailbox",
+      "antecedent": "rst",
+      "consequent": "!valid",
+      "delay": 1
+    },
+    {
+      "id": "P3_PUSH_CAPTURE",
+      "sva_name": "p_push_capture",
+      "type": "next_cycle_implication",
+      "natural_language": "every push captures the newest item",
+      "disable": "rst",
+      "antecedent": "push",
+      "consequent": "valid && (dout == $past(din))",
+      "delay": 1
+    },
+    {
+      "id": "P4_POP",
+      "sva_name": "p_pop",
+      "type": "next_cycle_implication",
+      "natural_language": "pop without a replacement clears the mailbox",
+      "disable": "rst",
+      "antecedent": "valid && pop && !push",
+      "consequent": "!valid",
+      "delay": 1
+    },
+    {
+      "id": "P5_HOLD",
+      "sva_name": "p_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "without push or pop a valid mailbox holds its item",
+      "disable": "rst",
+      "antecedent": "valid && !push && !pop",
+      "consequent": "valid && (dout == $past(dout))",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_pop",
+      "register": "valid_reg",
+      "kind": "replace_update_guard",
+      "old": "pop && valid_reg",
+      "new": "false"
+    },
+    {
+      "name": "reject_full_push",
+      "register": "data_reg",
+      "kind": "replace_update_guard",
+      "old": "push",
+      "new": "push && !valid_reg"
+    },
+    {
+      "name": "drop_push_valid",
+      "register": "valid_reg",
+      "kind": "replace_update_guard",
+      "old": "push",
+      "new": "push && valid_reg"
+    }
+  ]
+}

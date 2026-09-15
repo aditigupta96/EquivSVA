@@ -105,7 +105,10 @@ def canonical_behavior(spec):
         ],
     }
 
-    if model_type == "register_rules":
+    if model_type in {
+        "register_rules",
+        "multi_register_rules",
+    }:
         registers = spec.get("registers", [])
 
         for i, register in enumerate(registers):
@@ -146,21 +149,46 @@ def canonical_behavior(spec):
                     ),
                 })
 
-        update_rules = []
+        raw_rules = spec.get("update_rules", {})
 
-        # Rule ordering is semantically significant because it
-        # defines update priority.
-        for rule in spec.get("update_rules", []):
-            update_rules.append({
-                "when": replace_identifiers(
-                    rule["when"],
-                    mapping,
-                ),
-                "value": replace_identifiers(
-                    rule["value"],
-                    mapping,
-                ),
-            })
+        if model_type == "register_rules":
+            update_rules = [
+                {
+                    "when": replace_identifiers(
+                        rule["when"],
+                        mapping,
+                    ),
+                    "value": replace_identifiers(
+                        rule["value"],
+                        mapping,
+                    ),
+                }
+                for rule in raw_rules
+            ]
+        else:
+            update_rules = []
+
+            for register in registers:
+                name = register["name"]
+
+                canonical_rules = []
+
+                for rule in raw_rules.get(name, []):
+                    canonical_rules.append({
+                        "when": replace_identifiers(
+                            rule["when"],
+                            mapping,
+                        ),
+                        "value": replace_identifiers(
+                            rule["value"],
+                            mapping,
+                        ),
+                    })
+
+                update_rules.append({
+                    "register": mapping[name],
+                    "rules": canonical_rules,
+                })
 
         common.update({
             "registers": canonical_registers,

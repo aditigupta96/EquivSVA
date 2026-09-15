@@ -68,6 +68,12 @@ elif model_type == "register_rules":
         / "generator"
         / "generate_register_family.py"
     )
+elif model_type == "multi_register_rules":
+    generator = (
+        ROOT
+        / "generator"
+        / "generate_multi_register_family.py"
+    )
 else:
     raise SystemExit(
         f"Unsupported model_type: {model_type}"

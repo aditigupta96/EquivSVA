@@ -13,6 +13,12 @@
       "properties": 31,
       "rtl_variants": 20
     },
+    "fifo_control": {
+      "families": 5,
+      "mutants": 15,
+      "properties": 29,
+      "rtl_variants": 20
+    },
     "handshake": {
       "families": 5,
       "mutants": 15,
@@ -354,6 +360,169 @@
       "validation": {
         "report": "build/validation/counter_0005.json",
         "status": "passed"
+      }
+    },
+    {
+      "category": "fifo_control",
+      "description": "One-entry elastic FIFO allowing simultaneous pop and replacement push.",
+      "design_id": "fifo_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop",
+        "din"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "dout",
+        "valid",
+        "ready"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "elastic_single_entry_fifo",
+      "validation": {
+        "report": "build/validation/fifo_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "fifo_control",
+      "description": "One-entry FIFO that only accepts pushes while empty.",
+      "design_id": "fifo_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop",
+        "din"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "dout",
+        "valid",
+        "ready"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "strict_single_entry_fifo",
+      "validation": {
+        "report": "build/validation/fifo_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "fifo_control",
+      "description": "Single-entry mailbox where a new push always replaces the stored item.",
+      "design_id": "fifo_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop",
+        "din"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "dout",
+        "valid",
+        "ready"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "overwrite_mailbox",
+      "validation": {
+        "report": "build/validation/fifo_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "fifo_control",
+      "description": "Elastic one-entry buffer with a flush operation that has highest priority.",
+      "design_id": "fifo_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop",
+        "flush",
+        "din"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "dout",
+        "valid",
+        "ready"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "flushable_elastic_buffer",
+      "validation": {
+        "report": "build/validation/fifo_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "fifo_control",
+      "description": "Two-entry queue with head, tail, and explicit occupancy tracking.",
+      "design_id": "fifo_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop",
+        "din"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "dout",
+        "count",
+        "empty",
+        "full",
+        "ready"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "two_entry_queue",
+      "validation": {
+        "report": "build/validation/fifo_0005.json",
+        "status": "failed"
       }
     },
     {
@@ -705,11 +874,11 @@
   ],
   "schema_version": "1.0",
   "summary": {
-    "categories": 4,
-    "expected_formal_jobs": 340,
-    "families": 20,
-    "mutants": 60,
-    "properties": 158,
-    "rtl_variants": 80
+    "categories": 5,
+    "expected_formal_jobs": 425,
+    "families": 25,
+    "mutants": 75,
+    "properties": 187,
+    "rtl_variants": 100
   }
 }

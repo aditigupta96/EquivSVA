@@ -1,0 +1,35 @@
+// P1_READY: ready reflects whether a push can be accepted
+property p_ready;
+    @(posedge clk) disable iff (rst) (ready == (!valid || pop));
+endproperty
+assert property (p_ready);
+
+// P2_RESET_EMPTY: reset leaves the buffer empty
+property p_reset_empty;
+    @(posedge clk) (rst) |=> (!valid);
+endproperty
+assert property (p_reset_empty);
+
+// P3_EMPTY_PUSH: a push into an empty buffer captures the item
+property p_empty_push;
+    @(posedge clk) disable iff (rst) (!valid && push) |=> (valid && (dout == $past(din)));
+endproperty
+assert property (p_empty_push);
+
+// P4_BACKPRESSURE: a full buffer without pop cannot be overwritten
+property p_backpressure;
+    @(posedge clk) disable iff (rst) (valid && !pop && push) |=> (valid && (dout == $past(dout)));
+endproperty
+assert property (p_backpressure);
+
+// P5_POP_EMPTY: a pop without replacement empties the buffer
+property p_pop_empty;
+    @(posedge clk) disable iff (rst) (valid && pop && !push) |=> (!valid);
+endproperty
+assert property (p_pop_empty);
+
+// P6_REPLACE: simultaneous pop and push replaces the buffered item
+property p_replace;
+    @(posedge clk) disable iff (rst) (valid && pop && push) |=> (valid && (dout == $past(din)));
+endproperty
+assert property (p_replace);

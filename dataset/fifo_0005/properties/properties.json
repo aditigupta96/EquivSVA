@@ -1,0 +1,67 @@
+[
+  {
+    "id": "P1_BOUNDS",
+    "sva_name": "p_bounds",
+    "type": "invariant",
+    "natural_language": "queue occupancy never exceeds two",
+    "disable": "rst",
+    "expression": "count <= 2'd2"
+  },
+  {
+    "id": "P2_FLAGS",
+    "sva_name": "p_flags",
+    "type": "invariant",
+    "natural_language": "empty full and ready agree with occupancy",
+    "disable": "rst",
+    "expression": "(empty == (count == 2'd0)) && (full == (count == 2'd2)) && (ready == (count < 2'd2))"
+  },
+  {
+    "id": "P3_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset produces an empty queue",
+    "antecedent": "rst",
+    "consequent": "(count == 2'd0) && empty",
+    "delay": 1
+  },
+  {
+    "id": "P4_FIRST_PUSH",
+    "sva_name": "p_first_push",
+    "type": "next_cycle_implication",
+    "natural_language": "a push into an empty queue creates the head item",
+    "disable": "rst",
+    "antecedent": "(count == 2'd0) && push",
+    "consequent": "(count == 2'd1) && (dout == $past(din))",
+    "delay": 1
+  },
+  {
+    "id": "P5_SECOND_PUSH",
+    "sva_name": "p_second_push",
+    "type": "next_cycle_implication",
+    "natural_language": "a second push without pop fills the queue",
+    "disable": "rst",
+    "antecedent": "(count == 2'd1) && push && !pop",
+    "consequent": "(count == 2'd2) && full",
+    "delay": 1
+  },
+  {
+    "id": "P6_POP_ONE",
+    "sva_name": "p_pop_one",
+    "type": "next_cycle_implication",
+    "natural_language": "popping the only item empties the queue",
+    "disable": "rst",
+    "antecedent": "(count == 2'd1) && pop && !push",
+    "consequent": "(count == 2'd0) && empty",
+    "delay": 1
+  },
+  {
+    "id": "P7_POP_FULL",
+    "sva_name": "p_pop_full",
+    "type": "next_cycle_implication",
+    "natural_language": "popping a full queue reduces occupancy to one",
+    "disable": "rst",
+    "antecedent": "(count == 2'd2) && pop",
+    "consequent": "count == 2'd1",
+    "delay": 1
+  }
+]

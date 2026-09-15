@@ -1,0 +1,29 @@
+// P1_READY: ready follows elastic-buffer availability
+property p_ready;
+    @(posedge clk) disable iff (rst) (ready == (!valid || pop));
+endproperty
+assert property (p_ready);
+
+// P2_FLUSH: flush clears both validity and stored data
+property p_flush;
+    @(posedge clk) disable iff (rst) (flush) |=> (!valid && (dout == 2'd0));
+endproperty
+assert property (p_flush);
+
+// P3_PUSH: an accepted non-flushed push stores the item
+property p_push;
+    @(posedge clk) disable iff (rst) (!flush && push && ready) |=> (valid && (dout == $past(din)));
+endproperty
+assert property (p_push);
+
+// P4_POP: pop without replacement empties the buffer
+property p_pop;
+    @(posedge clk) disable iff (rst) (!flush && valid && pop && !push) |=> (!valid);
+endproperty
+assert property (p_pop);
+
+// P5_BACKPRESSURE: a full buffer holds data when pop is absent
+property p_backpressure;
+    @(posedge clk) disable iff (rst) (!flush && valid && !pop && push) |=> (valid && (dout == $past(dout)));
+endproperty
+assert property (p_backpressure);

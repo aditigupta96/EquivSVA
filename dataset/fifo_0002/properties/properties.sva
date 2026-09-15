@@ -1,0 +1,35 @@
+// P1_READY: ready is asserted exactly when the buffer is empty
+property p_ready;
+    @(posedge clk) disable iff (rst) (ready == !valid);
+endproperty
+assert property (p_ready);
+
+// P2_RESET: reset empties the buffer
+property p_reset;
+    @(posedge clk) (rst) |=> (!valid);
+endproperty
+assert property (p_reset);
+
+// P3_PUSH: a push while empty stores the item
+property p_push;
+    @(posedge clk) disable iff (rst) (!valid && push) |=> (valid && (dout == $past(din)));
+endproperty
+assert property (p_push);
+
+// P4_FULL_HOLD: a push while full without pop is rejected
+property p_full_hold;
+    @(posedge clk) disable iff (rst) (valid && push && !pop) |=> (valid && (dout == $past(dout)));
+endproperty
+assert property (p_full_hold);
+
+// P5_POP: a pop from a full buffer empties it
+property p_pop;
+    @(posedge clk) disable iff (rst) (valid && pop) |=> (!valid);
+endproperty
+assert property (p_pop);
+
+// P6_EMPTY_IDLE: an empty buffer remains empty without push
+property p_empty_idle;
+    @(posedge clk) disable iff (rst) (!valid && !push) |=> (!valid);
+endproperty
+assert property (p_empty_idle);

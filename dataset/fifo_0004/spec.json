@@ -1,0 +1,188 @@
+{
+  "design_id": "fifo_0004",
+  "category": "fifo_control",
+  "model_type": "multi_register_rules",
+  "template": "flushable_elastic_buffer",
+  "description": "Elastic one-entry buffer with a flush operation that has highest priority.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "push",
+    "pop",
+    "flush",
+    "din"
+  ],
+  "outputs": [
+    "dout",
+    "valid",
+    "ready"
+  ],
+  "signal_widths": {
+    "din": 2,
+    "dout": 2
+  },
+  "registers": [
+    {
+      "name": "data_reg",
+      "width": 2,
+      "reset_value": "2'd0"
+    },
+    {
+      "name": "valid_reg",
+      "width": 1,
+      "reset_value": "1'b0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior.",
+    "All variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "dout": "data_reg",
+    "valid": "valid_reg",
+    "ready": "!valid_reg || pop"
+  },
+  "update_rules": {
+    "data_reg": [
+      {
+        "when": "flush",
+        "value": "2'd0"
+      },
+      {
+        "when": "push && (!valid_reg || pop)",
+        "value": "din"
+      },
+      {
+        "when": "true",
+        "value": "data_reg"
+      }
+    ],
+    "valid_reg": [
+      {
+        "when": "flush",
+        "value": "1'b0"
+      },
+      {
+        "when": "push && (!valid_reg || pop)",
+        "value": "1'b1"
+      },
+      {
+        "when": "pop && valid_reg",
+        "value": "1'b0"
+      },
+      {
+        "when": "true",
+        "value": "valid_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_READY",
+      "sva_name": "p_ready",
+      "type": "invariant",
+      "natural_language": "ready follows elastic-buffer availability",
+      "disable": "rst",
+      "expression": "ready == (!valid || pop)"
+    },
+    {
+      "id": "P2_FLUSH",
+      "sva_name": "p_flush",
+      "type": "next_cycle_implication",
+      "natural_language": "flush clears both validity and stored data",
+      "disable": "rst",
+      "antecedent": "flush",
+      "consequent": "!valid && (dout == 2'd0)",
+      "delay": 1
+    },
+    {
+      "id": "P3_PUSH",
+      "sva_name": "p_push",
+      "type": "next_cycle_implication",
+      "natural_language": "an accepted non-flushed push stores the item",
+      "disable": "rst",
+      "antecedent": "!flush && push && ready",
+      "consequent": "valid && (dout == $past(din))",
+      "delay": 1
+    },
+    {
+      "id": "P4_POP",
+      "sva_name": "p_pop",
+      "type": "next_cycle_implication",
+      "natural_language": "pop without replacement empties the buffer",
+      "disable": "rst",
+      "antecedent": "!flush && valid && pop && !push",
+      "consequent": "!valid",
+      "delay": 1
+    },
+    {
+      "id": "P5_BACKPRESSURE",
+      "sva_name": "p_backpressure",
+      "type": "next_cycle_implication",
+      "natural_language": "a full buffer holds data when pop is absent",
+      "disable": "rst",
+      "antecedent": "!flush && valid && !pop && push",
+      "consequent": "valid && (dout == $past(dout))",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_flush",
+      "register": "valid_reg",
+      "kind": "replace_update_guard",
+      "old": "flush",
+      "new": "false"
+    },
+    {
+      "name": "stale_data_on_flush",
+      "register": "data_reg",
+      "kind": "replace_update_guard",
+      "old": "flush",
+      "new": "false"
+    },
+    {
+      "name": "push_beats_flush",
+      "register": "valid_reg",
+      "kind": "replace_update_guard",
+      "old": "flush",
+      "new": "flush && !push"
+    }
+  ]
+}

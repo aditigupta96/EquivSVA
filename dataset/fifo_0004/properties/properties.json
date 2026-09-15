@@ -1,0 +1,50 @@
+[
+  {
+    "id": "P1_READY",
+    "sva_name": "p_ready",
+    "type": "invariant",
+    "natural_language": "ready follows elastic-buffer availability",
+    "disable": "rst",
+    "expression": "ready == (!valid || pop)"
+  },
+  {
+    "id": "P2_FLUSH",
+    "sva_name": "p_flush",
+    "type": "next_cycle_implication",
+    "natural_language": "flush clears both validity and stored data",
+    "disable": "rst",
+    "antecedent": "flush",
+    "consequent": "!valid && (dout == 2'd0)",
+    "delay": 1
+  },
+  {
+    "id": "P3_PUSH",
+    "sva_name": "p_push",
+    "type": "next_cycle_implication",
+    "natural_language": "an accepted non-flushed push stores the item",
+    "disable": "rst",
+    "antecedent": "!flush && push && ready",
+    "consequent": "valid && (dout == $past(din))",
+    "delay": 1
+  },
+  {
+    "id": "P4_POP",
+    "sva_name": "p_pop",
+    "type": "next_cycle_implication",
+    "natural_language": "pop without replacement empties the buffer",
+    "disable": "rst",
+    "antecedent": "!flush && valid && pop && !push",
+    "consequent": "!valid",
+    "delay": 1
+  },
+  {
+    "id": "P5_BACKPRESSURE",
+    "sva_name": "p_backpressure",
+    "type": "next_cycle_implication",
+    "natural_language": "a full buffer holds data when pop is absent",
+    "disable": "rst",
+    "antecedent": "!flush && valid && !pop && push",
+    "consequent": "valid && (dout == $past(dout))",
+    "delay": 1
+  }
+]

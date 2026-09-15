@@ -1,0 +1,225 @@
+{
+  "design_id": "fifo_0005",
+  "category": "fifo_control",
+  "model_type": "multi_register_rules",
+  "template": "two_entry_queue",
+  "description": "Two-entry queue with head, tail, and explicit occupancy tracking.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "push",
+    "pop",
+    "din"
+  ],
+  "outputs": [
+    "dout",
+    "count",
+    "empty",
+    "full",
+    "ready"
+  ],
+  "signal_widths": {
+    "din": 2,
+    "dout": 2,
+    "count": 2
+  },
+  "registers": [
+    {
+      "name": "head_reg",
+      "width": 2,
+      "reset_value": "2'd0"
+    },
+    {
+      "name": "tail_reg",
+      "width": 2,
+      "reset_value": "2'd0"
+    },
+    {
+      "name": "count_reg",
+      "width": 2,
+      "reset_value": "2'd0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior.",
+    "All variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "dout": "head_reg",
+    "count": "count_reg",
+    "empty": "count_reg == 2'd0",
+    "full": "count_reg == 2'd2",
+    "ready": "count_reg < 2'd2"
+  },
+  "update_rules": {
+    "count_reg": [
+      {
+        "when": "push && (count_reg < 2'd2) && !(pop && (count_reg > 2'd0))",
+        "value": "count_reg + 2'd1"
+      },
+      {
+        "when": "pop && (count_reg > 2'd0) && !(push && (count_reg < 2'd2))",
+        "value": "count_reg - 2'd1"
+      },
+      {
+        "when": "true",
+        "value": "count_reg"
+      }
+    ],
+    "head_reg": [
+      {
+        "when": "push && (count_reg == 2'd0)",
+        "value": "din"
+      },
+      {
+        "when": "push && pop && (count_reg == 2'd1)",
+        "value": "din"
+      },
+      {
+        "when": "pop && (count_reg == 2'd2)",
+        "value": "tail_reg"
+      },
+      {
+        "when": "true",
+        "value": "head_reg"
+      }
+    ],
+    "tail_reg": [
+      {
+        "when": "push && !pop && (count_reg == 2'd1)",
+        "value": "din"
+      },
+      {
+        "when": "true",
+        "value": "tail_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_BOUNDS",
+      "sva_name": "p_bounds",
+      "type": "invariant",
+      "natural_language": "queue occupancy never exceeds two",
+      "disable": "rst",
+      "expression": "count <= 2'd2"
+    },
+    {
+      "id": "P2_FLAGS",
+      "sva_name": "p_flags",
+      "type": "invariant",
+      "natural_language": "empty full and ready agree with occupancy",
+      "disable": "rst",
+      "expression": "(empty == (count == 2'd0)) && (full == (count == 2'd2)) && (ready == (count < 2'd2))"
+    },
+    {
+      "id": "P3_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset produces an empty queue",
+      "antecedent": "rst",
+      "consequent": "(count == 2'd0) && empty",
+      "delay": 1
+    },
+    {
+      "id": "P4_FIRST_PUSH",
+      "sva_name": "p_first_push",
+      "type": "next_cycle_implication",
+      "natural_language": "a push into an empty queue creates the head item",
+      "disable": "rst",
+      "antecedent": "(count == 2'd0) && push",
+      "consequent": "(count == 2'd1) && (dout == $past(din))",
+      "delay": 1
+    },
+    {
+      "id": "P5_SECOND_PUSH",
+      "sva_name": "p_second_push",
+      "type": "next_cycle_implication",
+      "natural_language": "a second push without pop fills the queue",
+      "disable": "rst",
+      "antecedent": "(count == 2'd1) && push && !pop",
+      "consequent": "(count == 2'd2) && full",
+      "delay": 1
+    },
+    {
+      "id": "P6_POP_ONE",
+      "sva_name": "p_pop_one",
+      "type": "next_cycle_implication",
+      "natural_language": "popping the only item empties the queue",
+      "disable": "rst",
+      "antecedent": "(count == 2'd1) && pop && !push",
+      "consequent": "(count == 2'd0) && empty",
+      "delay": 1
+    },
+    {
+      "id": "P7_POP_FULL",
+      "sva_name": "p_pop_full",
+      "type": "next_cycle_implication",
+      "natural_language": "popping a full queue reduces occupancy to one",
+      "disable": "rst",
+      "antecedent": "(count == 2'd2) && pop",
+      "consequent": "count == 2'd1",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_pop",
+      "register": "count_reg",
+      "kind": "replace_update_guard",
+      "old": "pop && (count_reg > 2'd0) && !(push && (count_reg < 2'd2))",
+      "new": "false"
+    },
+    {
+      "name": "overflow_full",
+      "register": "count_reg",
+      "kind": "insert_update_rule",
+      "before": "true",
+      "when": "push && (count_reg == 2'd2)",
+      "value": "2'd3"
+    },
+    {
+      "name": "ignore_second_push",
+      "register": "count_reg",
+      "kind": "replace_update_guard",
+      "old": "push && (count_reg < 2'd2) && !(pop && (count_reg > 2'd0))",
+      "new": "push && (count_reg == 2'd0)"
+    }
+  ]
+}

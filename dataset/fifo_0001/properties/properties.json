@@ -1,0 +1,59 @@
+[
+  {
+    "id": "P1_READY",
+    "sva_name": "p_ready",
+    "type": "invariant",
+    "natural_language": "ready reflects whether a push can be accepted",
+    "disable": "rst",
+    "expression": "ready == (!valid || pop)"
+  },
+  {
+    "id": "P2_RESET_EMPTY",
+    "sva_name": "p_reset_empty",
+    "type": "next_cycle_implication",
+    "natural_language": "reset leaves the buffer empty",
+    "antecedent": "rst",
+    "consequent": "!valid",
+    "delay": 1
+  },
+  {
+    "id": "P3_EMPTY_PUSH",
+    "sva_name": "p_empty_push",
+    "type": "next_cycle_implication",
+    "natural_language": "a push into an empty buffer captures the item",
+    "disable": "rst",
+    "antecedent": "!valid && push",
+    "consequent": "valid && (dout == $past(din))",
+    "delay": 1
+  },
+  {
+    "id": "P4_BACKPRESSURE",
+    "sva_name": "p_backpressure",
+    "type": "next_cycle_implication",
+    "natural_language": "a full buffer without pop cannot be overwritten",
+    "disable": "rst",
+    "antecedent": "valid && !pop && push",
+    "consequent": "valid && (dout == $past(dout))",
+    "delay": 1
+  },
+  {
+    "id": "P5_POP_EMPTY",
+    "sva_name": "p_pop_empty",
+    "type": "next_cycle_implication",
+    "natural_language": "a pop without replacement empties the buffer",
+    "disable": "rst",
+    "antecedent": "valid && pop && !push",
+    "consequent": "!valid",
+    "delay": 1
+  },
+  {
+    "id": "P6_REPLACE",
+    "sva_name": "p_replace",
+    "type": "next_cycle_implication",
+    "natural_language": "simultaneous pop and push replaces the buffered item",
+    "disable": "rst",
+    "antecedent": "valid && pop && push",
+    "consequent": "valid && (dout == $past(din))",
+    "delay": 1
+  }
+]
