@@ -1,0 +1,30 @@
+property p_req0_grant0;
+    @(posedge clk) disable iff (rst) req0 |-> grant0;
+endproperty
+
+property p_req1_grant1;
+    @(posedge clk) disable iff (rst) req1 |-> grant1;
+endproperty
+
+property p_no_simultaneous_grants;
+    @(posedge clk) disable iff (rst) (req0 && req1) |-> !(grant0 && grant1);
+endproperty
+
+property p_grant0_only_when_req0;
+    @(posedge clk) disable iff (rst) grant0 |-> req0;
+endproperty
+
+property p_grant1_only_when_req1;
+    @(posedge clk) disable iff (rst) grant1 |-> req1;
+endproperty
+
+property p_no_grant_when_no_request;
+    @(posedge clk) disable iff (rst) !(req0 || req1) |-> !(grant0 || grant1);
+endproperty
+
+a_req0_grant0: assert property (p_req0_grant0);
+a_req1_grant1: assert property (p_req1_grant1);
+a_no_simultaneous_grants: assert property (p_no_simultaneous_grants);
+a_grant0_only_when_req0: assert property (p_grant0_only_when_req0);
+a_grant1_only_when_req1: assert property (p_grant1_only_when_req1);
+a_no_grant_when_no_request: assert property (p_no_grant_when_no_request);

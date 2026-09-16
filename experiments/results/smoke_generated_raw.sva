@@ -1,0 +1,40 @@
+```systemverilog
+property p_req_exclusive;
+  @(posedge clk) disable iff (rst)
+    (req0 && req1) |-> ##1 !(req0 || req1);
+endproperty
+
+assert a_req_exclusive of p_req_exclusive;
+
+property p_grant_valid;
+  @(posedge clk) disable iff (rst)
+    (req0 || req1) |-> ##1 (grant0 || grant1);
+endproperty
+
+assert a_grant_valid of p_grant_valid;
+
+property p_grant_exclusive;
+  @(posedge clk) disable iff (rst)
+    (grant0 && grant1) |-> ##1 !(grant0 || grant1);
+endproperty
+
+assert a_grant_exclusive of p_grant_exclusive;
+
+property p_grant_no_change;
+  @(posedge clk) disable iff (rst)
+    grant0 |-> ##1 grant0;
+  @(posedge clk) disable iff (rst)
+    grant1 |-> ##1 grant1;
+endproperty
+
+assert a_grant_no_change of p_grant_no_change;
+
+property p_grant_no_reset;
+  @(posedge clk) disable iff (rst)
+    grant0 |-> ##1 grant0;
+  @(posedge clk) disable iff (rst)
+    grant1 |-> ##1 grant1;
+endproperty
+
+assert a_grant_no_reset of p_grant_no_reset;
+```<|im_end|>

@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 build/
 backup/
+
+# Local LLM weights
+local_models/
