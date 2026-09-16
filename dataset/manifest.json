@@ -528,7 +528,7 @@
       "template": "two_entry_queue",
       "validation": {
         "report": "build/validation/fifo_0005.json",
-        "status": "failed"
+        "status": "passed"
       }
     },
     {
