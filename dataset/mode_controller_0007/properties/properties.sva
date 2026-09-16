@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: mode_controller_0007
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({standby, running, faulted}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (standby && !running && !faulted));
+
+// P3_T1: STANDBY transitions to RUN when run.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((standby && !running && !faulted) && (run)) |=> (!standby && running && !faulted));
+
+// P4_T2: STANDBY transitions to STANDBY when !run.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((standby && !running && !faulted) && (!run)) |=> (standby && !running && !faulted));
+
+// P5_T3: RUN transitions to FAULT when fault.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((!standby && running && !faulted) && (fault)) |=> (!standby && !running && faulted));
+
+// P6_T4: RUN transitions to RUN when !fault && run.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((!standby && running && !faulted) && (!fault && run)) |=> (!standby && running && !faulted));
+
+// P7_T5: RUN transitions to STANDBY when !fault && !run.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((!standby && running && !faulted) && (!fault && !run)) |=> (standby && !running && !faulted));
+
+// P8_T6: FAULT transitions to STANDBY when clear.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!standby && !running && faulted) && (clear)) |=> (standby && !running && !faulted));
+
+// P9_T7: FAULT transitions to FAULT when !clear.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!standby && !running && faulted) && (!clear)) |=> (!standby && !running && faulted));

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({preparing, committing, done})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!preparing && !committing && !done",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to PREP when start",
+    "antecedent": "(!preparing && !committing && !done) && (start)",
+    "consequent": "preparing && !committing && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !start",
+    "antecedent": "(!preparing && !committing && !done) && (!start)",
+    "consequent": "!preparing && !committing && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "PREP transitions to COMMIT when prepare_ok",
+    "antecedent": "(preparing && !committing && !done) && (prepare_ok)",
+    "consequent": "!preparing && committing && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "PREP transitions to PREP when !prepare_ok",
+    "antecedent": "(preparing && !committing && !done) && (!prepare_ok)",
+    "consequent": "preparing && !committing && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "COMMIT transitions to DONE when commit_ok",
+    "antecedent": "(!preparing && committing && !done) && (commit_ok)",
+    "consequent": "!preparing && !committing && done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "COMMIT transitions to COMMIT when !commit_ok",
+    "antecedent": "(!preparing && committing && !done) && (!commit_ok)",
+    "consequent": "!preparing && committing && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "DONE transitions to IDLE when true",
+    "antecedent": "!preparing && !committing && done",
+    "consequent": "!preparing && !committing && !done",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

@@ -1,0 +1,199 @@
+{
+  "design_id": "mode_controller_0004",
+  "category": "mode_controller",
+  "template": "safe_fault",
+  "description": "Mode controller implementing safe fault behavior.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "SAFE"
+  },
+  "inputs": [
+    "start",
+    "fault",
+    "clear"
+  ],
+  "outputs": [
+    "running",
+    "safe",
+    "faulted"
+  ],
+  "states": [
+    "SAFE",
+    "RUN",
+    "FAULT"
+  ],
+  "state_outputs": {
+    "SAFE": {
+      "running": 0,
+      "safe": 1,
+      "faulted": 0
+    },
+    "RUN": {
+      "running": 1,
+      "safe": 0,
+      "faulted": 0
+    },
+    "FAULT": {
+      "running": 0,
+      "safe": 0,
+      "faulted": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "SAFE",
+      "when": "start",
+      "to": "RUN"
+    },
+    {
+      "from": "SAFE",
+      "when": "!start",
+      "to": "SAFE"
+    },
+    {
+      "from": "RUN",
+      "when": "fault",
+      "to": "FAULT"
+    },
+    {
+      "from": "RUN",
+      "when": "!fault",
+      "to": "RUN"
+    },
+    {
+      "from": "FAULT",
+      "when": "clear",
+      "to": "SAFE"
+    },
+    {
+      "from": "FAULT",
+      "when": "!clear",
+      "to": "FAULT"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({running, safe, faulted})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!running && safe && !faulted",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "SAFE transitions to RUN when start",
+      "antecedent": "(!running && safe && !faulted) && (start)",
+      "consequent": "running && !safe && !faulted",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "SAFE transitions to SAFE when !start",
+      "antecedent": "(!running && safe && !faulted) && (!start)",
+      "consequent": "!running && safe && !faulted",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "RUN transitions to FAULT when fault",
+      "antecedent": "(running && !safe && !faulted) && (fault)",
+      "consequent": "!running && !safe && faulted",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "RUN transitions to RUN when !fault",
+      "antecedent": "(running && !safe && !faulted) && (!fault)",
+      "consequent": "running && !safe && !faulted",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "FAULT transitions to SAFE when clear",
+      "antecedent": "(!running && !safe && faulted) && (clear)",
+      "consequent": "!running && safe && !faulted",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "FAULT transitions to FAULT when !clear",
+      "antecedent": "(!running && !safe && faulted) && (!clear)",
+      "consequent": "!running && !safe && faulted",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "SAFE",
+      "old": "start",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "SAFE",
+      "old": "!start",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "RUN",
+      "old": "fault",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

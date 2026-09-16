@@ -1,0 +1,35 @@
+// P1_MAX: at_max matches the saturated arithmetic value
+property p_max;
+    @(posedge clk) disable iff (rst) (at_max == (value == 4'd15));
+endproperty
+assert property (p_max);
+
+// P2_RESET: reset clears value and sticky overflow
+property p_reset;
+    @(posedge clk) (rst) |=> ((value == 4'd0) && !overflowed);
+endproperty
+assert property (p_reset);
+
+// P3_CLEAR: clear resets both outputs
+property p_clear;
+    @(posedge clk) disable iff (rst) (clear) |=> ((value == 4'd0) && !overflowed);
+endproperty
+assert property (p_clear);
+
+// P4_ADD: add increments value below saturation
+property p_add;
+    @(posedge clk) disable iff (rst) (!clear && add && (value < 4'd15)) |=> (value == ($past(value) + 4'd1));
+endproperty
+assert property (p_add);
+
+// P5_OVERFLOW: adding at saturation latches overflowed
+property p_overflow;
+    @(posedge clk) disable iff (rst) (!clear && add && (value == 4'd15)) |=> ((value == 4'd15) && overflowed);
+endproperty
+assert property (p_overflow);
+
+// P6_STICKY: overflowed remains set without clear
+property p_sticky;
+    @(posedge clk) disable iff (rst) (overflowed && !clear) |=> (overflowed);
+endproperty
+assert property (p_sticky);

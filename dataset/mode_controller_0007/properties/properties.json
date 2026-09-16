@@ -1,0 +1,80 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({standby, running, faulted})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "standby && !running && !faulted",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "STANDBY transitions to RUN when run",
+    "antecedent": "(standby && !running && !faulted) && (run)",
+    "consequent": "!standby && running && !faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "STANDBY transitions to STANDBY when !run",
+    "antecedent": "(standby && !running && !faulted) && (!run)",
+    "consequent": "standby && !running && !faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to FAULT when fault",
+    "antecedent": "(!standby && running && !faulted) && (fault)",
+    "consequent": "!standby && !running && faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to RUN when !fault && run",
+    "antecedent": "(!standby && running && !faulted) && (!fault && run)",
+    "consequent": "!standby && running && !faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to STANDBY when !fault && !run",
+    "antecedent": "(!standby && running && !faulted) && (!fault && !run)",
+    "consequent": "standby && !running && !faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "FAULT transitions to STANDBY when clear",
+    "antecedent": "(!standby && !running && faulted) && (clear)",
+    "consequent": "standby && !running && !faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "FAULT transitions to FAULT when !clear",
+    "antecedent": "(!standby && !running && faulted) && (!clear)",
+    "consequent": "!standby && !running && faulted",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

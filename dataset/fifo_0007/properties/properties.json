@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "exactly one occupancy state is visible",
+    "expression": "$onehot({empty, one, full})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset empties the FIFO",
+    "antecedent": "rst",
+    "consequent": "empty",
+    "delay": 1
+  },
+  {
+    "id": "P3_EMPTY_PUSH",
+    "type": "next_cycle_implication",
+    "natural_language": "pushing an empty FIFO creates one entry",
+    "antecedent": "empty && push",
+    "consequent": "one",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_ONE_PUSH",
+    "type": "next_cycle_implication",
+    "natural_language": "push without pop fills a one-entry FIFO",
+    "antecedent": "one && push && !pop",
+    "consequent": "full",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_ONE_POP",
+    "type": "next_cycle_implication",
+    "natural_language": "pop without push empties a one-entry FIFO",
+    "antecedent": "one && pop && !push",
+    "consequent": "empty",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_SIMULTANEOUS",
+    "type": "next_cycle_implication",
+    "natural_language": "simultaneous push and pop preserves one-entry occupancy",
+    "antecedent": "one && push && pop",
+    "consequent": "one",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_FULL_POP",
+    "type": "next_cycle_implication",
+    "natural_language": "popping a full FIFO leaves one entry",
+    "antecedent": "full && pop",
+    "consequent": "one",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

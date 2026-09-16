@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "standby, active, and faulted are mutually exclusive",
+    "disable": "rst",
+    "expression": "$onehot0({standby, active, faulted})"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset puts the controller in off mode",
+    "antecedent": "rst",
+    "consequent": "!standby && !active && !faulted",
+    "delay": 1
+  },
+  {
+    "id": "P3_ENABLE",
+    "type": "next_cycle_implication",
+    "natural_language": "enabling from off enters standby",
+    "disable": "rst",
+    "antecedent": "!standby && !active && !faulted && enable",
+    "consequent": "standby",
+    "delay": 1
+  },
+  {
+    "id": "P4_WAKE",
+    "type": "next_cycle_implication",
+    "natural_language": "wake while enabled in standby enters active mode",
+    "disable": "rst",
+    "antecedent": "standby && enable && wake && !fault",
+    "consequent": "active",
+    "delay": 1
+  },
+  {
+    "id": "P5_FAULT",
+    "type": "next_cycle_implication",
+    "natural_language": "a fault from an enabled mode enters fault state",
+    "disable": "rst",
+    "antecedent": "(standby || active) && fault",
+    "consequent": "faulted",
+    "delay": 1
+  },
+  {
+    "id": "P6_FAULT_STICKY",
+    "type": "next_cycle_implication",
+    "natural_language": "fault remains asserted until cleared",
+    "disable": "rst",
+    "antecedent": "faulted && !clear_fault",
+    "consequent": "faulted",
+    "delay": 1
+  },
+  {
+    "id": "P7_CLEAR",
+    "type": "next_cycle_implication",
+    "natural_language": "clearing a fault returns to off",
+    "disable": "rst",
+    "antecedent": "faulted && clear_fault",
+    "consequent": "!standby && !active && !faulted",
+    "delay": 1
+  }
+]

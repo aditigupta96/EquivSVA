@@ -1,0 +1,193 @@
+{
+  "design_id": "interrupt_0009",
+  "category": "interrupt_control",
+  "template": "service_then_rearm_low",
+  "description": "Interrupt service waits for irq to deassert before rearming.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "ARMED"
+  },
+  "inputs": [
+    "irq",
+    "ack"
+  ],
+  "outputs": [
+    "pending",
+    "servicing",
+    "wait_low",
+    "armed"
+  ],
+  "states": [
+    "ARMED",
+    "PENDING",
+    "SERVICE",
+    "WAIT_LOW"
+  ],
+  "state_outputs": {
+    "ARMED": {
+      "pending": 0,
+      "servicing": 0,
+      "wait_low": 0,
+      "armed": 1
+    },
+    "PENDING": {
+      "pending": 1,
+      "servicing": 0,
+      "wait_low": 0,
+      "armed": 0
+    },
+    "SERVICE": {
+      "pending": 0,
+      "servicing": 1,
+      "wait_low": 0,
+      "armed": 0
+    },
+    "WAIT_LOW": {
+      "pending": 0,
+      "servicing": 0,
+      "wait_low": 1,
+      "armed": 0
+    }
+  },
+  "transitions": [
+    {
+      "from": "ARMED",
+      "when": "irq",
+      "to": "PENDING"
+    },
+    {
+      "from": "ARMED",
+      "when": "!irq",
+      "to": "ARMED"
+    },
+    {
+      "from": "PENDING",
+      "when": "ack",
+      "to": "SERVICE"
+    },
+    {
+      "from": "PENDING",
+      "when": "!ack",
+      "to": "PENDING"
+    },
+    {
+      "from": "SERVICE",
+      "when": "true",
+      "to": "WAIT_LOW"
+    },
+    {
+      "from": "WAIT_LOW",
+      "when": "irq",
+      "to": "WAIT_LOW"
+    },
+    {
+      "from": "WAIT_LOW",
+      "when": "!irq",
+      "to": "ARMED"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_ONEHOT",
+      "sva_name": "p_onehot",
+      "type": "invariant",
+      "natural_language": "interrupt phases are mutually exclusive",
+      "expression": "$onehot({pending, servicing, wait_low, armed})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset arms interrupt capture",
+      "antecedent": "rst",
+      "consequent": "armed",
+      "delay": 1
+    },
+    {
+      "id": "P3_IRQ",
+      "sva_name": "p_irq",
+      "type": "next_cycle_implication",
+      "natural_language": "irq while armed becomes pending",
+      "antecedent": "armed && irq",
+      "consequent": "pending",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_ACK",
+      "sva_name": "p_ack",
+      "type": "next_cycle_implication",
+      "natural_language": "acknowledge services a pending interrupt",
+      "antecedent": "pending && ack",
+      "consequent": "servicing",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_WAIT_LOW",
+      "sva_name": "p_wait_low",
+      "type": "next_cycle_implication",
+      "natural_language": "service completion waits for irq deassertion",
+      "antecedent": "servicing",
+      "consequent": "wait_low",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_REARM",
+      "sva_name": "p_rearm",
+      "type": "next_cycle_implication",
+      "natural_language": "irq deassertion rearms capture",
+      "antecedent": "wait_low && !irq",
+      "consequent": "armed",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_irq",
+      "kind": "replace_transition_guard",
+      "from": "ARMED",
+      "old": "irq",
+      "new": "false"
+    },
+    {
+      "name": "ignore_ack",
+      "kind": "replace_transition_guard",
+      "from": "PENDING",
+      "old": "ack",
+      "new": "false"
+    },
+    {
+      "name": "premature_rearm",
+      "kind": "force_transition",
+      "from": "SERVICE",
+      "to": "ARMED"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

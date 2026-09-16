@@ -1,0 +1,244 @@
+{
+  "design_id": "mode_controller_0010",
+  "category": "mode_controller",
+  "template": "manual_auto",
+  "description": "Mode controller implementing manual auto behavior.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "OFF"
+  },
+  "inputs": [
+    "enable",
+    "auto_mode",
+    "disable"
+  ],
+  "outputs": [
+    "manual",
+    "automatic",
+    "off"
+  ],
+  "states": [
+    "OFF",
+    "MANUAL",
+    "AUTO"
+  ],
+  "state_outputs": {
+    "OFF": {
+      "manual": 0,
+      "automatic": 0,
+      "off": 1
+    },
+    "MANUAL": {
+      "manual": 1,
+      "automatic": 0,
+      "off": 0
+    },
+    "AUTO": {
+      "manual": 0,
+      "automatic": 1,
+      "off": 0
+    }
+  },
+  "transitions": [
+    {
+      "from": "OFF",
+      "when": "enable && auto_mode",
+      "to": "AUTO"
+    },
+    {
+      "from": "OFF",
+      "when": "enable && !auto_mode",
+      "to": "MANUAL"
+    },
+    {
+      "from": "OFF",
+      "when": "!enable",
+      "to": "OFF"
+    },
+    {
+      "from": "MANUAL",
+      "when": "disable",
+      "to": "OFF"
+    },
+    {
+      "from": "MANUAL",
+      "when": "!disable && auto_mode",
+      "to": "AUTO"
+    },
+    {
+      "from": "MANUAL",
+      "when": "!disable && !auto_mode",
+      "to": "MANUAL"
+    },
+    {
+      "from": "AUTO",
+      "when": "disable",
+      "to": "OFF"
+    },
+    {
+      "from": "AUTO",
+      "when": "!disable && !auto_mode",
+      "to": "MANUAL"
+    },
+    {
+      "from": "AUTO",
+      "when": "!disable && auto_mode",
+      "to": "AUTO"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({manual, automatic, off})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!manual && !automatic && off",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "OFF transitions to AUTO when enable && auto_mode",
+      "antecedent": "(!manual && !automatic && off) && (enable && auto_mode)",
+      "consequent": "!manual && automatic && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "OFF transitions to MANUAL when enable && !auto_mode",
+      "antecedent": "(!manual && !automatic && off) && (enable && !auto_mode)",
+      "consequent": "manual && !automatic && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "OFF transitions to OFF when !enable",
+      "antecedent": "(!manual && !automatic && off) && (!enable)",
+      "consequent": "!manual && !automatic && off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "MANUAL transitions to OFF when disable",
+      "antecedent": "(manual && !automatic && !off) && (disable)",
+      "consequent": "!manual && !automatic && off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "MANUAL transitions to AUTO when !disable && auto_mode",
+      "antecedent": "(manual && !automatic && !off) && (!disable && auto_mode)",
+      "consequent": "!manual && automatic && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "MANUAL transitions to MANUAL when !disable && !auto_mode",
+      "antecedent": "(manual && !automatic && !off) && (!disable && !auto_mode)",
+      "consequent": "manual && !automatic && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P9_T7",
+      "sva_name": "p_t7",
+      "type": "next_cycle_implication",
+      "natural_language": "AUTO transitions to OFF when disable",
+      "antecedent": "(!manual && automatic && !off) && (disable)",
+      "consequent": "!manual && !automatic && off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P10_T8",
+      "sva_name": "p_t8",
+      "type": "next_cycle_implication",
+      "natural_language": "AUTO transitions to MANUAL when !disable && !auto_mode",
+      "antecedent": "(!manual && automatic && !off) && (!disable && !auto_mode)",
+      "consequent": "manual && !automatic && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P11_T9",
+      "sva_name": "p_t9",
+      "type": "next_cycle_implication",
+      "natural_language": "AUTO transitions to AUTO when !disable && auto_mode",
+      "antecedent": "(!manual && automatic && !off) && (!disable && auto_mode)",
+      "consequent": "!manual && automatic && !off",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "OFF",
+      "old": "enable && auto_mode",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "OFF",
+      "old": "enable && !auto_mode",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "OFF",
+      "old": "!enable",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

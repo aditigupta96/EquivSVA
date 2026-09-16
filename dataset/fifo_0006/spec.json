@@ -1,0 +1,188 @@
+{
+  "design_id": "fifo_0006",
+  "category": "fifo_control",
+  "model_type": "multi_register_rules",
+  "template": "elastic_mailbox",
+  "description": "Elastic one-entry queue with same-cycle pop-and-replace.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "push",
+    "pop",
+    "din"
+  ],
+  "outputs": [
+    "dout",
+    "valid",
+    "ready"
+  ],
+  "signal_widths": {
+    "dout": 3,
+    "din": 3
+  },
+  "registers": [
+    {
+      "name": "data_reg",
+      "width": 3,
+      "reset_value": "3'd0"
+    },
+    {
+      "name": "valid_reg",
+      "width": 1,
+      "reset_value": "1'b0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "dout": "data_reg",
+    "valid": "valid_reg",
+    "ready": "!valid_reg || pop"
+  },
+  "update_rules": {
+    "data_reg": [
+      {
+        "when": "push && (!valid_reg || pop)",
+        "value": "din"
+      },
+      {
+        "when": "true",
+        "value": "data_reg"
+      }
+    ],
+    "valid_reg": [
+      {
+        "when": "push && (!valid_reg || pop)",
+        "value": "1'b1"
+      },
+      {
+        "when": "pop && valid_reg",
+        "value": "1'b0"
+      },
+      {
+        "when": "true",
+        "value": "valid_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_READY",
+      "sva_name": "p_ready",
+      "type": "invariant",
+      "natural_language": "ready reflects elastic acceptance",
+      "expression": "ready == (!valid || pop)",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset empties the queue",
+      "antecedent": "rst",
+      "consequent": "!valid",
+      "delay": 1
+    },
+    {
+      "id": "P3_PUSH_EMPTY",
+      "sva_name": "p_push_empty",
+      "type": "next_cycle_implication",
+      "natural_language": "push into empty captures data",
+      "antecedent": "!valid && push",
+      "consequent": "valid && (dout == $past(din))",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_HOLD_FULL",
+      "sva_name": "p_hold_full",
+      "type": "next_cycle_implication",
+      "natural_language": "full queue without pop holds data",
+      "antecedent": "valid && !pop",
+      "consequent": "valid && (dout == $past(dout))",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_POP",
+      "sva_name": "p_pop",
+      "type": "next_cycle_implication",
+      "natural_language": "pop without replacement empties queue",
+      "antecedent": "valid && pop && !push",
+      "consequent": "!valid",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_REPLACE",
+      "sva_name": "p_replace",
+      "type": "next_cycle_implication",
+      "natural_language": "simultaneous pop and push replaces item",
+      "antecedent": "valid && pop && push",
+      "consequent": "valid && (dout == $past(din))",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_pop",
+      "register": "valid_reg",
+      "kind": "replace_update_guard",
+      "old": "pop && valid_reg",
+      "new": "false"
+    },
+    {
+      "name": "drop_replacement",
+      "register": "valid_reg",
+      "kind": "replace_update_guard",
+      "old": "push && (!valid_reg || pop)",
+      "new": "push && !valid_reg"
+    },
+    {
+      "name": "overwrite_without_accept",
+      "register": "data_reg",
+      "kind": "replace_update_guard",
+      "old": "push && (!valid_reg || pop)",
+      "new": "push"
+    }
+  ]
+}

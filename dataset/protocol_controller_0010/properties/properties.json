@@ -1,0 +1,71 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({running, draining, stopped})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!running && !draining && stopped",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "STOP transitions to RUN when enable",
+    "antecedent": "(!running && !draining && stopped) && (enable)",
+    "consequent": "running && !draining && !stopped",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "STOP transitions to STOP when !enable",
+    "antecedent": "(!running && !draining && stopped) && (!enable)",
+    "consequent": "!running && !draining && stopped",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to DRAIN when quiesce",
+    "antecedent": "(running && !draining && !stopped) && (quiesce)",
+    "consequent": "!running && draining && !stopped",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to RUN when !quiesce",
+    "antecedent": "(running && !draining && !stopped) && (!quiesce)",
+    "consequent": "running && !draining && !stopped",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "DRAIN transitions to STOP when idle_seen",
+    "antecedent": "(!running && draining && !stopped) && (idle_seen)",
+    "consequent": "!running && !draining && stopped",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "DRAIN transitions to DRAIN when !idle_seen",
+    "antecedent": "(!running && draining && !stopped) && (!idle_seen)",
+    "consequent": "!running && draining && !stopped",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

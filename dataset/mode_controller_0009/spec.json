@@ -1,0 +1,229 @@
+{
+  "design_id": "mode_controller_0009",
+  "category": "mode_controller",
+  "template": "primary_backup",
+  "description": "Mode controller implementing primary backup behavior.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "OFF"
+  },
+  "inputs": [
+    "enable",
+    "fail",
+    "recover"
+  ],
+  "outputs": [
+    "primary",
+    "backup",
+    "off"
+  ],
+  "states": [
+    "OFF",
+    "PRIMARY",
+    "BACKUP"
+  ],
+  "state_outputs": {
+    "OFF": {
+      "primary": 0,
+      "backup": 0,
+      "off": 1
+    },
+    "PRIMARY": {
+      "primary": 1,
+      "backup": 0,
+      "off": 0
+    },
+    "BACKUP": {
+      "primary": 0,
+      "backup": 1,
+      "off": 0
+    }
+  },
+  "transitions": [
+    {
+      "from": "OFF",
+      "when": "enable",
+      "to": "PRIMARY"
+    },
+    {
+      "from": "OFF",
+      "when": "!enable",
+      "to": "OFF"
+    },
+    {
+      "from": "PRIMARY",
+      "when": "fail",
+      "to": "BACKUP"
+    },
+    {
+      "from": "PRIMARY",
+      "when": "!fail && enable",
+      "to": "PRIMARY"
+    },
+    {
+      "from": "PRIMARY",
+      "when": "!fail && !enable",
+      "to": "OFF"
+    },
+    {
+      "from": "BACKUP",
+      "when": "recover",
+      "to": "PRIMARY"
+    },
+    {
+      "from": "BACKUP",
+      "when": "!recover && enable",
+      "to": "BACKUP"
+    },
+    {
+      "from": "BACKUP",
+      "when": "!recover && !enable",
+      "to": "OFF"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({primary, backup, off})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!primary && !backup && off",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "OFF transitions to PRIMARY when enable",
+      "antecedent": "(!primary && !backup && off) && (enable)",
+      "consequent": "primary && !backup && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "OFF transitions to OFF when !enable",
+      "antecedent": "(!primary && !backup && off) && (!enable)",
+      "consequent": "!primary && !backup && off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "PRIMARY transitions to BACKUP when fail",
+      "antecedent": "(primary && !backup && !off) && (fail)",
+      "consequent": "!primary && backup && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "PRIMARY transitions to PRIMARY when !fail && enable",
+      "antecedent": "(primary && !backup && !off) && (!fail && enable)",
+      "consequent": "primary && !backup && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "PRIMARY transitions to OFF when !fail && !enable",
+      "antecedent": "(primary && !backup && !off) && (!fail && !enable)",
+      "consequent": "!primary && !backup && off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "BACKUP transitions to PRIMARY when recover",
+      "antecedent": "(!primary && backup && !off) && (recover)",
+      "consequent": "primary && !backup && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P9_T7",
+      "sva_name": "p_t7",
+      "type": "next_cycle_implication",
+      "natural_language": "BACKUP transitions to BACKUP when !recover && enable",
+      "antecedent": "(!primary && backup && !off) && (!recover && enable)",
+      "consequent": "!primary && backup && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P10_T8",
+      "sva_name": "p_t8",
+      "type": "next_cycle_implication",
+      "natural_language": "BACKUP transitions to OFF when !recover && !enable",
+      "antecedent": "(!primary && backup && !off) && (!recover && !enable)",
+      "consequent": "!primary && !backup && off",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "OFF",
+      "old": "enable",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "OFF",
+      "old": "!enable",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "PRIMARY",
+      "old": "fail",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

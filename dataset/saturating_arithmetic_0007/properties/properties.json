@@ -1,0 +1,49 @@
+[
+  {
+    "id": "P1_RESET",
+    "sva_name": "p_reset_value",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the register to its reset value",
+    "antecedent": "rst",
+    "consequent": "value == 3'd7",
+    "delay": 1
+  },
+  {
+    "id": "P2_AT_FLOOR",
+    "sva_name": "p_at_floor",
+    "type": "invariant",
+    "natural_language": "at_floor is consistent with the observable register value",
+    "expression": "at_floor == (value == 3'd2)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RULE",
+    "sva_name": "p_rule_3",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule restore produces the specified next value",
+    "antecedent": "restore",
+    "consequent": "value == (3'd7)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_RULE",
+    "sva_name": "p_rule_4",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule !restore && dec && (value > 3'd2) produces the specified next value",
+    "antecedent": "!restore && dec && (value > 3'd2)",
+    "consequent": "value == ($past(value) - 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "when no update rule fires the register holds its value",
+    "antecedent": "!(restore) && !(!restore && dec && (value > 3'd2))",
+    "consequent": "value == $past(value)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

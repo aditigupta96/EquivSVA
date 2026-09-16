@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: pulse_event_0002
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({armed, pulse, blocked}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (armed && !pulse && !blocked));
+
+// P3_T1: ARMED transitions to PULSE when event_in.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((armed && !pulse && !blocked) && (event_in)) |=> (!armed && pulse && !blocked));
+
+// P4_T2: ARMED transitions to ARMED when !event_in.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((armed && !pulse && !blocked) && (!event_in)) |=> (armed && !pulse && !blocked));
+
+// P5_T3: PULSE transitions to BLOCKED when true.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    (!armed && pulse && !blocked) |=> (!armed && !pulse && blocked));
+
+// P6_T4: BLOCKED transitions to BLOCKED when event_in.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((!armed && !pulse && blocked) && (event_in)) |=> (!armed && !pulse && blocked));
+
+// P7_T5: BLOCKED transitions to ARMED when !event_in.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((!armed && !pulse && blocked) && (!event_in)) |=> (armed && !pulse && !blocked));

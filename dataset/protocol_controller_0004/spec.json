@@ -1,0 +1,230 @@
+{
+  "design_id": "protocol_controller_0004",
+  "category": "protocol_controller",
+  "template": "retry_then_fail",
+  "description": "Operation can retry once before succeeding or entering a terminal failure state.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "start",
+    "success",
+    "retry",
+    "reset_fail"
+  ],
+  "outputs": [
+    "attempting",
+    "retrying",
+    "done",
+    "failed"
+  ],
+  "states": [
+    "IDLE",
+    "ATTEMPT1",
+    "RETRY",
+    "ATTEMPT2",
+    "DONE",
+    "FAILED"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "attempting": 0,
+      "retrying": 0,
+      "done": 0,
+      "failed": 0
+    },
+    "ATTEMPT1": {
+      "attempting": 1,
+      "retrying": 0,
+      "done": 0,
+      "failed": 0
+    },
+    "RETRY": {
+      "attempting": 0,
+      "retrying": 1,
+      "done": 0,
+      "failed": 0
+    },
+    "ATTEMPT2": {
+      "attempting": 1,
+      "retrying": 0,
+      "done": 0,
+      "failed": 0
+    },
+    "DONE": {
+      "attempting": 0,
+      "retrying": 0,
+      "done": 1,
+      "failed": 0
+    },
+    "FAILED": {
+      "attempting": 0,
+      "retrying": 0,
+      "done": 0,
+      "failed": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "start",
+      "to": "ATTEMPT1"
+    },
+    {
+      "from": "IDLE",
+      "when": "!start",
+      "to": "IDLE"
+    },
+    {
+      "from": "ATTEMPT1",
+      "when": "success",
+      "to": "DONE"
+    },
+    {
+      "from": "ATTEMPT1",
+      "when": "!success && retry",
+      "to": "RETRY"
+    },
+    {
+      "from": "ATTEMPT1",
+      "when": "!success && !retry",
+      "to": "FAILED"
+    },
+    {
+      "from": "RETRY",
+      "when": "true",
+      "to": "ATTEMPT2"
+    },
+    {
+      "from": "ATTEMPT2",
+      "when": "success",
+      "to": "DONE"
+    },
+    {
+      "from": "ATTEMPT2",
+      "when": "!success",
+      "to": "FAILED"
+    },
+    {
+      "from": "DONE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "FAILED",
+      "when": "reset_fail",
+      "to": "IDLE"
+    },
+    {
+      "from": "FAILED",
+      "when": "!reset_fail",
+      "to": "FAILED"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_MUTEX",
+      "sva_name": "p_mutex",
+      "type": "invariant",
+      "natural_language": "terminal and active phases are mutually exclusive",
+      "expression": "$onehot0({retrying, done, failed}) && !(attempting && (retrying || done || failed))",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns to idle",
+      "antecedent": "rst",
+      "consequent": "!attempting && !retrying && !done && !failed",
+      "delay": 1
+    },
+    {
+      "id": "P3_START",
+      "sva_name": "p_start",
+      "type": "next_cycle_implication",
+      "natural_language": "start begins the first attempt",
+      "antecedent": "!attempting && !retrying && !done && !failed && start",
+      "consequent": "attempting",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_RETRY",
+      "sva_name": "p_retry",
+      "type": "next_cycle_implication",
+      "natural_language": "retry request after first failure enters retry state",
+      "antecedent": "attempting && !success && retry && !$past(retrying)",
+      "consequent": "retrying || failed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_DONE",
+      "sva_name": "p_done",
+      "type": "next_cycle_implication",
+      "natural_language": "success from an attempt enters done",
+      "antecedent": "attempting && success",
+      "consequent": "done",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_FAIL_STICKY",
+      "sva_name": "p_fail_sticky",
+      "type": "next_cycle_implication",
+      "natural_language": "failure remains until reset_fail",
+      "antecedent": "failed && !reset_fail",
+      "consequent": "failed",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "first_success_ignored",
+      "kind": "replace_transition_guard",
+      "from": "ATTEMPT1",
+      "old": "success",
+      "new": "false"
+    },
+    {
+      "name": "second_success_ignored",
+      "kind": "replace_transition_guard",
+      "from": "ATTEMPT2",
+      "old": "success",
+      "new": "false"
+    },
+    {
+      "name": "failure_never_resets",
+      "kind": "replace_transition_guard",
+      "from": "FAILED",
+      "old": "reset_fail",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

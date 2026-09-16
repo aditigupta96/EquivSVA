@@ -1,0 +1,199 @@
+{
+  "design_id": "mode_controller_0008",
+  "category": "mode_controller",
+  "template": "boot_ready_run",
+  "description": "Mode controller implementing boot ready run behavior.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "BOOT"
+  },
+  "inputs": [
+    "boot_ok",
+    "start",
+    "stop"
+  ],
+  "outputs": [
+    "booting",
+    "ready",
+    "running"
+  ],
+  "states": [
+    "BOOT",
+    "READY",
+    "RUN"
+  ],
+  "state_outputs": {
+    "BOOT": {
+      "booting": 1,
+      "ready": 0,
+      "running": 0
+    },
+    "READY": {
+      "booting": 0,
+      "ready": 1,
+      "running": 0
+    },
+    "RUN": {
+      "booting": 0,
+      "ready": 0,
+      "running": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "BOOT",
+      "when": "boot_ok",
+      "to": "READY"
+    },
+    {
+      "from": "BOOT",
+      "when": "!boot_ok",
+      "to": "BOOT"
+    },
+    {
+      "from": "READY",
+      "when": "start",
+      "to": "RUN"
+    },
+    {
+      "from": "READY",
+      "when": "!start",
+      "to": "READY"
+    },
+    {
+      "from": "RUN",
+      "when": "stop",
+      "to": "READY"
+    },
+    {
+      "from": "RUN",
+      "when": "!stop",
+      "to": "RUN"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({booting, ready, running})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "booting && !ready && !running",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "BOOT transitions to READY when boot_ok",
+      "antecedent": "(booting && !ready && !running) && (boot_ok)",
+      "consequent": "!booting && ready && !running",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "BOOT transitions to BOOT when !boot_ok",
+      "antecedent": "(booting && !ready && !running) && (!boot_ok)",
+      "consequent": "booting && !ready && !running",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "READY transitions to RUN when start",
+      "antecedent": "(!booting && ready && !running) && (start)",
+      "consequent": "!booting && !ready && running",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "READY transitions to READY when !start",
+      "antecedent": "(!booting && ready && !running) && (!start)",
+      "consequent": "!booting && ready && !running",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "RUN transitions to READY when stop",
+      "antecedent": "(!booting && !ready && running) && (stop)",
+      "consequent": "!booting && ready && !running",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "RUN transitions to RUN when !stop",
+      "antecedent": "(!booting && !ready && running) && (!stop)",
+      "consequent": "!booting && !ready && running",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "BOOT",
+      "old": "boot_ok",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "BOOT",
+      "old": "!boot_ok",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "READY",
+      "old": "start",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

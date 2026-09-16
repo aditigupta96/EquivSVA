@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "exactly one arithmetic band is observable",
+    "expression": "$onehot({low, nominal, high})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset selects the nominal band",
+    "antecedent": "rst",
+    "consequent": "nominal",
+    "delay": 1
+  },
+  {
+    "id": "P3_LOW_UP",
+    "type": "next_cycle_implication",
+    "natural_language": "raising from low enters nominal",
+    "antecedent": "low && raise && !lower",
+    "consequent": "nominal",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_NOM_UP",
+    "type": "next_cycle_implication",
+    "natural_language": "raising from nominal saturates high",
+    "antecedent": "nominal && raise && !lower",
+    "consequent": "high",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_NOM_DOWN",
+    "type": "next_cycle_implication",
+    "natural_language": "lowering from nominal saturates low",
+    "antecedent": "nominal && lower && !raise",
+    "consequent": "low",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_HIGH_DOWN",
+    "type": "next_cycle_implication",
+    "natural_language": "lowering from high enters nominal",
+    "antecedent": "high && lower && !raise",
+    "consequent": "nominal",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_HIGH_SAT",
+    "type": "next_cycle_implication",
+    "natural_language": "high remains saturated without an exclusive lower",
+    "antecedent": "high && !(lower && !raise)",
+    "consequent": "high",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

@@ -1,0 +1,49 @@
+[
+  {
+    "id": "P1_RESET",
+    "sva_name": "p_reset_value",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the register to its reset value",
+    "antecedent": "rst",
+    "consequent": "tokens == 3'd3",
+    "delay": 1
+  },
+  {
+    "id": "P2_ALLOW",
+    "sva_name": "p_allow",
+    "type": "invariant",
+    "natural_language": "allow is consistent with the observable register value",
+    "expression": "allow == (tokens != 3'd0)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RULE",
+    "sva_name": "p_rule_3",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule return_token && (tokens < 3'd7) produces the specified next value",
+    "antecedent": "return_token && (tokens < 3'd7)",
+    "consequent": "tokens == ($past(tokens) + 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_RULE",
+    "sva_name": "p_rule_4",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule !return_token && admit && (tokens > 3'd0) produces the specified next value",
+    "antecedent": "!return_token && admit && (tokens > 3'd0)",
+    "consequent": "tokens == ($past(tokens) - 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "when no update rule fires the register holds its value",
+    "antecedent": "!(return_token && (tokens < 3'd7)) && !(!return_token && admit && (tokens > 3'd0))",
+    "consequent": "tokens == $past(tokens)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

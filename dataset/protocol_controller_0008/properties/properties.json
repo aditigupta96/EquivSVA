@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "session phases are mutually exclusive",
+    "expression": "$onehot({opening, authenticating, transferring, closing, done, failed})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset begins in opening phase",
+    "antecedent": "rst",
+    "consequent": "opening",
+    "delay": 1
+  },
+  {
+    "id": "P3_OPEN",
+    "type": "next_cycle_implication",
+    "natural_language": "successful open advances to authentication",
+    "antecedent": "opening && open_ok && !abort",
+    "consequent": "authenticating",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_AUTH",
+    "type": "next_cycle_implication",
+    "natural_language": "successful authentication begins transfer",
+    "antecedent": "authenticating && auth_ok && !abort",
+    "consequent": "transferring",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_TRANSFER",
+    "type": "next_cycle_implication",
+    "natural_language": "completed transfer enters closing",
+    "antecedent": "transferring && transfer_done && !abort",
+    "consequent": "closing",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_CLOSE",
+    "type": "next_cycle_implication",
+    "natural_language": "successful close completes the session",
+    "antecedent": "closing && close_ok && !abort",
+    "consequent": "done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_ABORT",
+    "type": "next_cycle_implication",
+    "natural_language": "abort from an active phase produces failure",
+    "antecedent": "(opening || authenticating || transferring || closing) && abort",
+    "consequent": "failed",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

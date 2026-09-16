@@ -1,0 +1,193 @@
+{
+  "design_id": "saturating_arithmetic_0006",
+  "category": "saturating_arithmetic",
+  "template": "three_band_clamped_controller",
+  "description": "Three-band arithmetic controller that moves between low, nominal, and high saturation bands.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "NOMINAL"
+  },
+  "inputs": [
+    "raise",
+    "lower"
+  ],
+  "outputs": [
+    "low",
+    "nominal",
+    "high"
+  ],
+  "states": [
+    "LOW",
+    "NOMINAL",
+    "HIGH"
+  ],
+  "state_outputs": {
+    "LOW": {
+      "low": 1,
+      "nominal": 0,
+      "high": 0
+    },
+    "NOMINAL": {
+      "low": 0,
+      "nominal": 1,
+      "high": 0
+    },
+    "HIGH": {
+      "low": 0,
+      "nominal": 0,
+      "high": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "LOW",
+      "when": "raise && !lower",
+      "to": "NOMINAL"
+    },
+    {
+      "from": "LOW",
+      "when": "!(raise && !lower)",
+      "to": "LOW"
+    },
+    {
+      "from": "NOMINAL",
+      "when": "raise && !lower",
+      "to": "HIGH"
+    },
+    {
+      "from": "NOMINAL",
+      "when": "lower && !raise",
+      "to": "LOW"
+    },
+    {
+      "from": "NOMINAL",
+      "when": "(raise && lower) || (!raise && !lower)",
+      "to": "NOMINAL"
+    },
+    {
+      "from": "HIGH",
+      "when": "lower && !raise",
+      "to": "NOMINAL"
+    },
+    {
+      "from": "HIGH",
+      "when": "!(lower && !raise)",
+      "to": "HIGH"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_ONEHOT",
+      "sva_name": "p_onehot",
+      "type": "invariant",
+      "natural_language": "exactly one arithmetic band is observable",
+      "expression": "$onehot({low, nominal, high})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset selects the nominal band",
+      "antecedent": "rst",
+      "consequent": "nominal",
+      "delay": 1
+    },
+    {
+      "id": "P3_LOW_UP",
+      "sva_name": "p_low_up",
+      "type": "next_cycle_implication",
+      "natural_language": "raising from low enters nominal",
+      "antecedent": "low && raise && !lower",
+      "consequent": "nominal",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_NOM_UP",
+      "sva_name": "p_nom_up",
+      "type": "next_cycle_implication",
+      "natural_language": "raising from nominal saturates high",
+      "antecedent": "nominal && raise && !lower",
+      "consequent": "high",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_NOM_DOWN",
+      "sva_name": "p_nom_down",
+      "type": "next_cycle_implication",
+      "natural_language": "lowering from nominal saturates low",
+      "antecedent": "nominal && lower && !raise",
+      "consequent": "low",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_HIGH_DOWN",
+      "sva_name": "p_high_down",
+      "type": "next_cycle_implication",
+      "natural_language": "lowering from high enters nominal",
+      "antecedent": "high && lower && !raise",
+      "consequent": "nominal",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_HIGH_SAT",
+      "sva_name": "p_high_sat",
+      "type": "next_cycle_implication",
+      "natural_language": "high remains saturated without an exclusive lower",
+      "antecedent": "high && !(lower && !raise)",
+      "consequent": "high",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "low_never_rises",
+      "kind": "replace_transition_guard",
+      "from": "LOW",
+      "old": "raise && !lower",
+      "new": "false"
+    },
+    {
+      "name": "nominal_never_lowers",
+      "kind": "replace_transition_guard",
+      "from": "NOMINAL",
+      "old": "lower && !raise",
+      "new": "false"
+    },
+    {
+      "name": "high_never_lowers",
+      "kind": "replace_transition_guard",
+      "from": "HIGH",
+      "old": "lower && !raise",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

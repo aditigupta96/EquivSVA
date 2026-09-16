@@ -1,0 +1,35 @@
+// P1_LOW: at_low reflects the lower clamp
+property p_low;
+    @(posedge clk) disable iff (rst) (at_low == (value == 3'd1));
+endproperty
+assert property (p_low);
+
+// P2_HIGH: at_high reflects the upper clamp
+property p_high;
+    @(posedge clk) disable iff (rst) (at_high == (value == 3'd6));
+endproperty
+assert property (p_high);
+
+// P3_DIR_MUTEX: last_up and last_down are mutually exclusive
+property p_dir_mutex;
+    @(posedge clk) disable iff (rst) (!(last_up && last_down));
+endproperty
+assert property (p_dir_mutex);
+
+// P4_RESET: reset restores midpoint and clears direction
+property p_reset;
+    @(posedge clk) (rst) |=> ((value == 3'd3) && !last_up && !last_down);
+endproperty
+assert property (p_reset);
+
+// P5_INC: successful increment advances value and records upward direction
+property p_inc;
+    @(posedge clk) disable iff (rst) (!clear && inc && !dec && (value < 3'd6)) |=> ((value == ($past(value) + 3'd1)) && last_up);
+endproperty
+assert property (p_inc);
+
+// P6_DEC: successful decrement advances value and records downward direction
+property p_dec;
+    @(posedge clk) disable iff (rst) (!clear && dec && !inc && (value > 3'd1)) |=> ((value == ($past(value) - 3'd1)) && last_down);
+endproperty
+assert property (p_dec);

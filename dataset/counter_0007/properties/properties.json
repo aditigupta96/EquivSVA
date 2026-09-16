@@ -1,0 +1,49 @@
+[
+  {
+    "id": "P1_RESET",
+    "sva_name": "p_reset_value",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the register to its reset value",
+    "antecedent": "rst",
+    "consequent": "count == 3'd7",
+    "delay": 1
+  },
+  {
+    "id": "P2_AT_ZERO",
+    "sva_name": "p_at_zero",
+    "type": "invariant",
+    "natural_language": "at_zero is consistent with the observable register value",
+    "expression": "at_zero == (count == 3'd0)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RULE",
+    "sva_name": "p_rule_3",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule reload produces the specified next value",
+    "antecedent": "reload",
+    "consequent": "count == (3'd7)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_RULE",
+    "sva_name": "p_rule_4",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule !reload && enable && (count > 3'd0) produces the specified next value",
+    "antecedent": "!reload && enable && (count > 3'd0)",
+    "consequent": "count == ($past(count) - 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "when no update rule fires the register holds its value",
+    "antecedent": "!(reload) && !(!reload && enable && (count > 3'd0))",
+    "consequent": "count == $past(count)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

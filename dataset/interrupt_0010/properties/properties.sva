@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: interrupt_0010
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({pending, service, cancelled}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!pending && !service && !cancelled));
+
+// P3_T1: IDLE transitions to PENDING when irq.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!pending && !service && !cancelled) && (irq)) |=> (pending && !service && !cancelled));
+
+// P4_T2: IDLE transitions to IDLE when !irq.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!pending && !service && !cancelled) && (!irq)) |=> (!pending && !service && !cancelled));
+
+// P5_T3: PENDING transitions to CANCEL when cancel.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((pending && !service && !cancelled) && (cancel)) |=> (!pending && !service && cancelled));
+
+// P6_T4: PENDING transitions to SERVICE when !cancel && ack.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((pending && !service && !cancelled) && (!cancel && ack)) |=> (!pending && service && !cancelled));
+
+// P7_T5: PENDING transitions to PENDING when !cancel && !ack.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((pending && !service && !cancelled) && (!cancel && !ack)) |=> (pending && !service && !cancelled));
+
+// P8_T6: SERVICE transitions to IDLE when true.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    (!pending && service && !cancelled) |=> (!pending && !service && !cancelled));
+
+// P9_T7: CANCEL transitions to IDLE when true.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    (!pending && !service && cancelled) |=> (!pending && !service && !cancelled));

@@ -1,0 +1,37 @@
+// Gold interface properties for saturating_arithmetic_0001
+
+// P1_MAX: at_max exactly reflects the saturated value
+property p_at_max;
+    @(posedge clk) disable iff (rst) (at_max == (value == 3'd7));
+endproperty
+assert property (p_at_max);
+
+// P2_RESET: reset clears the accumulator
+property p_reset_zero;
+    @(posedge clk) (rst) |=> ((value == 3'd0) && !at_max);
+endproperty
+assert property (p_reset_zero);
+
+// P3_CLEAR: clear has priority
+property p_clear_zero;
+    @(posedge clk) disable iff (rst) (clear) |=> (value == 3'd0);
+endproperty
+assert property (p_clear_zero);
+
+// P4_ADD: add increments the accumulator below saturation
+property p_add_increment;
+    @(posedge clk) disable iff (rst) (!clear && add && (value < 3'd7)) |=> (value == ($past(value) + 3'd1));
+endproperty
+assert property (p_add_increment);
+
+// P5_SATURATE: an add at the maximum stays saturated
+property p_saturate;
+    @(posedge clk) disable iff (rst) (!clear && add && (value == 3'd7)) |=> ((value == 3'd7) && at_max);
+endproperty
+assert property (p_saturate);
+
+// P6_HOLD: without clear or add the accumulator holds
+property p_hold;
+    @(posedge clk) disable iff (rst) (!clear && !add) |=> (value == $past(value));
+endproperty
+assert property (p_hold);

@@ -1,0 +1,197 @@
+{
+  "design_id": "timer_0006",
+  "category": "timer_watchdog",
+  "template": "three_phase_watchdog",
+  "description": "Watchdog progresses through warning and timeout phases and is reset by kick.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "ARMED"
+  },
+  "inputs": [
+    "tick",
+    "kick"
+  ],
+  "outputs": [
+    "armed",
+    "warning",
+    "timeout"
+  ],
+  "states": [
+    "ARMED",
+    "WARN",
+    "TIMEOUT"
+  ],
+  "state_outputs": {
+    "ARMED": {
+      "armed": 1,
+      "warning": 0,
+      "timeout": 0
+    },
+    "WARN": {
+      "armed": 0,
+      "warning": 1,
+      "timeout": 0
+    },
+    "TIMEOUT": {
+      "armed": 0,
+      "warning": 0,
+      "timeout": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "ARMED",
+      "when": "kick",
+      "to": "ARMED"
+    },
+    {
+      "from": "ARMED",
+      "when": "!kick && tick",
+      "to": "WARN"
+    },
+    {
+      "from": "ARMED",
+      "when": "!kick && !tick",
+      "to": "ARMED"
+    },
+    {
+      "from": "WARN",
+      "when": "kick",
+      "to": "ARMED"
+    },
+    {
+      "from": "WARN",
+      "when": "!kick && tick",
+      "to": "TIMEOUT"
+    },
+    {
+      "from": "WARN",
+      "when": "!kick && !tick",
+      "to": "WARN"
+    },
+    {
+      "from": "TIMEOUT",
+      "when": "kick",
+      "to": "ARMED"
+    },
+    {
+      "from": "TIMEOUT",
+      "when": "!kick",
+      "to": "TIMEOUT"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_ONEHOT",
+      "sva_name": "p_onehot",
+      "type": "invariant",
+      "natural_language": "watchdog phases are mutually exclusive",
+      "expression": "$onehot({armed, warning, timeout})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset arms the watchdog",
+      "antecedent": "rst",
+      "consequent": "armed",
+      "delay": 1
+    },
+    {
+      "id": "P3_WARN",
+      "sva_name": "p_warn",
+      "type": "next_cycle_implication",
+      "natural_language": "first un-kicked tick enters warning",
+      "antecedent": "armed && !kick && tick",
+      "consequent": "warning",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_TIMEOUT",
+      "sva_name": "p_timeout",
+      "type": "next_cycle_implication",
+      "natural_language": "second un-kicked tick enters timeout",
+      "antecedent": "warning && !kick && tick",
+      "consequent": "timeout",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_KICK_WARN",
+      "sva_name": "p_kick_warn",
+      "type": "next_cycle_implication",
+      "natural_language": "kick from warning rearms the watchdog",
+      "antecedent": "warning && kick",
+      "consequent": "armed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_KICK_TIMEOUT",
+      "sva_name": "p_kick_timeout",
+      "type": "next_cycle_implication",
+      "natural_language": "kick from timeout rearms the watchdog",
+      "antecedent": "timeout && kick",
+      "consequent": "armed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_TIMEOUT_STICKY",
+      "sva_name": "p_timeout_sticky",
+      "type": "next_cycle_implication",
+      "natural_language": "timeout persists without kick",
+      "antecedent": "timeout && !kick",
+      "consequent": "timeout",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "warning_skipped",
+      "kind": "force_transition",
+      "from": "ARMED",
+      "to": "TIMEOUT"
+    },
+    {
+      "name": "never_timeout",
+      "kind": "replace_transition_guard",
+      "from": "WARN",
+      "old": "!kick && tick",
+      "new": "false"
+    },
+    {
+      "name": "kick_ignored_timeout",
+      "kind": "replace_transition_guard",
+      "from": "TIMEOUT",
+      "old": "kick",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

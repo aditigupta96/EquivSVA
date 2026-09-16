@@ -1,0 +1,31 @@
+// Gold interface properties for rate_limiter_0006
+
+// P1_RESET: reset restores the register to its reset value
+property p_reset_value;
+    @(posedge clk) (rst) |=> (quota == 3'd5);
+endproperty
+assert property (p_reset_value);
+
+// P2_ALLOW: allow is consistent with the observable register value
+property p_allow;
+    @(posedge clk) disable iff (rst) (allow == (quota != 3'd0));
+endproperty
+assert property (p_allow);
+
+// P3_RULE: update rule reset_quota produces the specified next value
+property p_rule_3;
+    @(posedge clk) disable iff (rst) (reset_quota) |=> (quota == (3'd5));
+endproperty
+assert property (p_rule_3);
+
+// P4_RULE: update rule !reset_quota && use && (quota > 3'd0) produces the specified next value
+property p_rule_4;
+    @(posedge clk) disable iff (rst) (!reset_quota && use && (quota > 3'd0)) |=> (quota == ($past(quota) - 3'd1));
+endproperty
+assert property (p_rule_4);
+
+// P5_HOLD: when no update rule fires the register holds its value
+property p_hold;
+    @(posedge clk) disable iff (rst) (!(reset_quota) && !(!reset_quota && use && (quota > 3'd0))) |=> (quota == $past(quota));
+endproperty
+assert property (p_hold);

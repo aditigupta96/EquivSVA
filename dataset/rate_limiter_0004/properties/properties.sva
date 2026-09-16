@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: rate_limiter_0004
+
+// P1_ONEHOT: burst limiter modes are mutually exclusive.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot({ready_first, ready_last, granted, locked}));
+
+// P2_RESET: reset restores the first burst slot.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (ready_first));
+
+// P3_FIRST_GRANT: the first request is granted.
+p_first_grant: assert property (@(posedge clk) disable iff (rst)
+    (ready_first && request) |=> (granted));
+
+// P4_LAST_SLOT: after the first grant only one slot remains.
+p_last_slot: assert property (@(posedge clk) disable iff (rst)
+    (granted && !$past(ready_last)) |=> (ready_last));
+
+// P5_SECOND_GRANT: a request in the last slot is granted.
+p_second_grant: assert property (@(posedge clk) disable iff (rst)
+    (ready_last && request) |=> (granted));
+
+// P6_LOCK: the second grant enters lockout.
+p_lock: assert property (@(posedge clk) disable iff (rst)
+    (granted && $past(ready_last)) |=> (locked));
+
+// P7_WINDOW_RESET: reset_window releases lockout.
+p_window_reset: assert property (@(posedge clk) disable iff (rst)
+    (locked && reset_window) |=> (ready_first));

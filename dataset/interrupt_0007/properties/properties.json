@@ -1,0 +1,53 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "interrupt control phases are mutually exclusive",
+    "expression": "$onehot0({pending, held_masked, servicing})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns to idle",
+    "antecedent": "rst",
+    "consequent": "!pending && !held_masked && !servicing",
+    "delay": 1
+  },
+  {
+    "id": "P3_CAPTURE",
+    "type": "next_cycle_implication",
+    "natural_language": "unmasked irq becomes pending",
+    "antecedent": "!pending && !held_masked && !servicing && irq && !mask",
+    "consequent": "pending",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_MASK_HOLD",
+    "type": "next_cycle_implication",
+    "natural_language": "masking a pending interrupt holds it",
+    "antecedent": "pending && mask",
+    "consequent": "held_masked",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_UNMASK",
+    "type": "next_cycle_implication",
+    "natural_language": "unmasking a held interrupt returns it to pending",
+    "antecedent": "held_masked && !mask",
+    "consequent": "pending",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_SERVICE",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledging an unmasked pending interrupt services it",
+    "antecedent": "pending && !mask && ack",
+    "consequent": "servicing",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

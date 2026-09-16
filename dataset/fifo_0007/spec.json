@@ -1,0 +1,193 @@
+{
+  "design_id": "fifo_0007",
+  "category": "fifo_control",
+  "template": "two_slot_occupancy_fsm",
+  "description": "Two-slot FIFO occupancy controller exposing empty, one-entry, and full states.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "EMPTY"
+  },
+  "inputs": [
+    "push",
+    "pop"
+  ],
+  "outputs": [
+    "empty",
+    "one",
+    "full"
+  ],
+  "states": [
+    "EMPTY",
+    "ONE",
+    "FULL"
+  ],
+  "state_outputs": {
+    "EMPTY": {
+      "empty": 1,
+      "one": 0,
+      "full": 0
+    },
+    "ONE": {
+      "empty": 0,
+      "one": 1,
+      "full": 0
+    },
+    "FULL": {
+      "empty": 0,
+      "one": 0,
+      "full": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "EMPTY",
+      "when": "push",
+      "to": "ONE"
+    },
+    {
+      "from": "EMPTY",
+      "when": "!push",
+      "to": "EMPTY"
+    },
+    {
+      "from": "ONE",
+      "when": "push && !pop",
+      "to": "FULL"
+    },
+    {
+      "from": "ONE",
+      "when": "pop && !push",
+      "to": "EMPTY"
+    },
+    {
+      "from": "ONE",
+      "when": "(push && pop) || (!push && !pop)",
+      "to": "ONE"
+    },
+    {
+      "from": "FULL",
+      "when": "pop",
+      "to": "ONE"
+    },
+    {
+      "from": "FULL",
+      "when": "!pop",
+      "to": "FULL"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_ONEHOT",
+      "sva_name": "p_onehot",
+      "type": "invariant",
+      "natural_language": "exactly one occupancy state is visible",
+      "expression": "$onehot({empty, one, full})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset empties the FIFO",
+      "antecedent": "rst",
+      "consequent": "empty",
+      "delay": 1
+    },
+    {
+      "id": "P3_EMPTY_PUSH",
+      "sva_name": "p_empty_push",
+      "type": "next_cycle_implication",
+      "natural_language": "pushing an empty FIFO creates one entry",
+      "antecedent": "empty && push",
+      "consequent": "one",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_ONE_PUSH",
+      "sva_name": "p_one_push",
+      "type": "next_cycle_implication",
+      "natural_language": "push without pop fills a one-entry FIFO",
+      "antecedent": "one && push && !pop",
+      "consequent": "full",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_ONE_POP",
+      "sva_name": "p_one_pop",
+      "type": "next_cycle_implication",
+      "natural_language": "pop without push empties a one-entry FIFO",
+      "antecedent": "one && pop && !push",
+      "consequent": "empty",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_SIMULTANEOUS",
+      "sva_name": "p_simultaneous",
+      "type": "next_cycle_implication",
+      "natural_language": "simultaneous push and pop preserves one-entry occupancy",
+      "antecedent": "one && push && pop",
+      "consequent": "one",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_FULL_POP",
+      "sva_name": "p_full_pop",
+      "type": "next_cycle_implication",
+      "natural_language": "popping a full FIFO leaves one entry",
+      "antecedent": "full && pop",
+      "consequent": "one",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "empty_ignores_push",
+      "kind": "replace_transition_guard",
+      "from": "EMPTY",
+      "old": "push",
+      "new": "false"
+    },
+    {
+      "name": "one_never_fills",
+      "kind": "replace_transition_guard",
+      "from": "ONE",
+      "old": "push && !pop",
+      "new": "false"
+    },
+    {
+      "name": "full_ignores_pop",
+      "kind": "replace_transition_guard",
+      "from": "FULL",
+      "old": "pop",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

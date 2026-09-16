@@ -1,0 +1,220 @@
+{
+  "design_id": "protocol_controller_0005",
+  "category": "protocol_controller",
+  "template": "two_stage_commit",
+  "description": "Protocol controller implementing two stage commit behavior.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "start",
+    "prepare_ok",
+    "commit_ok"
+  ],
+  "outputs": [
+    "preparing",
+    "committing",
+    "done"
+  ],
+  "states": [
+    "IDLE",
+    "PREP",
+    "COMMIT",
+    "DONE"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "preparing": 0,
+      "committing": 0,
+      "done": 0
+    },
+    "PREP": {
+      "preparing": 1,
+      "committing": 0,
+      "done": 0
+    },
+    "COMMIT": {
+      "preparing": 0,
+      "committing": 1,
+      "done": 0
+    },
+    "DONE": {
+      "preparing": 0,
+      "committing": 0,
+      "done": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "start",
+      "to": "PREP"
+    },
+    {
+      "from": "IDLE",
+      "when": "!start",
+      "to": "IDLE"
+    },
+    {
+      "from": "PREP",
+      "when": "prepare_ok",
+      "to": "COMMIT"
+    },
+    {
+      "from": "PREP",
+      "when": "!prepare_ok",
+      "to": "PREP"
+    },
+    {
+      "from": "COMMIT",
+      "when": "commit_ok",
+      "to": "DONE"
+    },
+    {
+      "from": "COMMIT",
+      "when": "!commit_ok",
+      "to": "COMMIT"
+    },
+    {
+      "from": "DONE",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({preparing, committing, done})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!preparing && !committing && !done",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to PREP when start",
+      "antecedent": "(!preparing && !committing && !done) && (start)",
+      "consequent": "preparing && !committing && !done",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to IDLE when !start",
+      "antecedent": "(!preparing && !committing && !done) && (!start)",
+      "consequent": "!preparing && !committing && !done",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "PREP transitions to COMMIT when prepare_ok",
+      "antecedent": "(preparing && !committing && !done) && (prepare_ok)",
+      "consequent": "!preparing && committing && !done",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "PREP transitions to PREP when !prepare_ok",
+      "antecedent": "(preparing && !committing && !done) && (!prepare_ok)",
+      "consequent": "preparing && !committing && !done",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "COMMIT transitions to DONE when commit_ok",
+      "antecedent": "(!preparing && committing && !done) && (commit_ok)",
+      "consequent": "!preparing && !committing && done",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "COMMIT transitions to COMMIT when !commit_ok",
+      "antecedent": "(!preparing && committing && !done) && (!commit_ok)",
+      "consequent": "!preparing && committing && !done",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P9_T7",
+      "sva_name": "p_t7",
+      "type": "next_cycle_implication",
+      "natural_language": "DONE transitions to IDLE when true",
+      "antecedent": "!preparing && !committing && done",
+      "consequent": "!preparing && !committing && !done",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "start",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "!start",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "PREP",
+      "old": "prepare_ok",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

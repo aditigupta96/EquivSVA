@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "strike states are mutually exclusive",
+    "expression": "$onehot({clean, strike1, strike2, blocked})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears all strikes",
+    "antecedent": "rst",
+    "consequent": "clean",
+    "delay": 1
+  },
+  {
+    "id": "P3_FIRST",
+    "type": "next_cycle_implication",
+    "natural_language": "first consecutive violation records strike one",
+    "antecedent": "clean && violation",
+    "consequent": "strike1",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_SECOND",
+    "type": "next_cycle_implication",
+    "natural_language": "second consecutive violation records strike two",
+    "antecedent": "strike1 && violation",
+    "consequent": "strike2",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_THIRD",
+    "type": "next_cycle_implication",
+    "natural_language": "third consecutive violation enters lockout",
+    "antecedent": "strike2 && violation",
+    "consequent": "blocked",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_RECOVER_SEQUENCE",
+    "type": "next_cycle_implication",
+    "natural_language": "a clean cycle before lockout clears strikes",
+    "antecedent": "(strike1 || strike2) && !violation",
+    "consequent": "clean",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_CLEAR",
+    "type": "next_cycle_implication",
+    "natural_language": "clear releases lockout",
+    "antecedent": "blocked && clear",
+    "consequent": "clean",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

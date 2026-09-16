@@ -1,0 +1,61 @@
+[
+  {
+    "id": "P1_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset starts at the midpoint with clear history",
+    "antecedent": "rst",
+    "consequent": "(value == 3'd3) && !hit_low && !hit_high",
+    "delay": 1
+  },
+  {
+    "id": "P2_INC",
+    "sva_name": "p_inc",
+    "type": "next_cycle_implication",
+    "natural_language": "exclusive increment advances below the high bound",
+    "antecedent": "inc && !dec && (value < 3'd6)",
+    "consequent": "value == ($past(value) + 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P3_DEC",
+    "sva_name": "p_dec",
+    "type": "next_cycle_implication",
+    "natural_language": "exclusive decrement advances above the low bound",
+    "antecedent": "dec && !inc && (value > 3'd1)",
+    "consequent": "value == ($past(value) - 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_HIGH_HISTORY",
+    "sva_name": "p_high_history",
+    "type": "next_cycle_implication",
+    "natural_language": "reaching the high boundary records high history",
+    "antecedent": "inc && !dec && (value == 3'd5)",
+    "consequent": "hit_high",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_LOW_HISTORY",
+    "sva_name": "p_low_history",
+    "type": "next_cycle_implication",
+    "natural_language": "reaching the low boundary records low history",
+    "antecedent": "dec && !inc && (value == 3'd2)",
+    "consequent": "hit_low",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_CLEAR_HISTORY",
+    "sva_name": "p_clear_history",
+    "type": "next_cycle_implication",
+    "natural_language": "clear_history clears both sticky history bits",
+    "antecedent": "clear_history",
+    "consequent": "!hit_low && !hit_high",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

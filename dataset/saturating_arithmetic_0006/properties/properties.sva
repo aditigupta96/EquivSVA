@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: saturating_arithmetic_0006
+
+// P1_ONEHOT: exactly one arithmetic band is observable.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot({low, nominal, high}));
+
+// P2_RESET: reset selects the nominal band.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (nominal));
+
+// P3_LOW_UP: raising from low enters nominal.
+p_low_up: assert property (@(posedge clk) disable iff (rst)
+    (low && raise && !lower) |=> (nominal));
+
+// P4_NOM_UP: raising from nominal saturates high.
+p_nom_up: assert property (@(posedge clk) disable iff (rst)
+    (nominal && raise && !lower) |=> (high));
+
+// P5_NOM_DOWN: lowering from nominal saturates low.
+p_nom_down: assert property (@(posedge clk) disable iff (rst)
+    (nominal && lower && !raise) |=> (low));
+
+// P6_HIGH_DOWN: lowering from high enters nominal.
+p_high_down: assert property (@(posedge clk) disable iff (rst)
+    (high && lower && !raise) |=> (nominal));
+
+// P7_HIGH_SAT: high remains saturated without an exclusive lower.
+p_high_sat: assert property (@(posedge clk) disable iff (rst)
+    (high && !(lower && !raise)) |=> (high));

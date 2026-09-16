@@ -1,0 +1,234 @@
+{
+  "design_id": "protocol_controller_0003",
+  "category": "protocol_controller",
+  "template": "prepare_commit_abort",
+  "description": "Transactional protocol with prepare, commit, and abort recovery phases.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "start",
+    "prepared",
+    "commit",
+    "abort",
+    "recover"
+  ],
+  "outputs": [
+    "preparing",
+    "ready_commit",
+    "committed",
+    "aborted"
+  ],
+  "states": [
+    "IDLE",
+    "PREPARE",
+    "READY",
+    "COMMITTED",
+    "ABORTED"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "preparing": 0,
+      "ready_commit": 0,
+      "committed": 0,
+      "aborted": 0
+    },
+    "PREPARE": {
+      "preparing": 1,
+      "ready_commit": 0,
+      "committed": 0,
+      "aborted": 0
+    },
+    "READY": {
+      "preparing": 0,
+      "ready_commit": 1,
+      "committed": 0,
+      "aborted": 0
+    },
+    "COMMITTED": {
+      "preparing": 0,
+      "ready_commit": 0,
+      "committed": 1,
+      "aborted": 0
+    },
+    "ABORTED": {
+      "preparing": 0,
+      "ready_commit": 0,
+      "committed": 0,
+      "aborted": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "start",
+      "to": "PREPARE"
+    },
+    {
+      "from": "IDLE",
+      "when": "!start",
+      "to": "IDLE"
+    },
+    {
+      "from": "PREPARE",
+      "when": "abort",
+      "to": "ABORTED"
+    },
+    {
+      "from": "PREPARE",
+      "when": "!abort && prepared",
+      "to": "READY"
+    },
+    {
+      "from": "PREPARE",
+      "when": "!abort && !prepared",
+      "to": "PREPARE"
+    },
+    {
+      "from": "READY",
+      "when": "abort",
+      "to": "ABORTED"
+    },
+    {
+      "from": "READY",
+      "when": "!abort && commit",
+      "to": "COMMITTED"
+    },
+    {
+      "from": "READY",
+      "when": "!abort && !commit",
+      "to": "READY"
+    },
+    {
+      "from": "COMMITTED",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "ABORTED",
+      "when": "recover",
+      "to": "IDLE"
+    },
+    {
+      "from": "ABORTED",
+      "when": "!recover",
+      "to": "ABORTED"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_ONEHOT",
+      "sva_name": "p_onehot",
+      "type": "invariant",
+      "natural_language": "protocol phases are mutually exclusive",
+      "expression": "$onehot0({preparing, ready_commit, committed, aborted})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the protocol to idle",
+      "antecedent": "rst",
+      "consequent": "!preparing && !ready_commit && !committed && !aborted",
+      "delay": 1
+    },
+    {
+      "id": "P3_START",
+      "sva_name": "p_start",
+      "type": "next_cycle_implication",
+      "natural_language": "start begins prepare",
+      "antecedent": "!preparing && !ready_commit && !committed && !aborted && start",
+      "consequent": "preparing",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_PREPARED",
+      "sva_name": "p_prepared",
+      "type": "next_cycle_implication",
+      "natural_language": "prepared advances to commit-ready",
+      "antecedent": "preparing && prepared && !abort",
+      "consequent": "ready_commit",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_ABORT_PREP",
+      "sva_name": "p_abort_prep",
+      "type": "next_cycle_implication",
+      "natural_language": "abort during prepare enters aborted",
+      "antecedent": "preparing && abort",
+      "consequent": "aborted",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_COMMIT",
+      "sva_name": "p_commit",
+      "type": "next_cycle_implication",
+      "natural_language": "commit from ready completes the transaction",
+      "antecedent": "ready_commit && commit && !abort",
+      "consequent": "committed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_RECOVER",
+      "sva_name": "p_recover",
+      "type": "next_cycle_implication",
+      "natural_language": "recover leaves aborted state",
+      "antecedent": "aborted && recover",
+      "consequent": "!preparing && !ready_commit && !committed && !aborted",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_prepare_abort",
+      "kind": "replace_transition_guard",
+      "from": "PREPARE",
+      "old": "abort",
+      "new": "false"
+    },
+    {
+      "name": "ignore_commit",
+      "kind": "replace_transition_guard",
+      "from": "READY",
+      "old": "!abort && commit",
+      "new": "false"
+    },
+    {
+      "name": "never_recover",
+      "kind": "replace_transition_guard",
+      "from": "ABORTED",
+      "old": "recover",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

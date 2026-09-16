@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: handshake_0010
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({waiting, acked, release}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!waiting && !acked && !release));
+
+// P3_T1: IDLE transitions to WAIT_ACK when req.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!waiting && !acked && !release) && (req)) |=> (waiting && !acked && !release));
+
+// P4_T2: IDLE transitions to IDLE when !req.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!waiting && !acked && !release) && (!req)) |=> (!waiting && !acked && !release));
+
+// P5_T3: WAIT_ACK transitions to ACKED when peer_ack.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((waiting && !acked && !release) && (peer_ack)) |=> (!waiting && acked && !release));
+
+// P6_T4: WAIT_ACK transitions to WAIT_ACK when !peer_ack.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((waiting && !acked && !release) && (!peer_ack)) |=> (waiting && !acked && !release));
+
+// P7_T5: ACKED transitions to WAIT_RELEASE when true.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    (!waiting && acked && !release) |=> (!waiting && !acked && release));
+
+// P8_T6: WAIT_RELEASE transitions to WAIT_RELEASE when req.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!waiting && !acked && release) && (req)) |=> (!waiting && !acked && release));
+
+// P9_T7: WAIT_RELEASE transitions to IDLE when !req.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!waiting && !acked && release) && (!req)) |=> (!waiting && !acked && !release));

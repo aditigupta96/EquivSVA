@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: handshake_0009
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({valid, cancelled, done}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!valid && !cancelled && !done));
+
+// P3_T1: IDLE transitions to VALID when start.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!valid && !cancelled && !done) && (start)) |=> (valid && !cancelled && !done));
+
+// P4_T2: IDLE transitions to IDLE when !start.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!valid && !cancelled && !done) && (!start)) |=> (!valid && !cancelled && !done));
+
+// P5_T3: VALID transitions to CANCEL when cancel.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((valid && !cancelled && !done) && (cancel)) |=> (!valid && cancelled && !done));
+
+// P6_T4: VALID transitions to DONE when !cancel && ready.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((valid && !cancelled && !done) && (!cancel && ready)) |=> (!valid && !cancelled && done));
+
+// P7_T5: VALID transitions to VALID when !cancel && !ready.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((valid && !cancelled && !done) && (!cancel && !ready)) |=> (valid && !cancelled && !done));
+
+// P8_T6: CANCEL transitions to IDLE when true.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    (!valid && cancelled && !done) |=> (!valid && !cancelled && !done));
+
+// P9_T7: DONE transitions to IDLE when true.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    (!valid && !cancelled && done) |=> (!valid && !cancelled && !done));

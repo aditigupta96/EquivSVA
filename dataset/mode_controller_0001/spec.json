@@ -1,0 +1,224 @@
+{
+  "design_id": "mode_controller_0001",
+  "category": "mode_controller",
+  "description": "Four-mode controller supporting standby, active operation, and recoverable fault.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "OFF"
+  },
+  "inputs": [
+    "enable",
+    "wake",
+    "fault",
+    "clear_fault"
+  ],
+  "outputs": [
+    "standby",
+    "active",
+    "faulted"
+  ],
+  "states": [
+    "OFF",
+    "STANDBY",
+    "ACTIVE",
+    "FAULT"
+  ],
+  "state_outputs": {
+    "OFF": {
+      "standby": 0,
+      "active": 0,
+      "faulted": 0
+    },
+    "STANDBY": {
+      "standby": 1,
+      "active": 0,
+      "faulted": 0
+    },
+    "ACTIVE": {
+      "standby": 0,
+      "active": 1,
+      "faulted": 0
+    },
+    "FAULT": {
+      "standby": 0,
+      "active": 0,
+      "faulted": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "OFF",
+      "when": "enable",
+      "to": "STANDBY"
+    },
+    {
+      "from": "OFF",
+      "when": "!enable",
+      "to": "OFF"
+    },
+    {
+      "from": "STANDBY",
+      "when": "fault",
+      "to": "FAULT"
+    },
+    {
+      "from": "STANDBY",
+      "when": "!fault && !enable",
+      "to": "OFF"
+    },
+    {
+      "from": "STANDBY",
+      "when": "!fault && enable && wake",
+      "to": "ACTIVE"
+    },
+    {
+      "from": "STANDBY",
+      "when": "!fault && enable && !wake",
+      "to": "STANDBY"
+    },
+    {
+      "from": "ACTIVE",
+      "when": "fault",
+      "to": "FAULT"
+    },
+    {
+      "from": "ACTIVE",
+      "when": "!fault && !enable",
+      "to": "OFF"
+    },
+    {
+      "from": "ACTIVE",
+      "when": "!fault && enable && !wake",
+      "to": "STANDBY"
+    },
+    {
+      "from": "ACTIVE",
+      "when": "!fault && enable && wake",
+      "to": "ACTIVE"
+    },
+    {
+      "from": "FAULT",
+      "when": "clear_fault",
+      "to": "OFF"
+    },
+    {
+      "from": "FAULT",
+      "when": "!clear_fault",
+      "to": "FAULT"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "Fault has priority over normal mode changes.",
+    "The fault state remains sticky until clear_fault."
+  ],
+  "properties": [
+    {
+      "id": "P1_MUTEX",
+      "sva_name": "p_modes_mutex",
+      "type": "invariant",
+      "natural_language": "standby, active, and faulted are mutually exclusive",
+      "disable": "rst",
+      "expression": "$onehot0({standby, active, faulted})"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_off",
+      "type": "next_cycle_implication",
+      "natural_language": "reset puts the controller in off mode",
+      "antecedent": "rst",
+      "consequent": "!standby && !active && !faulted",
+      "delay": 1
+    },
+    {
+      "id": "P3_ENABLE",
+      "sva_name": "p_enable_standby",
+      "type": "next_cycle_implication",
+      "natural_language": "enabling from off enters standby",
+      "disable": "rst",
+      "antecedent": "!standby && !active && !faulted && enable",
+      "consequent": "standby",
+      "delay": 1
+    },
+    {
+      "id": "P4_WAKE",
+      "sva_name": "p_wake_active",
+      "type": "next_cycle_implication",
+      "natural_language": "wake while enabled in standby enters active mode",
+      "disable": "rst",
+      "antecedent": "standby && enable && wake && !fault",
+      "consequent": "active",
+      "delay": 1
+    },
+    {
+      "id": "P5_FAULT",
+      "sva_name": "p_fault",
+      "type": "next_cycle_implication",
+      "natural_language": "a fault from an enabled mode enters fault state",
+      "disable": "rst",
+      "antecedent": "(standby || active) && fault",
+      "consequent": "faulted",
+      "delay": 1
+    },
+    {
+      "id": "P6_FAULT_STICKY",
+      "sva_name": "p_fault_sticky",
+      "type": "next_cycle_implication",
+      "natural_language": "fault remains asserted until cleared",
+      "disable": "rst",
+      "antecedent": "faulted && !clear_fault",
+      "consequent": "faulted",
+      "delay": 1
+    },
+    {
+      "id": "P7_CLEAR",
+      "sva_name": "p_clear_fault",
+      "type": "next_cycle_implication",
+      "natural_language": "clearing a fault returns to off",
+      "disable": "rst",
+      "antecedent": "faulted && clear_fault",
+      "consequent": "!standby && !active && !faulted",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_fault_active",
+      "kind": "replace_transition_guard",
+      "from": "ACTIVE",
+      "old": "fault",
+      "new": "false"
+    },
+    {
+      "name": "fault_not_sticky",
+      "kind": "force_transition",
+      "from": "FAULT",
+      "to": "OFF"
+    },
+    {
+      "name": "wake_ignored",
+      "kind": "replace_transition_guard",
+      "from": "STANDBY",
+      "old": "!fault && enable && wake",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

@@ -1,0 +1,50 @@
+// Generated from spec.json.
+// Design: sequence_detector_0005
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({progress1, progress2, progress3, match}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!progress1 && !progress2 && !progress3 && !match));
+
+// P3_T1: S0 transitions to S0 when !bit_in.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!progress1 && !progress2 && !progress3 && !match) && (!bit_in)) |=> (!progress1 && !progress2 && !progress3 && !match));
+
+// P4_T2: S0 transitions to S1 when bit_in.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!progress1 && !progress2 && !progress3 && !match) && (bit_in)) |=> (progress1 && !progress2 && !progress3 && !match));
+
+// P5_T3: S1 transitions to S0 when !bit_in.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((progress1 && !progress2 && !progress3 && !match) && (!bit_in)) |=> (!progress1 && !progress2 && !progress3 && !match));
+
+// P6_T4: S1 transitions to S2 when bit_in.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((progress1 && !progress2 && !progress3 && !match) && (bit_in)) |=> (!progress1 && progress2 && !progress3 && !match));
+
+// P7_T5: S2 transitions to S0 when !bit_in.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((!progress1 && progress2 && !progress3 && !match) && (!bit_in)) |=> (!progress1 && !progress2 && !progress3 && !match));
+
+// P8_T6: S2 transitions to S3 when bit_in.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!progress1 && progress2 && !progress3 && !match) && (bit_in)) |=> (!progress1 && !progress2 && progress3 && !match));
+
+// P9_T7: S3 transitions to MATCH when !bit_in.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!progress1 && !progress2 && progress3 && !match) && (!bit_in)) |=> (!progress1 && !progress2 && !progress3 && match));
+
+// P10_T8: S3 transitions to S3 when bit_in.
+p_t8: assert property (@(posedge clk) disable iff (rst)
+    ((!progress1 && !progress2 && progress3 && !match) && (bit_in)) |=> (!progress1 && !progress2 && progress3 && !match));
+
+// P11_T9: MATCH transitions to S0 when !bit_in.
+p_t9: assert property (@(posedge clk) disable iff (rst)
+    ((!progress1 && !progress2 && !progress3 && match) && (!bit_in)) |=> (!progress1 && !progress2 && !progress3 && !match));
+
+// P12_T10: MATCH transitions to S1 when bit_in.
+p_t10: assert property (@(posedge clk) disable iff (rst)
+    ((!progress1 && !progress2 && !progress3 && match) && (bit_in)) |=> (progress1 && !progress2 && !progress3 && !match));

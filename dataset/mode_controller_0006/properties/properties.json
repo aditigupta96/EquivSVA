@@ -1,0 +1,89 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({locked, ready, active})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "locked && !ready && !active",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "LOCKED transitions to READY when unlock",
+    "antecedent": "(locked && !ready && !active) && (unlock)",
+    "consequent": "!locked && ready && !active",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "LOCKED transitions to LOCKED when !unlock",
+    "antecedent": "(locked && !ready && !active) && (!unlock)",
+    "consequent": "locked && !ready && !active",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "READY transitions to LOCKED when lock",
+    "antecedent": "(!locked && ready && !active) && (lock)",
+    "consequent": "locked && !ready && !active",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "READY transitions to ACTIVE when !lock && operate",
+    "antecedent": "(!locked && ready && !active) && (!lock && operate)",
+    "consequent": "!locked && !ready && active",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "READY transitions to READY when !lock && !operate",
+    "antecedent": "(!locked && ready && !active) && (!lock && !operate)",
+    "consequent": "!locked && ready && !active",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "ACTIVE transitions to LOCKED when lock",
+    "antecedent": "(!locked && !ready && active) && (lock)",
+    "consequent": "locked && !ready && !active",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "ACTIVE transitions to READY when !lock && !operate",
+    "antecedent": "(!locked && !ready && active) && (!lock && !operate)",
+    "consequent": "!locked && ready && !active",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P10_T8",
+    "type": "next_cycle_implication",
+    "natural_language": "ACTIVE transitions to ACTIVE when !lock && operate",
+    "antecedent": "(!locked && !ready && active) && (!lock && operate)",
+    "consequent": "!locked && !ready && active",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

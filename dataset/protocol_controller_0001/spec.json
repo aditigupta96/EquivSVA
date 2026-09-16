@@ -1,0 +1,187 @@
+{
+  "design_id": "protocol_controller_0001",
+  "category": "protocol_controller",
+  "description": "Start/acknowledge transaction controller with abort and completion pulse.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "start",
+    "ack",
+    "abort"
+  ],
+  "outputs": [
+    "busy",
+    "done",
+    "error"
+  ],
+  "states": [
+    "IDLE",
+    "WAIT_ACK",
+    "DONE",
+    "ERROR"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "busy": 0,
+      "done": 0,
+      "error": 0
+    },
+    "WAIT_ACK": {
+      "busy": 1,
+      "done": 0,
+      "error": 0
+    },
+    "DONE": {
+      "busy": 0,
+      "done": 1,
+      "error": 0
+    },
+    "ERROR": {
+      "busy": 0,
+      "done": 0,
+      "error": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "start",
+      "to": "WAIT_ACK"
+    },
+    {
+      "from": "IDLE",
+      "when": "!start",
+      "to": "IDLE"
+    },
+    {
+      "from": "WAIT_ACK",
+      "when": "abort",
+      "to": "ERROR"
+    },
+    {
+      "from": "WAIT_ACK",
+      "when": "!abort && ack",
+      "to": "DONE"
+    },
+    {
+      "from": "WAIT_ACK",
+      "when": "!abort && !ack",
+      "to": "WAIT_ACK"
+    },
+    {
+      "from": "DONE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "ERROR",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "Abort has priority over acknowledge.",
+    "done and error are one-cycle terminal states."
+  ],
+  "properties": [
+    {
+      "id": "P1_MUTEX",
+      "sva_name": "p_outputs_mutex",
+      "type": "invariant",
+      "natural_language": "busy, done, and error are mutually exclusive",
+      "disable": "rst",
+      "expression": "$onehot0({busy, done, error})"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_idle",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to idle",
+      "antecedent": "rst",
+      "consequent": "!busy && !done && !error",
+      "delay": 1
+    },
+    {
+      "id": "P3_START",
+      "sva_name": "p_start_busy",
+      "type": "next_cycle_implication",
+      "natural_language": "start begins a transaction",
+      "disable": "rst",
+      "antecedent": "!busy && !done && !error && start",
+      "consequent": "busy",
+      "delay": 1
+    },
+    {
+      "id": "P4_ACK",
+      "sva_name": "p_ack_done",
+      "type": "next_cycle_implication",
+      "natural_language": "ack completes a non-aborted transaction",
+      "disable": "rst",
+      "antecedent": "busy && ack && !abort",
+      "consequent": "done",
+      "delay": 1
+    },
+    {
+      "id": "P5_ABORT",
+      "sva_name": "p_abort_error",
+      "type": "next_cycle_implication",
+      "natural_language": "abort terminates the transaction with error",
+      "disable": "rst",
+      "antecedent": "busy && abort",
+      "consequent": "error",
+      "delay": 1
+    },
+    {
+      "id": "P6_DONE_PULSE",
+      "sva_name": "p_done_pulse",
+      "type": "next_cycle_implication",
+      "natural_language": "done returns to idle after one cycle",
+      "disable": "rst",
+      "antecedent": "done",
+      "consequent": "!busy && !done && !error",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_abort",
+      "kind": "replace_transition_guard",
+      "from": "WAIT_ACK",
+      "old": "abort",
+      "new": "false"
+    },
+    {
+      "name": "ack_to_error",
+      "kind": "force_transition",
+      "from": "WAIT_ACK",
+      "to": "ERROR"
+    },
+    {
+      "name": "done_stuck",
+      "kind": "force_transition",
+      "from": "DONE",
+      "to": "DONE"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

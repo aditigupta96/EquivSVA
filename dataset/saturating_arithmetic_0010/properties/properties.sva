@@ -1,0 +1,43 @@
+// Gold interface properties for saturating_arithmetic_0010
+
+// P1_RESET: reset restores the register to its reset value
+property p_reset_value;
+    @(posedge clk) (rst) |=> (value == 3'd3);
+endproperty
+assert property (p_reset_value);
+
+// P2_AT_ZERO: at_zero is consistent with the observable register value
+property p_at_zero;
+    @(posedge clk) disable iff (rst) (at_zero == (value == 3'd0));
+endproperty
+assert property (p_at_zero);
+
+// P3_AT_MAX: at_max is consistent with the observable register value
+property p_at_max;
+    @(posedge clk) disable iff (rst) (at_max == (value == 3'd7));
+endproperty
+assert property (p_at_max);
+
+// P4_RULE: update rule clear produces the specified next value
+property p_rule_4;
+    @(posedge clk) disable iff (rst) (clear) |=> (value == (3'd3));
+endproperty
+assert property (p_rule_4);
+
+// P5_RULE: update rule !clear && inc && !dec && (value < 3'd7) produces the specified next value
+property p_rule_5;
+    @(posedge clk) disable iff (rst) (!clear && inc && !dec && (value < 3'd7)) |=> (value == ($past(value) + 3'd1));
+endproperty
+assert property (p_rule_5);
+
+// P6_RULE: update rule !clear && dec && !inc && (value > 3'd0) produces the specified next value
+property p_rule_6;
+    @(posedge clk) disable iff (rst) (!clear && dec && !inc && (value > 3'd0)) |=> (value == ($past(value) - 3'd1));
+endproperty
+assert property (p_rule_6);
+
+// P7_HOLD: when no update rule fires the register holds its value
+property p_hold;
+    @(posedge clk) disable iff (rst) (!(clear) && !(!clear && inc && !dec && (value < 3'd7)) && !(!clear && dec && !inc && (value > 3'd0))) |=> (value == $past(value));
+endproperty
+assert property (p_hold);

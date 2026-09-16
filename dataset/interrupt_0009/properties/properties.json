@@ -1,0 +1,53 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "interrupt phases are mutually exclusive",
+    "expression": "$onehot({pending, servicing, wait_low, armed})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset arms interrupt capture",
+    "antecedent": "rst",
+    "consequent": "armed",
+    "delay": 1
+  },
+  {
+    "id": "P3_IRQ",
+    "type": "next_cycle_implication",
+    "natural_language": "irq while armed becomes pending",
+    "antecedent": "armed && irq",
+    "consequent": "pending",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_ACK",
+    "type": "next_cycle_implication",
+    "natural_language": "acknowledge services a pending interrupt",
+    "antecedent": "pending && ack",
+    "consequent": "servicing",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_WAIT_LOW",
+    "type": "next_cycle_implication",
+    "natural_language": "service completion waits for irq deassertion",
+    "antecedent": "servicing",
+    "consequent": "wait_low",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_REARM",
+    "type": "next_cycle_implication",
+    "natural_language": "irq deassertion rearms capture",
+    "antecedent": "wait_low && !irq",
+    "consequent": "armed",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

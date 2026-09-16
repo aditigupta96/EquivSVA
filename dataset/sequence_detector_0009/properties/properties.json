@@ -1,0 +1,107 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({progress1, progress2, progress3, match})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!progress1 && !progress2 && !progress3 && !match",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "S0 transitions to S0 when !bit_in",
+    "antecedent": "(!progress1 && !progress2 && !progress3 && !match) && (!bit_in)",
+    "consequent": "!progress1 && !progress2 && !progress3 && !match",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "S0 transitions to S1 when bit_in",
+    "antecedent": "(!progress1 && !progress2 && !progress3 && !match) && (bit_in)",
+    "consequent": "progress1 && !progress2 && !progress3 && !match",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "S1 transitions to S0 when !bit_in",
+    "antecedent": "(progress1 && !progress2 && !progress3 && !match) && (!bit_in)",
+    "consequent": "!progress1 && !progress2 && !progress3 && !match",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "S1 transitions to S2 when bit_in",
+    "antecedent": "(progress1 && !progress2 && !progress3 && !match) && (bit_in)",
+    "consequent": "!progress1 && progress2 && !progress3 && !match",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "S2 transitions to S3 when !bit_in",
+    "antecedent": "(!progress1 && progress2 && !progress3 && !match) && (!bit_in)",
+    "consequent": "!progress1 && !progress2 && progress3 && !match",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "S2 transitions to S2 when bit_in",
+    "antecedent": "(!progress1 && progress2 && !progress3 && !match) && (bit_in)",
+    "consequent": "!progress1 && progress2 && !progress3 && !match",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "S3 transitions to S0 when !bit_in",
+    "antecedent": "(!progress1 && !progress2 && progress3 && !match) && (!bit_in)",
+    "consequent": "!progress1 && !progress2 && !progress3 && !match",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P10_T8",
+    "type": "next_cycle_implication",
+    "natural_language": "S3 transitions to MATCH when bit_in",
+    "antecedent": "(!progress1 && !progress2 && progress3 && !match) && (bit_in)",
+    "consequent": "!progress1 && !progress2 && !progress3 && match",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P11_T9",
+    "type": "next_cycle_implication",
+    "natural_language": "MATCH transitions to S0 when !bit_in",
+    "antecedent": "(!progress1 && !progress2 && !progress3 && match) && (!bit_in)",
+    "consequent": "!progress1 && !progress2 && !progress3 && !match",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P12_T10",
+    "type": "next_cycle_implication",
+    "natural_language": "MATCH transitions to S2 when bit_in",
+    "antecedent": "(!progress1 && !progress2 && !progress3 && match) && (bit_in)",
+    "consequent": "!progress1 && progress2 && !progress3 && !match",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

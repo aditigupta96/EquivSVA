@@ -1,0 +1,75 @@
+[
+  {
+    "id": "P1_EMPTY",
+    "sva_name": "p_empty",
+    "type": "invariant",
+    "natural_language": "empty reflects zero occupancy",
+    "expression": "empty == (count == 3'd0)",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_FULL",
+    "sva_name": "p_full",
+    "type": "invariant",
+    "natural_language": "full reflects four entries",
+    "expression": "full == (count == 3'd4)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_AF",
+    "sva_name": "p_almost_full",
+    "type": "invariant",
+    "natural_language": "almost_full reflects occupancy of at least three",
+    "expression": "almost_full == (count >= 3'd3)",
+    "disable": "rst"
+  },
+  {
+    "id": "P4_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset empties the FIFO",
+    "antecedent": "rst",
+    "consequent": "count == 3'd0",
+    "delay": 1
+  },
+  {
+    "id": "P5_FLUSH",
+    "sva_name": "p_flush",
+    "type": "next_cycle_implication",
+    "natural_language": "flush empties the FIFO",
+    "antecedent": "flush",
+    "consequent": "count == 3'd0",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_PUSH",
+    "sva_name": "p_push",
+    "type": "next_cycle_implication",
+    "natural_language": "push without pop increments occupancy",
+    "antecedent": "!flush && push && !pop && (count < 3'd4)",
+    "consequent": "count == ($past(count) + 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_POP",
+    "sva_name": "p_pop",
+    "type": "next_cycle_implication",
+    "natural_language": "pop without push decrements occupancy",
+    "antecedent": "!flush && pop && !push && (count > 3'd0)",
+    "consequent": "count == ($past(count) - 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_SIMULTANEOUS",
+    "sva_name": "p_simultaneous",
+    "type": "next_cycle_implication",
+    "natural_language": "simultaneous push and pop preserves occupancy",
+    "antecedent": "!flush && push && pop",
+    "consequent": "count == $past(count)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

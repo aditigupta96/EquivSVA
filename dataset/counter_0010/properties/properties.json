@@ -1,0 +1,49 @@
+[
+  {
+    "id": "P1_RESET",
+    "sva_name": "p_reset_value",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the register to its reset value",
+    "antecedent": "rst",
+    "consequent": "count == 3'd0",
+    "delay": 1
+  },
+  {
+    "id": "P2_NONZERO",
+    "sva_name": "p_nonzero",
+    "type": "invariant",
+    "natural_language": "nonzero is consistent with the observable register value",
+    "expression": "nonzero == (count != 3'd0)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RULE",
+    "sva_name": "p_rule_3",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule load produces the specified next value",
+    "antecedent": "load",
+    "consequent": "count == (3'd4)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_RULE",
+    "sva_name": "p_rule_4",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule !load && increment && (count < 3'd7) produces the specified next value",
+    "antecedent": "!load && increment && (count < 3'd7)",
+    "consequent": "count == ($past(count) + 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "when no update rule fires the register holds its value",
+    "antecedent": "!(load) && !(!load && increment && (count < 3'd7))",
+    "consequent": "count == $past(count)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

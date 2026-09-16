@@ -1,0 +1,189 @@
+{
+  "design_id": "fifo_0010",
+  "category": "fifo_control",
+  "model_type": "register_rules",
+  "template": "four_slot_occupancy_counter",
+  "description": "Four-slot FIFO occupancy counter with simultaneous push/pop cancellation and overflow/underflow protection.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "push",
+    "pop",
+    "flush"
+  ],
+  "outputs": [
+    "count",
+    "empty",
+    "full",
+    "almost_full"
+  ],
+  "signal_widths": {
+    "count": 3
+  },
+  "registers": [
+    {
+      "name": "count",
+      "width": 3,
+      "reset_value": "3'd0",
+      "observable": true
+    }
+  ],
+  "derived_outputs": {
+    "empty": "count == 3'd0",
+    "full": "count == 3'd4",
+    "almost_full": "count >= 3'd3"
+  },
+  "update_rules": [
+    {
+      "when": "flush",
+      "value": "3'd0"
+    },
+    {
+      "when": "!flush && push && !pop && (count < 3'd4)",
+      "value": "count + 3'd1"
+    },
+    {
+      "when": "!flush && pop && !push && (count > 3'd0)",
+      "value": "count - 3'd1"
+    },
+    {
+      "when": "true",
+      "value": "count"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "The state register is interface-visible and part of observable equivalence.",
+    "All benchmark properties use interface-visible signals only."
+  ],
+  "properties": [
+    {
+      "id": "P1_EMPTY",
+      "sva_name": "p_empty",
+      "type": "invariant",
+      "natural_language": "empty reflects zero occupancy",
+      "expression": "empty == (count == 3'd0)",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_FULL",
+      "sva_name": "p_full",
+      "type": "invariant",
+      "natural_language": "full reflects four entries",
+      "expression": "full == (count == 3'd4)",
+      "disable": "rst"
+    },
+    {
+      "id": "P3_AF",
+      "sva_name": "p_almost_full",
+      "type": "invariant",
+      "natural_language": "almost_full reflects occupancy of at least three",
+      "expression": "almost_full == (count >= 3'd3)",
+      "disable": "rst"
+    },
+    {
+      "id": "P4_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset empties the FIFO",
+      "antecedent": "rst",
+      "consequent": "count == 3'd0",
+      "delay": 1
+    },
+    {
+      "id": "P5_FLUSH",
+      "sva_name": "p_flush",
+      "type": "next_cycle_implication",
+      "natural_language": "flush empties the FIFO",
+      "antecedent": "flush",
+      "consequent": "count == 3'd0",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_PUSH",
+      "sva_name": "p_push",
+      "type": "next_cycle_implication",
+      "natural_language": "push without pop increments occupancy",
+      "antecedent": "!flush && push && !pop && (count < 3'd4)",
+      "consequent": "count == ($past(count) + 3'd1)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_POP",
+      "sva_name": "p_pop",
+      "type": "next_cycle_implication",
+      "natural_language": "pop without push decrements occupancy",
+      "antecedent": "!flush && pop && !push && (count > 3'd0)",
+      "consequent": "count == ($past(count) - 3'd1)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_SIMULTANEOUS",
+      "sva_name": "p_simultaneous",
+      "type": "next_cycle_implication",
+      "natural_language": "simultaneous push and pop preserves occupancy",
+      "antecedent": "!flush && push && pop",
+      "consequent": "count == $past(count)",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_flush",
+      "kind": "replace_update_guard",
+      "old": "flush",
+      "new": "false"
+    },
+    {
+      "name": "push_without_space",
+      "kind": "replace_update_guard",
+      "old": "!flush && push && !pop && (count < 3'd4)",
+      "new": "!flush && push && !pop"
+    },
+    {
+      "name": "ignore_pop",
+      "kind": "replace_update_guard",
+      "old": "!flush && pop && !push && (count > 3'd0)",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

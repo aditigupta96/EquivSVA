@@ -1,0 +1,53 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "terminal and active phases are mutually exclusive",
+    "expression": "$onehot0({retrying, done, failed}) && !(attempting && (retrying || done || failed))",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns to idle",
+    "antecedent": "rst",
+    "consequent": "!attempting && !retrying && !done && !failed",
+    "delay": 1
+  },
+  {
+    "id": "P3_START",
+    "type": "next_cycle_implication",
+    "natural_language": "start begins the first attempt",
+    "antecedent": "!attempting && !retrying && !done && !failed && start",
+    "consequent": "attempting",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_RETRY",
+    "type": "next_cycle_implication",
+    "natural_language": "retry request after first failure enters retry state",
+    "antecedent": "attempting && !success && retry && !$past(retrying)",
+    "consequent": "retrying || failed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_DONE",
+    "type": "next_cycle_implication",
+    "natural_language": "success from an attempt enters done",
+    "antecedent": "attempting && success",
+    "consequent": "done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_FAIL_STICKY",
+    "type": "next_cycle_implication",
+    "natural_language": "failure remains until reset_fail",
+    "antecedent": "failed && !reset_fail",
+    "consequent": "failed",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

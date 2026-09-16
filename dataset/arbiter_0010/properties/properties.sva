@@ -1,0 +1,54 @@
+// Generated from spec.json.
+// Design: arbiter_0010
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({grant0, grant1}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!grant0 && !grant1));
+
+// P3_T1: IDLE transitions to G0 when req0.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && !grant1) && (req0)) |=> (grant0 && !grant1));
+
+// P4_T2: IDLE transitions to G1 when !req0 && req1.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && !grant1) && (!req0 && req1)) |=> (!grant0 && grant1));
+
+// P5_T3: IDLE transitions to IDLE when !req0 && !req1.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && !grant1) && (!req0 && !req1)) |=> (!grant0 && !grant1));
+
+// P6_T4: G0 transitions to G1 when done && req1.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((grant0 && !grant1) && (done && req1)) |=> (!grant0 && grant1));
+
+// P7_T5: G0 transitions to G0 when done && !req1 && req0.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((grant0 && !grant1) && (done && !req1 && req0)) |=> (grant0 && !grant1));
+
+// P8_T6: G0 transitions to IDLE when done && !req1 && !req0.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((grant0 && !grant1) && (done && !req1 && !req0)) |=> (!grant0 && !grant1));
+
+// P9_T7: G0 transitions to G0 when !done.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((grant0 && !grant1) && (!done)) |=> (grant0 && !grant1));
+
+// P10_T8: G1 transitions to G0 when done && req0.
+p_t8: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && grant1) && (done && req0)) |=> (grant0 && !grant1));
+
+// P11_T9: G1 transitions to G1 when done && !req0 && req1.
+p_t9: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && grant1) && (done && !req0 && req1)) |=> (!grant0 && grant1));
+
+// P12_T10: G1 transitions to IDLE when done && !req0 && !req1.
+p_t10: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && grant1) && (done && !req0 && !req1)) |=> (!grant0 && !grant1));
+
+// P13_T11: G1 transitions to G1 when !done.
+p_t11: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && grant1) && (!done)) |=> (!grant0 && grant1));

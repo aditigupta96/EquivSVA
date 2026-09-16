@@ -1,0 +1,26 @@
+// Generated from spec.json.
+// Design: pulse_event_0001
+
+// P1_MUTEX: pulse and armed are never asserted together.
+p_pulse_not_armed: assert property (@(posedge clk) disable iff (rst)
+    !(pulse && armed));
+
+// P2_RESET: reset returns the detector to the armed state.
+p_reset_armed: assert property (@(posedge clk)
+    (rst) |=> (!pulse && armed));
+
+// P3_EVENT_FIRE: an event while armed produces a pulse.
+p_event_fire: assert property (@(posedge clk) disable iff (rst)
+    (armed && event_in) |=> (pulse && !armed));
+
+// P4_FIRE_ONE_CYCLE: pulse lasts exactly one state cycle.
+p_fire_one_cycle: assert property (@(posedge clk) disable iff (rst)
+    (pulse) |=> (!pulse && !armed));
+
+// P5_REARM: the detector rearms after the input returns low.
+p_rearm: assert property (@(posedge clk) disable iff (rst)
+    (!pulse && !armed && !event_in) |=> (armed));
+
+// P6_IDLE_NO_EVENT: while armed, absence of an event keeps the detector armed without producing a pulse.
+p_idle_no_event: assert property (@(posedge clk) disable iff (rst)
+    (armed && !event_in) |=> (armed && !pulse));

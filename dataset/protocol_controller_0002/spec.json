@@ -1,0 +1,218 @@
+{
+  "design_id": "protocol_controller_0002",
+  "category": "protocol_controller",
+  "template": "authorize_execute_complete",
+  "description": "Request must be authorized before execution can begin and then complete.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "request",
+    "authorized",
+    "complete",
+    "cancel"
+  ],
+  "outputs": [
+    "authorizing",
+    "executing",
+    "done",
+    "cancelled"
+  ],
+  "states": [
+    "IDLE",
+    "AUTH",
+    "EXEC",
+    "DONE",
+    "CANCEL"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "authorizing": 0,
+      "executing": 0,
+      "done": 0,
+      "cancelled": 0
+    },
+    "AUTH": {
+      "authorizing": 1,
+      "executing": 0,
+      "done": 0,
+      "cancelled": 0
+    },
+    "EXEC": {
+      "authorizing": 0,
+      "executing": 1,
+      "done": 0,
+      "cancelled": 0
+    },
+    "DONE": {
+      "authorizing": 0,
+      "executing": 0,
+      "done": 1,
+      "cancelled": 0
+    },
+    "CANCEL": {
+      "authorizing": 0,
+      "executing": 0,
+      "done": 0,
+      "cancelled": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "request",
+      "to": "AUTH"
+    },
+    {
+      "from": "IDLE",
+      "when": "!request",
+      "to": "IDLE"
+    },
+    {
+      "from": "AUTH",
+      "when": "cancel",
+      "to": "CANCEL"
+    },
+    {
+      "from": "AUTH",
+      "when": "!cancel && authorized",
+      "to": "EXEC"
+    },
+    {
+      "from": "AUTH",
+      "when": "!cancel && !authorized",
+      "to": "AUTH"
+    },
+    {
+      "from": "EXEC",
+      "when": "cancel",
+      "to": "CANCEL"
+    },
+    {
+      "from": "EXEC",
+      "when": "!cancel && complete",
+      "to": "DONE"
+    },
+    {
+      "from": "EXEC",
+      "when": "!cancel && !complete",
+      "to": "EXEC"
+    },
+    {
+      "from": "DONE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "CANCEL",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_MUTEX",
+      "sva_name": "p_mutex",
+      "type": "invariant",
+      "natural_language": "protocol output phases are mutually exclusive",
+      "expression": "$onehot0({authorizing, executing, done, cancelled})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns to idle",
+      "antecedent": "rst",
+      "consequent": "!authorizing && !executing && !done && !cancelled",
+      "delay": 1
+    },
+    {
+      "id": "P3_REQUEST",
+      "sva_name": "p_request",
+      "type": "next_cycle_implication",
+      "natural_language": "a request begins authorization",
+      "antecedent": "!authorizing && !executing && !done && !cancelled && request",
+      "consequent": "authorizing",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_AUTH",
+      "sva_name": "p_auth",
+      "type": "next_cycle_implication",
+      "natural_language": "authorization begins execution",
+      "antecedent": "authorizing && authorized && !cancel",
+      "consequent": "executing",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_CANCEL_AUTH",
+      "sva_name": "p_cancel_auth",
+      "type": "next_cycle_implication",
+      "natural_language": "cancel during authorization terminates the request",
+      "antecedent": "authorizing && cancel",
+      "consequent": "cancelled",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_COMPLETE",
+      "sva_name": "p_complete",
+      "type": "next_cycle_implication",
+      "natural_language": "completion ends execution successfully",
+      "antecedent": "executing && complete && !cancel",
+      "consequent": "done",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_authorized",
+      "kind": "replace_transition_guard",
+      "from": "AUTH",
+      "old": "!cancel && authorized",
+      "new": "false"
+    },
+    {
+      "name": "ignore_exec_cancel",
+      "kind": "replace_transition_guard",
+      "from": "EXEC",
+      "old": "cancel",
+      "new": "false"
+    },
+    {
+      "name": "never_complete",
+      "kind": "replace_transition_guard",
+      "from": "EXEC",
+      "old": "!cancel && complete",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

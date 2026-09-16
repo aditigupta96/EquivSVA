@@ -1,0 +1,71 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({waiting, held})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!waiting && !held",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to WAIT when acquire",
+    "antecedent": "(!waiting && !held) && (acquire)",
+    "consequent": "waiting && !held",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !acquire",
+    "antecedent": "(!waiting && !held) && (!acquire)",
+    "consequent": "!waiting && !held",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "WAIT transitions to HELD when acquire",
+    "antecedent": "(waiting && !held) && (acquire)",
+    "consequent": "!waiting && held",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "WAIT transitions to WAIT when !acquire",
+    "antecedent": "(waiting && !held) && (!acquire)",
+    "consequent": "waiting && !held",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "HELD transitions to IDLE when release",
+    "antecedent": "(!waiting && held) && (release)",
+    "consequent": "!waiting && !held",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "HELD transitions to HELD when !release",
+    "antecedent": "(!waiting && held) && (!release)",
+    "consequent": "!waiting && held",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

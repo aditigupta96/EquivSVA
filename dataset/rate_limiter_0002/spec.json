@@ -1,0 +1,196 @@
+{
+  "design_id": "rate_limiter_0002",
+  "category": "rate_limiter",
+  "model_type": "multi_register_rules",
+  "template": "fixed_window_quota_with_epoch",
+  "description": "Fixed-window limiter tracks quota usage and toggles an observable epoch on window reset.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "request",
+    "new_window"
+  ],
+  "outputs": [
+    "used",
+    "epoch",
+    "allow",
+    "exhausted"
+  ],
+  "signal_widths": {
+    "used": 2
+  },
+  "registers": [
+    {
+      "name": "used_reg",
+      "width": 2,
+      "reset_value": "2'd0"
+    },
+    {
+      "name": "epoch_reg",
+      "width": 1,
+      "reset_value": "1'b0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All RTL variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "used": "used_reg",
+    "epoch": "epoch_reg",
+    "allow": "used_reg < 2'd3",
+    "exhausted": "used_reg == 2'd3"
+  },
+  "update_rules": {
+    "used_reg": [
+      {
+        "when": "new_window",
+        "value": "2'd0"
+      },
+      {
+        "when": "!new_window && request && (used_reg < 2'd3)",
+        "value": "used_reg + 2'd1"
+      },
+      {
+        "when": "true",
+        "value": "used_reg"
+      }
+    ],
+    "epoch_reg": [
+      {
+        "when": "new_window",
+        "value": "!epoch_reg"
+      },
+      {
+        "when": "true",
+        "value": "epoch_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_ALLOW",
+      "sva_name": "p_allow",
+      "type": "invariant",
+      "natural_language": "allow is true before quota exhaustion",
+      "expression": "allow == (used < 2'd3)",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_EXHAUSTED",
+      "sva_name": "p_exhausted",
+      "type": "invariant",
+      "natural_language": "exhausted marks full quota usage",
+      "expression": "exhausted == (used == 2'd3)",
+      "disable": "rst"
+    },
+    {
+      "id": "P3_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset starts with unused quota and epoch zero",
+      "antecedent": "rst",
+      "consequent": "(used == 2'd0) && !epoch",
+      "delay": 1
+    },
+    {
+      "id": "P4_USE",
+      "sva_name": "p_use",
+      "type": "next_cycle_implication",
+      "natural_language": "an allowed request consumes one quota unit",
+      "antecedent": "!new_window && request && (used < 2'd3)",
+      "consequent": "used == ($past(used) + 2'd1)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_WINDOW",
+      "sva_name": "p_window",
+      "type": "next_cycle_implication",
+      "natural_language": "new window clears quota usage",
+      "antecedent": "new_window",
+      "consequent": "used == 2'd0",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_EPOCH",
+      "sva_name": "p_epoch",
+      "type": "next_cycle_implication",
+      "natural_language": "new window toggles the epoch marker",
+      "antecedent": "new_window",
+      "consequent": "epoch != $past(epoch)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_HOLD",
+      "sva_name": "p_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "without request or window reset usage holds",
+      "antecedent": "!new_window && !request",
+      "consequent": "used == $past(used)",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "never_reset_usage",
+      "register": "used_reg",
+      "kind": "replace_update_guard",
+      "old": "new_window",
+      "new": "false"
+    },
+    {
+      "name": "ignore_request",
+      "register": "used_reg",
+      "kind": "replace_update_guard",
+      "old": "!new_window && request && (used_reg < 2'd3)",
+      "new": "false"
+    },
+    {
+      "name": "epoch_never_toggles",
+      "register": "epoch_reg",
+      "kind": "replace_update_guard",
+      "old": "new_window",
+      "new": "false"
+    }
+  ]
+}

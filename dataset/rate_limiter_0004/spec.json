@@ -1,0 +1,216 @@
+{
+  "design_id": "rate_limiter_0004",
+  "category": "rate_limiter",
+  "template": "two_burst_lockout",
+  "description": "Allows two grants in a burst, then enters lockout until reset_window.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "FIRST"
+  },
+  "inputs": [
+    "request",
+    "reset_window"
+  ],
+  "outputs": [
+    "ready_first",
+    "ready_last",
+    "granted",
+    "locked"
+  ],
+  "states": [
+    "FIRST",
+    "GRANT1",
+    "LAST",
+    "GRANT2",
+    "LOCKED"
+  ],
+  "state_outputs": {
+    "FIRST": {
+      "ready_first": 1,
+      "ready_last": 0,
+      "granted": 0,
+      "locked": 0
+    },
+    "GRANT1": {
+      "ready_first": 0,
+      "ready_last": 0,
+      "granted": 1,
+      "locked": 0
+    },
+    "LAST": {
+      "ready_first": 0,
+      "ready_last": 1,
+      "granted": 0,
+      "locked": 0
+    },
+    "GRANT2": {
+      "ready_first": 0,
+      "ready_last": 0,
+      "granted": 1,
+      "locked": 0
+    },
+    "LOCKED": {
+      "ready_first": 0,
+      "ready_last": 0,
+      "granted": 0,
+      "locked": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "FIRST",
+      "when": "request",
+      "to": "GRANT1"
+    },
+    {
+      "from": "FIRST",
+      "when": "!request",
+      "to": "FIRST"
+    },
+    {
+      "from": "GRANT1",
+      "when": "true",
+      "to": "LAST"
+    },
+    {
+      "from": "LAST",
+      "when": "request",
+      "to": "GRANT2"
+    },
+    {
+      "from": "LAST",
+      "when": "!request",
+      "to": "LAST"
+    },
+    {
+      "from": "GRANT2",
+      "when": "true",
+      "to": "LOCKED"
+    },
+    {
+      "from": "LOCKED",
+      "when": "reset_window",
+      "to": "FIRST"
+    },
+    {
+      "from": "LOCKED",
+      "when": "!reset_window",
+      "to": "LOCKED"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_ONEHOT",
+      "sva_name": "p_onehot",
+      "type": "invariant",
+      "natural_language": "burst limiter modes are mutually exclusive",
+      "expression": "$onehot({ready_first, ready_last, granted, locked})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset restores the first burst slot",
+      "antecedent": "rst",
+      "consequent": "ready_first",
+      "delay": 1
+    },
+    {
+      "id": "P3_FIRST_GRANT",
+      "sva_name": "p_first_grant",
+      "type": "next_cycle_implication",
+      "natural_language": "the first request is granted",
+      "antecedent": "ready_first && request",
+      "consequent": "granted",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_LAST_SLOT",
+      "sva_name": "p_last_slot",
+      "type": "next_cycle_implication",
+      "natural_language": "after the first grant only one slot remains",
+      "antecedent": "granted && !$past(ready_last)",
+      "consequent": "ready_last",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_SECOND_GRANT",
+      "sva_name": "p_second_grant",
+      "type": "next_cycle_implication",
+      "natural_language": "a request in the last slot is granted",
+      "antecedent": "ready_last && request",
+      "consequent": "granted",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_LOCK",
+      "sva_name": "p_lock",
+      "type": "next_cycle_implication",
+      "natural_language": "the second grant enters lockout",
+      "antecedent": "granted && $past(ready_last)",
+      "consequent": "locked",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_WINDOW_RESET",
+      "sva_name": "p_window_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset_window releases lockout",
+      "antecedent": "locked && reset_window",
+      "consequent": "ready_first",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "first_never_grants",
+      "kind": "replace_transition_guard",
+      "from": "FIRST",
+      "old": "request",
+      "new": "false"
+    },
+    {
+      "name": "second_never_grants",
+      "kind": "replace_transition_guard",
+      "from": "LAST",
+      "old": "request",
+      "new": "false"
+    },
+    {
+      "name": "never_unlock",
+      "kind": "replace_transition_guard",
+      "from": "LOCKED",
+      "old": "reset_window",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

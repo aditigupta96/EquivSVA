@@ -1,0 +1,43 @@
+// Gold interface properties for saturating_arithmetic_0008
+
+// P1_HIGH: high marks values at or above ten
+property p_high;
+    @(posedge clk) disable iff (rst) (high == (value >= 4'd10));
+endproperty
+assert property (p_high);
+
+// P2_LOW: low marks values at or below three
+property p_low;
+    @(posedge clk) disable iff (rst) (low == (value <= 4'd3));
+endproperty
+assert property (p_low);
+
+// P3_RESET: reset restores the center value
+property p_reset;
+    @(posedge clk) (rst) |=> (value == 4'd6);
+endproperty
+assert property (p_reset);
+
+// P4_CENTER: center has priority over arithmetic updates
+property p_center;
+    @(posedge clk) disable iff (rst) (center) |=> (value == 4'd6);
+endproperty
+assert property (p_center);
+
+// P5_BOOST: boost adds two when there is room
+property p_boost;
+    @(posedge clk) disable iff (rst) (!center && boost && !drain && (value <= 4'd11)) |=> (value == ($past(value) + 4'd2));
+endproperty
+assert property (p_boost);
+
+// P6_BOOST_CLAMP: boost near the top clamps to thirteen
+property p_boost_clamp;
+    @(posedge clk) disable iff (rst) (!center && boost && !drain && (value > 4'd11)) |=> (value == 4'd13);
+endproperty
+assert property (p_boost_clamp);
+
+// P7_DRAIN: drain subtracts one above the lower bound
+property p_drain;
+    @(posedge clk) disable iff (rst) (!center && drain && !boost && (value > 4'd1)) |=> (value == ($past(value) - 4'd1));
+endproperty
+assert property (p_drain);

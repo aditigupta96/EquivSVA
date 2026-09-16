@@ -1,0 +1,26 @@
+// Generated from spec.json.
+// Design: protocol_controller_0002
+
+// P1_MUTEX: protocol output phases are mutually exclusive.
+p_mutex: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({authorizing, executing, done, cancelled}));
+
+// P2_RESET: reset returns to idle.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (!authorizing && !executing && !done && !cancelled));
+
+// P3_REQUEST: a request begins authorization.
+p_request: assert property (@(posedge clk) disable iff (rst)
+    (!authorizing && !executing && !done && !cancelled && request) |=> (authorizing));
+
+// P4_AUTH: authorization begins execution.
+p_auth: assert property (@(posedge clk) disable iff (rst)
+    (authorizing && authorized && !cancel) |=> (executing));
+
+// P5_CANCEL_AUTH: cancel during authorization terminates the request.
+p_cancel_auth: assert property (@(posedge clk) disable iff (rst)
+    (authorizing && cancel) |=> (cancelled));
+
+// P6_COMPLETE: completion ends execution successfully.
+p_complete: assert property (@(posedge clk) disable iff (rst)
+    (executing && complete && !cancel) |=> (done));

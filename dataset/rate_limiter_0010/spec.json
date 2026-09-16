@@ -1,0 +1,209 @@
+{
+  "design_id": "rate_limiter_0010",
+  "category": "rate_limiter",
+  "template": "three_strike_lockout",
+  "description": "Three consecutive violations move the limiter into lockout until clear.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "CLEAN"
+  },
+  "inputs": [
+    "violation",
+    "clear"
+  ],
+  "outputs": [
+    "clean",
+    "strike1",
+    "strike2",
+    "blocked"
+  ],
+  "states": [
+    "CLEAN",
+    "S1",
+    "S2",
+    "BLOCKED"
+  ],
+  "state_outputs": {
+    "CLEAN": {
+      "clean": 1,
+      "strike1": 0,
+      "strike2": 0,
+      "blocked": 0
+    },
+    "S1": {
+      "clean": 0,
+      "strike1": 1,
+      "strike2": 0,
+      "blocked": 0
+    },
+    "S2": {
+      "clean": 0,
+      "strike1": 0,
+      "strike2": 1,
+      "blocked": 0
+    },
+    "BLOCKED": {
+      "clean": 0,
+      "strike1": 0,
+      "strike2": 0,
+      "blocked": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "CLEAN",
+      "when": "violation",
+      "to": "S1"
+    },
+    {
+      "from": "CLEAN",
+      "when": "!violation",
+      "to": "CLEAN"
+    },
+    {
+      "from": "S1",
+      "when": "violation",
+      "to": "S2"
+    },
+    {
+      "from": "S1",
+      "when": "!violation",
+      "to": "CLEAN"
+    },
+    {
+      "from": "S2",
+      "when": "violation",
+      "to": "BLOCKED"
+    },
+    {
+      "from": "S2",
+      "when": "!violation",
+      "to": "CLEAN"
+    },
+    {
+      "from": "BLOCKED",
+      "when": "clear",
+      "to": "CLEAN"
+    },
+    {
+      "from": "BLOCKED",
+      "when": "!clear",
+      "to": "BLOCKED"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_ONEHOT",
+      "sva_name": "p_onehot",
+      "type": "invariant",
+      "natural_language": "strike states are mutually exclusive",
+      "expression": "$onehot({clean, strike1, strike2, blocked})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset clears all strikes",
+      "antecedent": "rst",
+      "consequent": "clean",
+      "delay": 1
+    },
+    {
+      "id": "P3_FIRST",
+      "sva_name": "p_first",
+      "type": "next_cycle_implication",
+      "natural_language": "first consecutive violation records strike one",
+      "antecedent": "clean && violation",
+      "consequent": "strike1",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_SECOND",
+      "sva_name": "p_second",
+      "type": "next_cycle_implication",
+      "natural_language": "second consecutive violation records strike two",
+      "antecedent": "strike1 && violation",
+      "consequent": "strike2",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_THIRD",
+      "sva_name": "p_third",
+      "type": "next_cycle_implication",
+      "natural_language": "third consecutive violation enters lockout",
+      "antecedent": "strike2 && violation",
+      "consequent": "blocked",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_RECOVER_SEQUENCE",
+      "sva_name": "p_recover_sequence",
+      "type": "next_cycle_implication",
+      "natural_language": "a clean cycle before lockout clears strikes",
+      "antecedent": "(strike1 || strike2) && !violation",
+      "consequent": "clean",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_CLEAR",
+      "sva_name": "p_clear",
+      "type": "next_cycle_implication",
+      "natural_language": "clear releases lockout",
+      "antecedent": "blocked && clear",
+      "consequent": "clean",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "first_strike_ignored",
+      "kind": "replace_transition_guard",
+      "from": "CLEAN",
+      "old": "violation",
+      "new": "false"
+    },
+    {
+      "name": "third_strike_ignored",
+      "kind": "replace_transition_guard",
+      "from": "S2",
+      "old": "violation",
+      "new": "false"
+    },
+    {
+      "name": "lockout_never_clears",
+      "kind": "replace_transition_guard",
+      "from": "BLOCKED",
+      "old": "clear",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

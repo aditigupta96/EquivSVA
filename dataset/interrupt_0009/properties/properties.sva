@@ -1,0 +1,26 @@
+// Generated from spec.json.
+// Design: interrupt_0009
+
+// P1_ONEHOT: interrupt phases are mutually exclusive.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot({pending, servicing, wait_low, armed}));
+
+// P2_RESET: reset arms interrupt capture.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (armed));
+
+// P3_IRQ: irq while armed becomes pending.
+p_irq: assert property (@(posedge clk) disable iff (rst)
+    (armed && irq) |=> (pending));
+
+// P4_ACK: acknowledge services a pending interrupt.
+p_ack: assert property (@(posedge clk) disable iff (rst)
+    (pending && ack) |=> (servicing));
+
+// P5_WAIT_LOW: service completion waits for irq deassertion.
+p_wait_low: assert property (@(posedge clk) disable iff (rst)
+    (servicing) |=> (wait_low));
+
+// P6_REARM: irq deassertion rearms capture.
+p_rearm: assert property (@(posedge clk) disable iff (rst)
+    (wait_low && !irq) |=> (armed));

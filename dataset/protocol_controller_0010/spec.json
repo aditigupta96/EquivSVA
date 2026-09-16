@@ -1,0 +1,199 @@
+{
+  "design_id": "protocol_controller_0010",
+  "category": "protocol_controller",
+  "template": "enable_quiesce",
+  "description": "Protocol controller implementing enable quiesce behavior.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "STOP"
+  },
+  "inputs": [
+    "enable",
+    "quiesce",
+    "idle_seen"
+  ],
+  "outputs": [
+    "running",
+    "draining",
+    "stopped"
+  ],
+  "states": [
+    "STOP",
+    "RUN",
+    "DRAIN"
+  ],
+  "state_outputs": {
+    "STOP": {
+      "running": 0,
+      "draining": 0,
+      "stopped": 1
+    },
+    "RUN": {
+      "running": 1,
+      "draining": 0,
+      "stopped": 0
+    },
+    "DRAIN": {
+      "running": 0,
+      "draining": 1,
+      "stopped": 0
+    }
+  },
+  "transitions": [
+    {
+      "from": "STOP",
+      "when": "enable",
+      "to": "RUN"
+    },
+    {
+      "from": "STOP",
+      "when": "!enable",
+      "to": "STOP"
+    },
+    {
+      "from": "RUN",
+      "when": "quiesce",
+      "to": "DRAIN"
+    },
+    {
+      "from": "RUN",
+      "when": "!quiesce",
+      "to": "RUN"
+    },
+    {
+      "from": "DRAIN",
+      "when": "idle_seen",
+      "to": "STOP"
+    },
+    {
+      "from": "DRAIN",
+      "when": "!idle_seen",
+      "to": "DRAIN"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({running, draining, stopped})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!running && !draining && stopped",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "STOP transitions to RUN when enable",
+      "antecedent": "(!running && !draining && stopped) && (enable)",
+      "consequent": "running && !draining && !stopped",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "STOP transitions to STOP when !enable",
+      "antecedent": "(!running && !draining && stopped) && (!enable)",
+      "consequent": "!running && !draining && stopped",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "RUN transitions to DRAIN when quiesce",
+      "antecedent": "(running && !draining && !stopped) && (quiesce)",
+      "consequent": "!running && draining && !stopped",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "RUN transitions to RUN when !quiesce",
+      "antecedent": "(running && !draining && !stopped) && (!quiesce)",
+      "consequent": "running && !draining && !stopped",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "DRAIN transitions to STOP when idle_seen",
+      "antecedent": "(!running && draining && !stopped) && (idle_seen)",
+      "consequent": "!running && !draining && stopped",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "DRAIN transitions to DRAIN when !idle_seen",
+      "antecedent": "(!running && draining && !stopped) && (!idle_seen)",
+      "consequent": "!running && draining && !stopped",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "STOP",
+      "old": "enable",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "STOP",
+      "old": "!enable",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "RUN",
+      "old": "quiesce",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

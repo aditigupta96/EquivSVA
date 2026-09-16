@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: timer_0006
+
+// P1_ONEHOT: watchdog phases are mutually exclusive.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot({armed, warning, timeout}));
+
+// P2_RESET: reset arms the watchdog.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (armed));
+
+// P3_WARN: first un-kicked tick enters warning.
+p_warn: assert property (@(posedge clk) disable iff (rst)
+    (armed && !kick && tick) |=> (warning));
+
+// P4_TIMEOUT: second un-kicked tick enters timeout.
+p_timeout: assert property (@(posedge clk) disable iff (rst)
+    (warning && !kick && tick) |=> (timeout));
+
+// P5_KICK_WARN: kick from warning rearms the watchdog.
+p_kick_warn: assert property (@(posedge clk) disable iff (rst)
+    (warning && kick) |=> (armed));
+
+// P6_KICK_TIMEOUT: kick from timeout rearms the watchdog.
+p_kick_timeout: assert property (@(posedge clk) disable iff (rst)
+    (timeout && kick) |=> (armed));
+
+// P7_TIMEOUT_STICKY: timeout persists without kick.
+p_timeout_sticky: assert property (@(posedge clk) disable iff (rst)
+    (timeout && !kick) |=> (timeout));

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "event detector modes are mutually exclusive",
+    "expression": "$onehot({disarmed, armed, pulse, spent})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset disarms the detector",
+    "antecedent": "rst",
+    "consequent": "disarmed",
+    "delay": 1
+  },
+  {
+    "id": "P3_ARM",
+    "type": "next_cycle_implication",
+    "natural_language": "arm enables triggering",
+    "antecedent": "disarmed && arm",
+    "consequent": "armed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_FIRE",
+    "type": "next_cycle_implication",
+    "natural_language": "trigger while armed emits a pulse",
+    "antecedent": "armed && trigger",
+    "consequent": "pulse",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_SPENT",
+    "type": "next_cycle_implication",
+    "natural_language": "a pulse becomes spent after one cycle",
+    "antecedent": "pulse",
+    "consequent": "spent",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_REARM",
+    "type": "next_cycle_implication",
+    "natural_language": "explicit rearm makes a spent detector armed again",
+    "antecedent": "spent && rearm",
+    "consequent": "armed",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

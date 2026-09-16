@@ -1,0 +1,41 @@
+// P1_ALLOW: allow is true before quota exhaustion
+property p_allow;
+    @(posedge clk) disable iff (rst) (allow == (used < 2'd3));
+endproperty
+assert property (p_allow);
+
+// P2_EXHAUSTED: exhausted marks full quota usage
+property p_exhausted;
+    @(posedge clk) disable iff (rst) (exhausted == (used == 2'd3));
+endproperty
+assert property (p_exhausted);
+
+// P3_RESET: reset starts with unused quota and epoch zero
+property p_reset;
+    @(posedge clk) (rst) |=> ((used == 2'd0) && !epoch);
+endproperty
+assert property (p_reset);
+
+// P4_USE: an allowed request consumes one quota unit
+property p_use;
+    @(posedge clk) disable iff (rst) (!new_window && request && (used < 2'd3)) |=> (used == ($past(used) + 2'd1));
+endproperty
+assert property (p_use);
+
+// P5_WINDOW: new window clears quota usage
+property p_window;
+    @(posedge clk) disable iff (rst) (new_window) |=> (used == 2'd0);
+endproperty
+assert property (p_window);
+
+// P6_EPOCH: new window toggles the epoch marker
+property p_epoch;
+    @(posedge clk) disable iff (rst) (new_window) |=> (epoch != $past(epoch));
+endproperty
+assert property (p_epoch);
+
+// P7_HOLD: without request or window reset usage holds
+property p_hold;
+    @(posedge clk) disable iff (rst) (!new_window && !request) |=> (used == $past(used));
+endproperty
+assert property (p_hold);

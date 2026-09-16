@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: pulse_event_0006
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({armed, pulse, cancelled}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (armed && !pulse && !cancelled));
+
+// P3_T1: ARMED transitions to PULSE when trigger && !cancel.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((armed && !pulse && !cancelled) && (trigger && !cancel)) |=> (!armed && pulse && !cancelled));
+
+// P4_T2: ARMED transitions to CANCEL when cancel.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((armed && !pulse && !cancelled) && (cancel)) |=> (!armed && !pulse && cancelled));
+
+// P5_T3: ARMED transitions to ARMED when !trigger && !cancel.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((armed && !pulse && !cancelled) && (!trigger && !cancel)) |=> (armed && !pulse && !cancelled));
+
+// P6_T4: PULSE transitions to ARMED when true.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    (!armed && pulse && !cancelled) |=> (armed && !pulse && !cancelled));
+
+// P7_T5: CANCEL transitions to ARMED when true.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    (!armed && !pulse && cancelled) |=> (armed && !pulse && !cancelled));

@@ -1,0 +1,229 @@
+{
+  "design_id": "mode_controller_0002",
+  "category": "mode_controller",
+  "template": "sleep_wake",
+  "description": "Mode controller implementing sleep wake behavior.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "OFF"
+  },
+  "inputs": [
+    "enable",
+    "sleep",
+    "wake"
+  ],
+  "outputs": [
+    "active",
+    "sleeping",
+    "off"
+  ],
+  "states": [
+    "OFF",
+    "ACTIVE",
+    "SLEEP"
+  ],
+  "state_outputs": {
+    "OFF": {
+      "active": 0,
+      "sleeping": 0,
+      "off": 1
+    },
+    "ACTIVE": {
+      "active": 1,
+      "sleeping": 0,
+      "off": 0
+    },
+    "SLEEP": {
+      "active": 0,
+      "sleeping": 1,
+      "off": 0
+    }
+  },
+  "transitions": [
+    {
+      "from": "OFF",
+      "when": "enable",
+      "to": "ACTIVE"
+    },
+    {
+      "from": "OFF",
+      "when": "!enable",
+      "to": "OFF"
+    },
+    {
+      "from": "ACTIVE",
+      "when": "!enable",
+      "to": "OFF"
+    },
+    {
+      "from": "ACTIVE",
+      "when": "enable && sleep",
+      "to": "SLEEP"
+    },
+    {
+      "from": "ACTIVE",
+      "when": "enable && !sleep",
+      "to": "ACTIVE"
+    },
+    {
+      "from": "SLEEP",
+      "when": "!enable",
+      "to": "OFF"
+    },
+    {
+      "from": "SLEEP",
+      "when": "enable && wake",
+      "to": "ACTIVE"
+    },
+    {
+      "from": "SLEEP",
+      "when": "enable && !wake",
+      "to": "SLEEP"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({active, sleeping, off})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!active && !sleeping && off",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "OFF transitions to ACTIVE when enable",
+      "antecedent": "(!active && !sleeping && off) && (enable)",
+      "consequent": "active && !sleeping && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "OFF transitions to OFF when !enable",
+      "antecedent": "(!active && !sleeping && off) && (!enable)",
+      "consequent": "!active && !sleeping && off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "ACTIVE transitions to OFF when !enable",
+      "antecedent": "(active && !sleeping && !off) && (!enable)",
+      "consequent": "!active && !sleeping && off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "ACTIVE transitions to SLEEP when enable && sleep",
+      "antecedent": "(active && !sleeping && !off) && (enable && sleep)",
+      "consequent": "!active && sleeping && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "ACTIVE transitions to ACTIVE when enable && !sleep",
+      "antecedent": "(active && !sleeping && !off) && (enable && !sleep)",
+      "consequent": "active && !sleeping && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "SLEEP transitions to OFF when !enable",
+      "antecedent": "(!active && sleeping && !off) && (!enable)",
+      "consequent": "!active && !sleeping && off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P9_T7",
+      "sva_name": "p_t7",
+      "type": "next_cycle_implication",
+      "natural_language": "SLEEP transitions to ACTIVE when enable && wake",
+      "antecedent": "(!active && sleeping && !off) && (enable && wake)",
+      "consequent": "active && !sleeping && !off",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P10_T8",
+      "sva_name": "p_t8",
+      "type": "next_cycle_implication",
+      "natural_language": "SLEEP transitions to SLEEP when enable && !wake",
+      "antecedent": "(!active && sleeping && !off) && (enable && !wake)",
+      "consequent": "!active && sleeping && !off",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "OFF",
+      "old": "enable",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "OFF",
+      "old": "!enable",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "ACTIVE",
+      "old": "!enable",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

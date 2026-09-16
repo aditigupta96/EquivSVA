@@ -1,0 +1,165 @@
+{
+  "design_id": "saturating_arithmetic_0001",
+  "category": "saturating_arithmetic",
+  "model_type": "register_rules",
+  "template": "saturating_accumulator",
+  "description": "Three-bit accumulator with saturating increment and synchronous clear.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "clear",
+    "add"
+  ],
+  "outputs": [
+    "value",
+    "at_max"
+  ],
+  "signal_widths": {
+    "value": 3
+  },
+  "registers": [
+    {
+      "name": "value",
+      "width": 3,
+      "reset_value": "3'd0",
+      "observable": true
+    }
+  ],
+  "derived_outputs": {
+    "at_max": "value == 3'd7"
+  },
+  "update_rules": [
+    {
+      "when": "clear",
+      "value": "3'd0"
+    },
+    {
+      "when": "add && (value < 3'd7)",
+      "value": "value + 3'd1"
+    },
+    {
+      "when": "true",
+      "value": "value"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "The accumulator saturates instead of wrapping.",
+    "value is interface-visible."
+  ],
+  "properties": [
+    {
+      "id": "P1_MAX",
+      "sva_name": "p_at_max",
+      "type": "invariant",
+      "natural_language": "at_max exactly reflects the saturated value",
+      "disable": "rst",
+      "expression": "at_max == (value == 3'd7)"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_zero",
+      "type": "next_cycle_implication",
+      "natural_language": "reset clears the accumulator",
+      "antecedent": "rst",
+      "consequent": "(value == 3'd0) && !at_max",
+      "delay": 1
+    },
+    {
+      "id": "P3_CLEAR",
+      "sva_name": "p_clear_zero",
+      "type": "next_cycle_implication",
+      "natural_language": "clear has priority",
+      "disable": "rst",
+      "antecedent": "clear",
+      "consequent": "value == 3'd0",
+      "delay": 1
+    },
+    {
+      "id": "P4_ADD",
+      "sva_name": "p_add_increment",
+      "type": "next_cycle_implication",
+      "natural_language": "add increments the accumulator below saturation",
+      "disable": "rst",
+      "antecedent": "!clear && add && (value < 3'd7)",
+      "consequent": "value == ($past(value) + 3'd1)",
+      "delay": 1
+    },
+    {
+      "id": "P5_SATURATE",
+      "sva_name": "p_saturate",
+      "type": "next_cycle_implication",
+      "natural_language": "an add at the maximum stays saturated",
+      "disable": "rst",
+      "antecedent": "!clear && add && (value == 3'd7)",
+      "consequent": "(value == 3'd7) && at_max",
+      "delay": 1
+    },
+    {
+      "id": "P6_HOLD",
+      "sva_name": "p_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "without clear or add the accumulator holds",
+      "disable": "rst",
+      "antecedent": "!clear && !add",
+      "consequent": "value == $past(value)",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "wrap_at_max",
+      "kind": "insert_update_rule",
+      "before": "true",
+      "when": "add && (value == 3'd7)",
+      "value": "3'd0"
+    },
+    {
+      "name": "ignore_clear",
+      "kind": "replace_update_guard",
+      "old": "clear",
+      "new": "false"
+    },
+    {
+      "name": "increment_without_add",
+      "kind": "replace_update_guard",
+      "old": "add && (value < 3'd7)",
+      "new": "value < 3'd7"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

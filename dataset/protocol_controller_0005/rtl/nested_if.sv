@@ -1,0 +1,43 @@
+module protocol_controller_0005_nested_if (
+    input  wire clk,
+    input  wire rst,
+    input  wire start,
+    input  wire prepare_ok,
+    input  wire commit_ok,
+    output wire preparing,
+    output wire committing,
+    output wire done
+);
+    localparam [1:0] S_IDLE   = 2'd0;
+    localparam [1:0] S_PREP   = 2'd1;
+    localparam [1:0] S_COMMIT = 2'd2;
+    localparam [1:0] S_DONE   = 2'd3;
+
+    reg [1:0] state;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            state <= S_IDLE;
+        end else begin
+            if (state == S_IDLE) begin
+                state <= (start) ? S_PREP : ((!start) ? S_IDLE : (S_IDLE));
+            end
+            else if (state == S_PREP) begin
+                state <= (prepare_ok) ? S_COMMIT : ((!prepare_ok) ? S_PREP : (S_PREP));
+            end
+            else if (state == S_COMMIT) begin
+                state <= (commit_ok) ? S_DONE : ((!commit_ok) ? S_COMMIT : (S_COMMIT));
+            end
+            else if (state == S_DONE) begin
+                state <= S_IDLE;
+            end
+            else begin
+                state <= S_IDLE;
+            end
+        end
+    end
+
+    assign preparing = (state == S_PREP);
+    assign committing = (state == S_COMMIT);
+    assign done = (state == S_DONE);
+endmodule

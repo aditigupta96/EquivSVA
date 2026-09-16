@@ -1,0 +1,49 @@
+[
+  {
+    "id": "P1_RESET",
+    "sva_name": "p_reset_value",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the register to its reset value",
+    "antecedent": "rst",
+    "consequent": "age == 3'd0",
+    "delay": 1
+  },
+  {
+    "id": "P2_TIMEOUT",
+    "sva_name": "p_timeout",
+    "type": "invariant",
+    "natural_language": "timeout is consistent with the observable register value",
+    "expression": "timeout == (age == 3'd7)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RULE",
+    "sva_name": "p_rule_3",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule kick produces the specified next value",
+    "antecedent": "kick",
+    "consequent": "age == (3'd0)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_RULE",
+    "sva_name": "p_rule_4",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule !kick && tick && (age < 3'd7) produces the specified next value",
+    "antecedent": "!kick && tick && (age < 3'd7)",
+    "consequent": "age == ($past(age) + 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "when no update rule fires the register holds its value",
+    "antecedent": "!(kick) && !(!kick && tick && (age < 3'd7))",
+    "consequent": "age == $past(age)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({valid, cancelled, done})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!valid && !cancelled && !done",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to VALID when start",
+    "antecedent": "(!valid && !cancelled && !done) && (start)",
+    "consequent": "valid && !cancelled && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !start",
+    "antecedent": "(!valid && !cancelled && !done) && (!start)",
+    "consequent": "!valid && !cancelled && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "VALID transitions to CANCEL when cancel",
+    "antecedent": "(valid && !cancelled && !done) && (cancel)",
+    "consequent": "!valid && cancelled && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "VALID transitions to DONE when !cancel && ready",
+    "antecedent": "(valid && !cancelled && !done) && (!cancel && ready)",
+    "consequent": "!valid && !cancelled && done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "VALID transitions to VALID when !cancel && !ready",
+    "antecedent": "(valid && !cancelled && !done) && (!cancel && !ready)",
+    "consequent": "valid && !cancelled && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "CANCEL transitions to IDLE when true",
+    "antecedent": "!valid && cancelled && !done",
+    "consequent": "!valid && !cancelled && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "DONE transitions to IDLE when true",
+    "antecedent": "!valid && !cancelled && done",
+    "consequent": "!valid && !cancelled && !done",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

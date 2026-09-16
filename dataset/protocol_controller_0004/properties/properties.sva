@@ -1,0 +1,26 @@
+// Generated from spec.json.
+// Design: protocol_controller_0004
+
+// P1_MUTEX: terminal and active phases are mutually exclusive.
+p_mutex: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({retrying, done, failed}) && !(attempting && (retrying || done || failed)));
+
+// P2_RESET: reset returns to idle.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (!attempting && !retrying && !done && !failed));
+
+// P3_START: start begins the first attempt.
+p_start: assert property (@(posedge clk) disable iff (rst)
+    (!attempting && !retrying && !done && !failed && start) |=> (attempting));
+
+// P4_RETRY: retry request after first failure enters retry state.
+p_retry: assert property (@(posedge clk) disable iff (rst)
+    (attempting && !success && retry && !$past(retrying)) |=> (retrying || failed));
+
+// P5_DONE: success from an attempt enters done.
+p_done: assert property (@(posedge clk) disable iff (rst)
+    (attempting && success) |=> (done));
+
+// P6_FAIL_STICKY: failure remains until reset_fail.
+p_fail_sticky: assert property (@(posedge clk) disable iff (rst)
+    (failed && !reset_fail) |=> (failed));

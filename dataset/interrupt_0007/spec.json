@@ -1,0 +1,195 @@
+{
+  "design_id": "interrupt_0007",
+  "category": "interrupt_control",
+  "template": "masked_hold_then_service",
+  "description": "Interrupt can become pending, be held by a later mask, then resume and service.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "irq",
+    "mask",
+    "ack"
+  ],
+  "outputs": [
+    "pending",
+    "held_masked",
+    "servicing"
+  ],
+  "states": [
+    "IDLE",
+    "PENDING",
+    "HELD",
+    "SERVICE"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "pending": 0,
+      "held_masked": 0,
+      "servicing": 0
+    },
+    "PENDING": {
+      "pending": 1,
+      "held_masked": 0,
+      "servicing": 0
+    },
+    "HELD": {
+      "pending": 0,
+      "held_masked": 1,
+      "servicing": 0
+    },
+    "SERVICE": {
+      "pending": 0,
+      "held_masked": 0,
+      "servicing": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "irq && !mask",
+      "to": "PENDING"
+    },
+    {
+      "from": "IDLE",
+      "when": "!(irq && !mask)",
+      "to": "IDLE"
+    },
+    {
+      "from": "PENDING",
+      "when": "mask",
+      "to": "HELD"
+    },
+    {
+      "from": "PENDING",
+      "when": "!mask && ack",
+      "to": "SERVICE"
+    },
+    {
+      "from": "PENDING",
+      "when": "!mask && !ack",
+      "to": "PENDING"
+    },
+    {
+      "from": "HELD",
+      "when": "mask",
+      "to": "HELD"
+    },
+    {
+      "from": "HELD",
+      "when": "!mask",
+      "to": "PENDING"
+    },
+    {
+      "from": "SERVICE",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_ONEHOT",
+      "sva_name": "p_onehot",
+      "type": "invariant",
+      "natural_language": "interrupt control phases are mutually exclusive",
+      "expression": "$onehot0({pending, held_masked, servicing})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns to idle",
+      "antecedent": "rst",
+      "consequent": "!pending && !held_masked && !servicing",
+      "delay": 1
+    },
+    {
+      "id": "P3_CAPTURE",
+      "sva_name": "p_capture",
+      "type": "next_cycle_implication",
+      "natural_language": "unmasked irq becomes pending",
+      "antecedent": "!pending && !held_masked && !servicing && irq && !mask",
+      "consequent": "pending",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_MASK_HOLD",
+      "sva_name": "p_mask_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "masking a pending interrupt holds it",
+      "antecedent": "pending && mask",
+      "consequent": "held_masked",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_UNMASK",
+      "sva_name": "p_unmask",
+      "type": "next_cycle_implication",
+      "natural_language": "unmasking a held interrupt returns it to pending",
+      "antecedent": "held_masked && !mask",
+      "consequent": "pending",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_SERVICE",
+      "sva_name": "p_service",
+      "type": "next_cycle_implication",
+      "natural_language": "acknowledging an unmasked pending interrupt services it",
+      "antecedent": "pending && !mask && ack",
+      "consequent": "servicing",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_mask_pending",
+      "kind": "replace_transition_guard",
+      "from": "PENDING",
+      "old": "mask",
+      "new": "false"
+    },
+    {
+      "name": "never_unmask",
+      "kind": "replace_transition_guard",
+      "from": "HELD",
+      "old": "!mask",
+      "new": "false"
+    },
+    {
+      "name": "ignore_ack",
+      "kind": "replace_transition_guard",
+      "from": "PENDING",
+      "old": "!mask && ack",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

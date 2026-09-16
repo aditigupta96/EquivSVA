@@ -1,0 +1,177 @@
+{
+  "design_id": "saturating_arithmetic_0005",
+  "category": "saturating_arithmetic",
+  "model_type": "register_rules",
+  "template": "priority_asymmetric_steps",
+  "description": "Priority arithmetic unit with reset-to-center, +3 boost, and -2 drain.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "center",
+    "boost",
+    "drain"
+  ],
+  "outputs": [
+    "value",
+    "high",
+    "low"
+  ],
+  "signal_widths": {
+    "value": 4
+  },
+  "registers": [
+    {
+      "name": "value",
+      "width": 4,
+      "reset_value": "4'd6",
+      "observable": true
+    }
+  ],
+  "derived_outputs": {
+    "high": "value >= 4'd9",
+    "low": "value <= 4'd3"
+  },
+  "update_rules": [
+    {
+      "when": "center",
+      "value": "4'd6"
+    },
+    {
+      "when": "!center && boost && (value <= 4'd9)",
+      "value": "value + 4'd3"
+    },
+    {
+      "when": "!center && boost && (value > 4'd9)",
+      "value": "4'd12"
+    },
+    {
+      "when": "!center && !boost && drain && (value >= 4'd4)",
+      "value": "value - 4'd2"
+    },
+    {
+      "when": "!center && !boost && drain && (value < 4'd4)",
+      "value": "4'd2"
+    },
+    {
+      "when": "true",
+      "value": "value"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "The state register is interface-visible and part of observable equivalence.",
+    "All benchmark properties use interface-visible signals only."
+  ],
+  "properties": [
+    {
+      "id": "P1_HIGH",
+      "sva_name": "p_high",
+      "type": "invariant",
+      "natural_language": "high reflects values nine and above",
+      "expression": "high == (value >= 4'd9)",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_LOW",
+      "sva_name": "p_low",
+      "type": "invariant",
+      "natural_language": "low reflects values three and below",
+      "expression": "low == (value <= 4'd3)",
+      "disable": "rst"
+    },
+    {
+      "id": "P3_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset restores center value",
+      "antecedent": "rst",
+      "consequent": "value == 4'd6",
+      "delay": 1
+    },
+    {
+      "id": "P4_CENTER",
+      "sva_name": "p_center",
+      "type": "next_cycle_implication",
+      "natural_language": "center has priority",
+      "antecedent": "center",
+      "consequent": "value == 4'd6",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_BOOST",
+      "sva_name": "p_boost",
+      "type": "next_cycle_implication",
+      "natural_language": "boost adds three when not near the upper clamp",
+      "antecedent": "!center && boost && (value <= 4'd9)",
+      "consequent": "value == ($past(value) + 4'd3)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_DRAIN",
+      "sva_name": "p_drain",
+      "type": "next_cycle_implication",
+      "natural_language": "drain subtracts two when boost is absent",
+      "antecedent": "!center && !boost && drain && (value >= 4'd4)",
+      "consequent": "value == ($past(value) - 4'd2)",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_center",
+      "kind": "replace_update_guard",
+      "old": "center",
+      "new": "false"
+    },
+    {
+      "name": "ignore_boost",
+      "kind": "replace_update_guard",
+      "old": "!center && boost && (value <= 4'd9)",
+      "new": "false"
+    },
+    {
+      "name": "ignore_drain",
+      "kind": "replace_update_guard",
+      "old": "!center && !boost && drain && (value >= 4'd4)",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

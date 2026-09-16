@@ -1,0 +1,37 @@
+// Gold interface properties for counter_0009
+
+// P1_RESET: reset restores the register to its reset value
+property p_reset_value;
+    @(posedge clk) (rst) |=> (count == 3'd0);
+endproperty
+assert property (p_reset_value);
+
+// P2_AT_ZERO: at_zero is consistent with the observable register value
+property p_at_zero;
+    @(posedge clk) disable iff (rst) (at_zero == (count == 3'd0));
+endproperty
+assert property (p_at_zero);
+
+// P3_AT_MAX: at_max is consistent with the observable register value
+property p_at_max;
+    @(posedge clk) disable iff (rst) (at_max == (count == 3'd7));
+endproperty
+assert property (p_at_max);
+
+// P4_RULE: update rule up && !down && (count < 3'd7) produces the specified next value
+property p_rule_4;
+    @(posedge clk) disable iff (rst) (up && !down && (count < 3'd7)) |=> (count == ($past(count) + 3'd1));
+endproperty
+assert property (p_rule_4);
+
+// P5_RULE: update rule down && !up && (count > 3'd0) produces the specified next value
+property p_rule_5;
+    @(posedge clk) disable iff (rst) (down && !up && (count > 3'd0)) |=> (count == ($past(count) - 3'd1));
+endproperty
+assert property (p_rule_5);
+
+// P6_HOLD: when no update rule fires the register holds its value
+property p_hold;
+    @(posedge clk) disable iff (rst) (!(up && !down && (count < 3'd7)) && !(down && !up && (count > 3'd0))) |=> (count == $past(count));
+endproperty
+assert property (p_hold);

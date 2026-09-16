@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: arbiter_0008
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({grant0, grant1, grant2}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!grant0 && !grant1 && !grant2));
+
+// P3_T1: IDLE transitions to G0 when req0.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && !grant1 && !grant2) && (req0)) |=> (grant0 && !grant1 && !grant2));
+
+// P4_T2: IDLE transitions to G1 when !req0 && req1.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && !grant1 && !grant2) && (!req0 && req1)) |=> (!grant0 && grant1 && !grant2));
+
+// P5_T3: IDLE transitions to G2 when !req0 && !req1 && req2.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && !grant1 && !grant2) && (!req0 && !req1 && req2)) |=> (!grant0 && !grant1 && grant2));
+
+// P6_T4: IDLE transitions to IDLE when !req0 && !req1 && !req2.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((!grant0 && !grant1 && !grant2) && (!req0 && !req1 && !req2)) |=> (!grant0 && !grant1 && !grant2));
+
+// P7_T5: G0 transitions to IDLE when true.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    (grant0 && !grant1 && !grant2) |=> (!grant0 && !grant1 && !grant2));
+
+// P8_T6: G1 transitions to IDLE when true.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && grant1 && !grant2) |=> (!grant0 && !grant1 && !grant2));
+
+// P9_T7: G2 transitions to IDLE when true.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    (!grant0 && !grant1 && grant2) |=> (!grant0 && !grant1 && !grant2));

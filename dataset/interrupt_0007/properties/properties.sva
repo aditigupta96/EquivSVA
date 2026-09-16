@@ -1,0 +1,26 @@
+// Generated from spec.json.
+// Design: interrupt_0007
+
+// P1_ONEHOT: interrupt control phases are mutually exclusive.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({pending, held_masked, servicing}));
+
+// P2_RESET: reset returns to idle.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (!pending && !held_masked && !servicing));
+
+// P3_CAPTURE: unmasked irq becomes pending.
+p_capture: assert property (@(posedge clk) disable iff (rst)
+    (!pending && !held_masked && !servicing && irq && !mask) |=> (pending));
+
+// P4_MASK_HOLD: masking a pending interrupt holds it.
+p_mask_hold: assert property (@(posedge clk) disable iff (rst)
+    (pending && mask) |=> (held_masked));
+
+// P5_UNMASK: unmasking a held interrupt returns it to pending.
+p_unmask: assert property (@(posedge clk) disable iff (rst)
+    (held_masked && !mask) |=> (pending));
+
+// P6_SERVICE: acknowledging an unmasked pending interrupt services it.
+p_service: assert property (@(posedge clk) disable iff (rst)
+    (pending && !mask && ack) |=> (servicing));

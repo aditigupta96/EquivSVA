@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: protocol_controller_0009
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({opened, transferring, closed}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!opened && !transferring && !closed));
+
+// P3_T1: IDLE transitions to OPEN when open.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!opened && !transferring && !closed) && (open)) |=> (opened && !transferring && !closed));
+
+// P4_T2: IDLE transitions to IDLE when !open.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!opened && !transferring && !closed) && (!open)) |=> (!opened && !transferring && !closed));
+
+// P5_T3: OPEN transitions to XFER when true.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    (opened && !transferring && !closed) |=> (!opened && transferring && !closed));
+
+// P6_T4: XFER transitions to CLOSE when transfer_done.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((!opened && transferring && !closed) && (transfer_done)) |=> (!opened && !transferring && closed));
+
+// P7_T5: XFER transitions to XFER when !transfer_done.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((!opened && transferring && !closed) && (!transfer_done)) |=> (!opened && transferring && !closed));
+
+// P8_T6: CLOSE transitions to IDLE when close.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!opened && !transferring && closed) && (close)) |=> (!opened && !transferring && !closed));
+
+// P9_T7: CLOSE transitions to CLOSE when !close.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!opened && !transferring && closed) && (!close)) |=> (!opened && !transferring && closed));

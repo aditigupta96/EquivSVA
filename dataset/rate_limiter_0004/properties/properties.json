@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "burst limiter modes are mutually exclusive",
+    "expression": "$onehot({ready_first, ready_last, granted, locked})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the first burst slot",
+    "antecedent": "rst",
+    "consequent": "ready_first",
+    "delay": 1
+  },
+  {
+    "id": "P3_FIRST_GRANT",
+    "type": "next_cycle_implication",
+    "natural_language": "the first request is granted",
+    "antecedent": "ready_first && request",
+    "consequent": "granted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_LAST_SLOT",
+    "type": "next_cycle_implication",
+    "natural_language": "after the first grant only one slot remains",
+    "antecedent": "granted && !$past(ready_last)",
+    "consequent": "ready_last",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_SECOND_GRANT",
+    "type": "next_cycle_implication",
+    "natural_language": "a request in the last slot is granted",
+    "antecedent": "ready_last && request",
+    "consequent": "granted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_LOCK",
+    "type": "next_cycle_implication",
+    "natural_language": "the second grant enters lockout",
+    "antecedent": "granted && $past(ready_last)",
+    "consequent": "locked",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_WINDOW_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset_window releases lockout",
+    "antecedent": "locked && reset_window",
+    "consequent": "ready_first",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

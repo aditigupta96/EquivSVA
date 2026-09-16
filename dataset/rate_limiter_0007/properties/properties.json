@@ -1,0 +1,67 @@
+[
+  {
+    "id": "P1_ALLOW",
+    "sva_name": "p_allow",
+    "type": "invariant",
+    "natural_language": "allow is true until three requests are used",
+    "expression": "allow == (used < 2'd3)",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_EXHAUSTED",
+    "sva_name": "p_exhausted",
+    "type": "invariant",
+    "natural_language": "exhausted is true at quota three",
+    "expression": "exhausted == (used == 2'd3)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset starts at phase zero with unused quota",
+    "antecedent": "rst",
+    "consequent": "(used == 2'd0) && (phase == 2'd0)",
+    "delay": 1
+  },
+  {
+    "id": "P4_USE",
+    "sva_name": "p_use",
+    "type": "next_cycle_implication",
+    "natural_language": "an allowed request consumes one unit",
+    "antecedent": "!advance_window && request && (used < 2'd3)",
+    "consequent": "used == ($past(used) + 2'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_NEW_WINDOW",
+    "sva_name": "p_new_window",
+    "type": "next_cycle_implication",
+    "natural_language": "advancing the window resets quota usage",
+    "antecedent": "advance_window",
+    "consequent": "used == 2'd0",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_PHASE_ADV",
+    "sva_name": "p_phase_adv",
+    "type": "next_cycle_implication",
+    "natural_language": "advance_window increments phase before wrap",
+    "antecedent": "advance_window && (phase < 2'd3)",
+    "consequent": "phase == ($past(phase) + 2'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_EXHAUST_HOLD",
+    "sva_name": "p_exhaust_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "requests cannot exceed the exhausted quota",
+    "antecedent": "!advance_window && request && exhausted",
+    "consequent": "used == 2'd3",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

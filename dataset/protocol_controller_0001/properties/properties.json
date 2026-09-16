@@ -1,0 +1,53 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "busy, done, and error are mutually exclusive",
+    "disable": "rst",
+    "expression": "$onehot0({busy, done, error})"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to idle",
+    "antecedent": "rst",
+    "consequent": "!busy && !done && !error",
+    "delay": 1
+  },
+  {
+    "id": "P3_START",
+    "type": "next_cycle_implication",
+    "natural_language": "start begins a transaction",
+    "disable": "rst",
+    "antecedent": "!busy && !done && !error && start",
+    "consequent": "busy",
+    "delay": 1
+  },
+  {
+    "id": "P4_ACK",
+    "type": "next_cycle_implication",
+    "natural_language": "ack completes a non-aborted transaction",
+    "disable": "rst",
+    "antecedent": "busy && ack && !abort",
+    "consequent": "done",
+    "delay": 1
+  },
+  {
+    "id": "P5_ABORT",
+    "type": "next_cycle_implication",
+    "natural_language": "abort terminates the transaction with error",
+    "disable": "rst",
+    "antecedent": "busy && abort",
+    "consequent": "error",
+    "delay": 1
+  },
+  {
+    "id": "P6_DONE_PULSE",
+    "type": "next_cycle_implication",
+    "natural_language": "done returns to idle after one cycle",
+    "disable": "rst",
+    "antecedent": "done",
+    "consequent": "!busy && !done && !error",
+    "delay": 1
+  }
+]

@@ -1,0 +1,89 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({primary, backup, off})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!primary && !backup && off",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "OFF transitions to PRIMARY when enable",
+    "antecedent": "(!primary && !backup && off) && (enable)",
+    "consequent": "primary && !backup && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "OFF transitions to OFF when !enable",
+    "antecedent": "(!primary && !backup && off) && (!enable)",
+    "consequent": "!primary && !backup && off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "PRIMARY transitions to BACKUP when fail",
+    "antecedent": "(primary && !backup && !off) && (fail)",
+    "consequent": "!primary && backup && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "PRIMARY transitions to PRIMARY when !fail && enable",
+    "antecedent": "(primary && !backup && !off) && (!fail && enable)",
+    "consequent": "primary && !backup && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "PRIMARY transitions to OFF when !fail && !enable",
+    "antecedent": "(primary && !backup && !off) && (!fail && !enable)",
+    "consequent": "!primary && !backup && off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "BACKUP transitions to PRIMARY when recover",
+    "antecedent": "(!primary && backup && !off) && (recover)",
+    "consequent": "primary && !backup && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "BACKUP transitions to BACKUP when !recover && enable",
+    "antecedent": "(!primary && backup && !off) && (!recover && enable)",
+    "consequent": "!primary && backup && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P10_T8",
+    "type": "next_cycle_implication",
+    "natural_language": "BACKUP transitions to OFF when !recover && !enable",
+    "antecedent": "(!primary && backup && !off) && (!recover && !enable)",
+    "consequent": "!primary && !backup && off",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

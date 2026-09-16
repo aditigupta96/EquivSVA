@@ -1,0 +1,31 @@
+// Gold interface properties for timer_0007
+
+// P1_RESET: reset restores the register to its reset value
+property p_reset_value;
+    @(posedge clk) (rst) |=> (remaining == 3'd0);
+endproperty
+assert property (p_reset_value);
+
+// P2_EXPIRED: expired is consistent with the observable register value
+property p_expired;
+    @(posedge clk) disable iff (rst) (expired == (remaining == 3'd0));
+endproperty
+assert property (p_expired);
+
+// P3_RULE: update rule load produces the specified next value
+property p_rule_3;
+    @(posedge clk) disable iff (rst) (load) |=> (remaining == (3'd7));
+endproperty
+assert property (p_rule_3);
+
+// P4_RULE: update rule !load && tick && (remaining > 3'd0) produces the specified next value
+property p_rule_4;
+    @(posedge clk) disable iff (rst) (!load && tick && (remaining > 3'd0)) |=> (remaining == ($past(remaining) - 3'd1));
+endproperty
+assert property (p_rule_4);
+
+// P5_HOLD: when no update rule fires the register holds its value
+property p_hold;
+    @(posedge clk) disable iff (rst) (!(load) && !(!load && tick && (remaining > 3'd0))) |=> (remaining == $past(remaining));
+endproperty
+assert property (p_hold);

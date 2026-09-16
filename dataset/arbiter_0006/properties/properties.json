@@ -1,0 +1,80 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({grant0, grant1})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to G0 when req0",
+    "antecedent": "(!grant0 && !grant1) && (req0)",
+    "consequent": "grant0 && !grant1",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to G1 when !req0 && req1",
+    "antecedent": "(!grant0 && !grant1) && (!req0 && req1)",
+    "consequent": "!grant0 && grant1",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !req0 && !req1",
+    "antecedent": "(!grant0 && !grant1) && (!req0 && !req1)",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "G0 transitions to IDLE when release",
+    "antecedent": "(grant0 && !grant1) && (release)",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "G0 transitions to G0 when !release",
+    "antecedent": "(grant0 && !grant1) && (!release)",
+    "consequent": "grant0 && !grant1",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "G1 transitions to IDLE when release",
+    "antecedent": "(!grant0 && grant1) && (release)",
+    "consequent": "!grant0 && !grant1",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "G1 transitions to G1 when !release",
+    "antecedent": "(!grant0 && grant1) && (!release)",
+    "consequent": "!grant0 && grant1",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

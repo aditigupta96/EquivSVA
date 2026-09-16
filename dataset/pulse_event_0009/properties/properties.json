@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({waiting, pulse, idle})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!waiting && !pulse && idle",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to WAIT when request",
+    "antecedent": "(!waiting && !pulse && idle) && (request)",
+    "consequent": "waiting && !pulse && !idle",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !request",
+    "antecedent": "(!waiting && !pulse && idle) && (!request)",
+    "consequent": "!waiting && !pulse && idle",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "WAIT transitions to PULSE when complete",
+    "antecedent": "(waiting && !pulse && !idle) && (complete)",
+    "consequent": "!waiting && pulse && !idle",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "WAIT transitions to WAIT when !complete",
+    "antecedent": "(waiting && !pulse && !idle) && (!complete)",
+    "consequent": "waiting && !pulse && !idle",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "PULSE transitions to IDLE when true",
+    "antecedent": "!waiting && pulse && !idle",
+    "consequent": "!waiting && !pulse && idle",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

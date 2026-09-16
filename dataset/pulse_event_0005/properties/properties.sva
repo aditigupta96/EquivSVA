@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: pulse_event_0005
+
+// P1_ONEHOT: debounce phases are mutually exclusive.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({armed, qualifying, pulse}));
+
+// P2_RESET: reset arms the detector.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (armed));
+
+// P3_FIRST_HIGH: the first high sample begins qualification.
+p_first_high: assert property (@(posedge clk) disable iff (rst)
+    (armed && event_in) |=> (qualifying));
+
+// P4_SECOND_HIGH: a second consecutive high sample emits a pulse.
+p_second_high: assert property (@(posedge clk) disable iff (rst)
+    (qualifying && event_in) |=> (pulse));
+
+// P5_GLITCH: a one-cycle high glitch does not emit a pulse.
+p_glitch: assert property (@(posedge clk) disable iff (rst)
+    (qualifying && !event_in) |=> (armed));
+
+// P6_FIRST_LOW: the first low after a pulse begins rearming.
+p_first_low: assert property (@(posedge clk) disable iff (rst)
+    (rearming && !event_in) |=> (rearming || armed));
+
+// P7_HIGH_INTERRUPTS_REARM: a high sample interrupts low rearming.
+p_high_interrupt: assert property (@(posedge clk) disable iff (rst)
+    (rearming && event_in) |=> (rearming));

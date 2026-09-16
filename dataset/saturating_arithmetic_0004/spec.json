@@ -1,0 +1,191 @@
+{
+  "design_id": "saturating_arithmetic_0004",
+  "category": "saturating_arithmetic",
+  "model_type": "multi_register_rules",
+  "template": "sticky_overflow_accumulator",
+  "description": "Accumulator saturates at fifteen and latches a sticky overflow indication until clear.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "clear",
+    "add"
+  ],
+  "outputs": [
+    "value",
+    "overflowed",
+    "at_max"
+  ],
+  "signal_widths": {
+    "value": 4
+  },
+  "registers": [
+    {
+      "name": "value_reg",
+      "width": 4,
+      "reset_value": "4'd0"
+    },
+    {
+      "name": "overflow_reg",
+      "width": 1,
+      "reset_value": "1'b0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All RTL variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "value": "value_reg",
+    "overflowed": "overflow_reg",
+    "at_max": "value_reg == 4'd15"
+  },
+  "update_rules": {
+    "value_reg": [
+      {
+        "when": "clear",
+        "value": "4'd0"
+      },
+      {
+        "when": "!clear && add && (value_reg < 4'd15)",
+        "value": "value_reg + 4'd1"
+      },
+      {
+        "when": "true",
+        "value": "value_reg"
+      }
+    ],
+    "overflow_reg": [
+      {
+        "when": "clear",
+        "value": "1'b0"
+      },
+      {
+        "when": "!clear && add && (value_reg == 4'd15)",
+        "value": "1'b1"
+      },
+      {
+        "when": "true",
+        "value": "overflow_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_MAX",
+      "sva_name": "p_max",
+      "type": "invariant",
+      "natural_language": "at_max matches the saturated arithmetic value",
+      "expression": "at_max == (value == 4'd15)",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset clears value and sticky overflow",
+      "antecedent": "rst",
+      "consequent": "(value == 4'd0) && !overflowed",
+      "delay": 1
+    },
+    {
+      "id": "P3_CLEAR",
+      "sva_name": "p_clear",
+      "type": "next_cycle_implication",
+      "natural_language": "clear resets both outputs",
+      "antecedent": "clear",
+      "consequent": "(value == 4'd0) && !overflowed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_ADD",
+      "sva_name": "p_add",
+      "type": "next_cycle_implication",
+      "natural_language": "add increments value below saturation",
+      "antecedent": "!clear && add && (value < 4'd15)",
+      "consequent": "value == ($past(value) + 4'd1)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_OVERFLOW",
+      "sva_name": "p_overflow",
+      "type": "next_cycle_implication",
+      "natural_language": "adding at saturation latches overflowed",
+      "antecedent": "!clear && add && (value == 4'd15)",
+      "consequent": "(value == 4'd15) && overflowed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_STICKY",
+      "sva_name": "p_sticky",
+      "type": "next_cycle_implication",
+      "natural_language": "overflowed remains set without clear",
+      "antecedent": "overflowed && !clear",
+      "consequent": "overflowed",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_clear_overflow",
+      "register": "overflow_reg",
+      "kind": "replace_update_guard",
+      "old": "clear",
+      "new": "false"
+    },
+    {
+      "name": "never_latch_overflow",
+      "register": "overflow_reg",
+      "kind": "replace_update_guard",
+      "old": "!clear && add && (value_reg == 4'd15)",
+      "new": "false"
+    },
+    {
+      "name": "value_wraps",
+      "register": "value_reg",
+      "kind": "insert_update_rule",
+      "before": "true",
+      "when": "!clear && add && (value_reg == 4'd15)",
+      "value": "4'd0"
+    }
+  ]
+}

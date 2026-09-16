@@ -1,0 +1,49 @@
+// Gold interface properties for fifo_0010
+
+// P1_EMPTY: empty reflects zero occupancy
+property p_empty;
+    @(posedge clk) disable iff (rst) (empty == (count == 3'd0));
+endproperty
+assert property (p_empty);
+
+// P2_FULL: full reflects four entries
+property p_full;
+    @(posedge clk) disable iff (rst) (full == (count == 3'd4));
+endproperty
+assert property (p_full);
+
+// P3_AF: almost_full reflects occupancy of at least three
+property p_almost_full;
+    @(posedge clk) disable iff (rst) (almost_full == (count >= 3'd3));
+endproperty
+assert property (p_almost_full);
+
+// P4_RESET: reset empties the FIFO
+property p_reset;
+    @(posedge clk) (rst) |=> (count == 3'd0);
+endproperty
+assert property (p_reset);
+
+// P5_FLUSH: flush empties the FIFO
+property p_flush;
+    @(posedge clk) disable iff (rst) (flush) |=> (count == 3'd0);
+endproperty
+assert property (p_flush);
+
+// P6_PUSH: push without pop increments occupancy
+property p_push;
+    @(posedge clk) disable iff (rst) (!flush && push && !pop && (count < 3'd4)) |=> (count == ($past(count) + 3'd1));
+endproperty
+assert property (p_push);
+
+// P7_POP: pop without push decrements occupancy
+property p_pop;
+    @(posedge clk) disable iff (rst) (!flush && pop && !push && (count > 3'd0)) |=> (count == ($past(count) - 3'd1));
+endproperty
+assert property (p_pop);
+
+// P8_SIMULTANEOUS: simultaneous push and pop preserves occupancy
+property p_simultaneous;
+    @(posedge clk) disable iff (rst) (!flush && push && pop) |=> (count == $past(count));
+endproperty
+assert property (p_simultaneous);

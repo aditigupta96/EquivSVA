@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: sequence_detector_0001
+
+// P1_ONEHOT_PROGRESS: at most one progress output is active.
+p_onehot_progress: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({seen1, seen10, seen101, match}));
+
+// P2_RESET: reset clears all detector progress.
+p_reset_empty: assert property (@(posedge clk)
+    (rst) |=> (!seen1 && !seen10 && !seen101 && !match));
+
+// P3_FIRST_ONE: a one from the empty state begins the sequence.
+p_first_one: assert property (@(posedge clk) disable iff (rst)
+    (!seen1 && !seen10 && !seen101 && !match && bit_in) |=> (seen1));
+
+// P4_ONE_ZERO: 10 advances to the second progress state.
+p_one_zero: assert property (@(posedge clk) disable iff (rst)
+    (seen1 && !bit_in) |=> (seen10));
+
+// P5_101: 101 advances to the third progress state.
+p_101: assert property (@(posedge clk) disable iff (rst)
+    (seen10 && bit_in) |=> (seen101));
+
+// P6_MATCH: 1011 produces match.
+p_1011_match: assert property (@(posedge clk) disable iff (rst)
+    (seen101 && bit_in) |=> (match));
+
+// P7_MATCH_OVERLAP: a one immediately following a match begins the next overlapping sequence.
+p_match_overlap: assert property (@(posedge clk) disable iff (rst)
+    (match && bit_in) |=> (seen1));

@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: fifo_0007
+
+// P1_ONEHOT: exactly one occupancy state is visible.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot({empty, one, full}));
+
+// P2_RESET: reset empties the FIFO.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (empty));
+
+// P3_EMPTY_PUSH: pushing an empty FIFO creates one entry.
+p_empty_push: assert property (@(posedge clk) disable iff (rst)
+    (empty && push) |=> (one));
+
+// P4_ONE_PUSH: push without pop fills a one-entry FIFO.
+p_one_push: assert property (@(posedge clk) disable iff (rst)
+    (one && push && !pop) |=> (full));
+
+// P5_ONE_POP: pop without push empties a one-entry FIFO.
+p_one_pop: assert property (@(posedge clk) disable iff (rst)
+    (one && pop && !push) |=> (empty));
+
+// P6_SIMULTANEOUS: simultaneous push and pop preserves one-entry occupancy.
+p_simultaneous: assert property (@(posedge clk) disable iff (rst)
+    (one && push && pop) |=> (one));
+
+// P7_FULL_POP: popping a full FIFO leaves one entry.
+p_full_pop: assert property (@(posedge clk) disable iff (rst)
+    (full && pop) |=> (one));

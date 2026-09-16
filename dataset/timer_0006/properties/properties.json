@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "watchdog phases are mutually exclusive",
+    "expression": "$onehot({armed, warning, timeout})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset arms the watchdog",
+    "antecedent": "rst",
+    "consequent": "armed",
+    "delay": 1
+  },
+  {
+    "id": "P3_WARN",
+    "type": "next_cycle_implication",
+    "natural_language": "first un-kicked tick enters warning",
+    "antecedent": "armed && !kick && tick",
+    "consequent": "warning",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_TIMEOUT",
+    "type": "next_cycle_implication",
+    "natural_language": "second un-kicked tick enters timeout",
+    "antecedent": "warning && !kick && tick",
+    "consequent": "timeout",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_KICK_WARN",
+    "type": "next_cycle_implication",
+    "natural_language": "kick from warning rearms the watchdog",
+    "antecedent": "warning && kick",
+    "consequent": "armed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_KICK_TIMEOUT",
+    "type": "next_cycle_implication",
+    "natural_language": "kick from timeout rearms the watchdog",
+    "antecedent": "timeout && kick",
+    "consequent": "armed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_TIMEOUT_STICKY",
+    "type": "next_cycle_implication",
+    "natural_language": "timeout persists without kick",
+    "antecedent": "timeout && !kick",
+    "consequent": "timeout",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

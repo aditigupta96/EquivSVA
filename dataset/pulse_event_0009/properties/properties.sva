@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: pulse_event_0009
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({waiting, pulse, idle}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!waiting && !pulse && idle));
+
+// P3_T1: IDLE transitions to WAIT when request.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!waiting && !pulse && idle) && (request)) |=> (waiting && !pulse && !idle));
+
+// P4_T2: IDLE transitions to IDLE when !request.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!waiting && !pulse && idle) && (!request)) |=> (!waiting && !pulse && idle));
+
+// P5_T3: WAIT transitions to PULSE when complete.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((waiting && !pulse && !idle) && (complete)) |=> (!waiting && pulse && !idle));
+
+// P6_T4: WAIT transitions to WAIT when !complete.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((waiting && !pulse && !idle) && (!complete)) |=> (waiting && !pulse && !idle));
+
+// P7_T5: PULSE transitions to IDLE when true.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    (!waiting && pulse && !idle) |=> (!waiting && !pulse && idle));

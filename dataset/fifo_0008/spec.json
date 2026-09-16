@@ -1,0 +1,203 @@
+{
+  "design_id": "fifo_0008",
+  "category": "fifo_control",
+  "model_type": "multi_register_rules",
+  "template": "flushable_elastic_fifo",
+  "description": "Flushable elastic one-entry FIFO with flush priority.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "push",
+    "pop",
+    "flush",
+    "din"
+  ],
+  "outputs": [
+    "dout",
+    "valid",
+    "ready"
+  ],
+  "signal_widths": {
+    "dout": 3,
+    "din": 3
+  },
+  "registers": [
+    {
+      "name": "data_reg",
+      "width": 3,
+      "reset_value": "3'd0"
+    },
+    {
+      "name": "valid_reg",
+      "width": 1,
+      "reset_value": "1'b0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "dout": "data_reg",
+    "valid": "valid_reg",
+    "ready": "!valid_reg || pop || flush"
+  },
+  "update_rules": {
+    "data_reg": [
+      {
+        "when": "!flush && push && (!valid_reg || pop)",
+        "value": "din"
+      },
+      {
+        "when": "true",
+        "value": "data_reg"
+      }
+    ],
+    "valid_reg": [
+      {
+        "when": "flush",
+        "value": "1'b0"
+      },
+      {
+        "when": "!flush && push && (!valid_reg || pop)",
+        "value": "1'b1"
+      },
+      {
+        "when": "!flush && pop && valid_reg",
+        "value": "1'b0"
+      },
+      {
+        "when": "true",
+        "value": "valid_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_READY",
+      "sva_name": "p_ready",
+      "type": "invariant",
+      "natural_language": "flush or available capacity permits acceptance",
+      "expression": "ready == (!valid || pop || flush)",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset empties queue",
+      "antecedent": "rst",
+      "consequent": "!valid",
+      "delay": 1
+    },
+    {
+      "id": "P3_FLUSH",
+      "sva_name": "p_flush",
+      "type": "next_cycle_implication",
+      "natural_language": "flush empties queue and preserves stored data bits",
+      "antecedent": "flush",
+      "consequent": "!valid && (dout == $past(dout))",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_PUSH",
+      "sva_name": "p_push",
+      "type": "next_cycle_implication",
+      "natural_language": "non-flushed accepted push captures data",
+      "antecedent": "!flush && !valid && push",
+      "consequent": "valid && (dout == $past(din))",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_POP",
+      "sva_name": "p_pop",
+      "type": "next_cycle_implication",
+      "natural_language": "non-flushed pop without replacement empties",
+      "antecedent": "!flush && valid && pop && !push",
+      "consequent": "!valid",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_REPLACE",
+      "sva_name": "p_replace",
+      "type": "next_cycle_implication",
+      "natural_language": "non-flushed pop plus push replaces data",
+      "antecedent": "!flush && valid && pop && push",
+      "consequent": "valid && (dout == $past(din))",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_HOLD",
+      "sva_name": "p_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "full non-flushed queue without pop holds",
+      "antecedent": "!flush && valid && !pop",
+      "consequent": "valid && (dout == $past(dout))",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_flush",
+      "register": "valid_reg",
+      "kind": "replace_update_guard",
+      "old": "flush",
+      "new": "false"
+    },
+    {
+      "name": "push_changes_data_during_flush",
+      "register": "data_reg",
+      "kind": "replace_update_guard",
+      "old": "!flush && push && (!valid_reg || pop)",
+      "new": "push && (!valid_reg || pop)"
+    },
+    {
+      "name": "overwrite_full",
+      "register": "data_reg",
+      "kind": "replace_update_guard",
+      "old": "!flush && push && (!valid_reg || pop)",
+      "new": "!flush && push"
+    }
+  ]
+}

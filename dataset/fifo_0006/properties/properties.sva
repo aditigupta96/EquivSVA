@@ -1,0 +1,35 @@
+// P1_READY: ready reflects elastic acceptance
+property p_ready;
+    @(posedge clk) disable iff (rst) (ready == (!valid || pop));
+endproperty
+assert property (p_ready);
+
+// P2_RESET: reset empties the queue
+property p_reset;
+    @(posedge clk) (rst) |=> (!valid);
+endproperty
+assert property (p_reset);
+
+// P3_PUSH_EMPTY: push into empty captures data
+property p_push_empty;
+    @(posedge clk) disable iff (rst) (!valid && push) |=> (valid && (dout == $past(din)));
+endproperty
+assert property (p_push_empty);
+
+// P4_HOLD_FULL: full queue without pop holds data
+property p_hold_full;
+    @(posedge clk) disable iff (rst) (valid && !pop) |=> (valid && (dout == $past(dout)));
+endproperty
+assert property (p_hold_full);
+
+// P5_POP: pop without replacement empties queue
+property p_pop;
+    @(posedge clk) disable iff (rst) (valid && pop && !push) |=> (!valid);
+endproperty
+assert property (p_pop);
+
+// P6_REPLACE: simultaneous pop and push replaces item
+property p_replace;
+    @(posedge clk) disable iff (rst) (valid && pop && push) |=> (valid && (dout == $past(din)));
+endproperty
+assert property (p_replace);

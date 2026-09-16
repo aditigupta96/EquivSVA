@@ -1,0 +1,49 @@
+[
+  {
+    "id": "P1_READY",
+    "sva_name": "p_ready",
+    "type": "invariant",
+    "natural_language": "overwrite mailbox is always ready",
+    "expression": "ready",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset empties mailbox",
+    "antecedent": "rst",
+    "consequent": "!valid",
+    "delay": 1
+  },
+  {
+    "id": "P3_PUSH",
+    "sva_name": "p_push",
+    "type": "next_cycle_implication",
+    "natural_language": "every push stores the newest item",
+    "antecedent": "push",
+    "consequent": "valid && (dout == $past(din))",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_POP",
+    "sva_name": "p_pop",
+    "type": "next_cycle_implication",
+    "natural_language": "pop without simultaneous push empties mailbox",
+    "antecedent": "!push && valid && pop",
+    "consequent": "!valid",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "without push or pop mailbox holds",
+    "antecedent": "valid && !push && !pop",
+    "consequent": "valid && (dout == $past(dout))",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

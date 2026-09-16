@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: mode_controller_0001
+
+// P1_MUTEX: standby, active, and faulted are mutually exclusive.
+p_modes_mutex: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({standby, active, faulted}));
+
+// P2_RESET: reset puts the controller in off mode.
+p_reset_off: assert property (@(posedge clk)
+    (rst) |=> (!standby && !active && !faulted));
+
+// P3_ENABLE: enabling from off enters standby.
+p_enable_standby: assert property (@(posedge clk) disable iff (rst)
+    (!standby && !active && !faulted && enable) |=> (standby));
+
+// P4_WAKE: wake while enabled in standby enters active mode.
+p_wake_active: assert property (@(posedge clk) disable iff (rst)
+    (standby && enable && wake && !fault) |=> (active));
+
+// P5_FAULT: a fault from an enabled mode enters fault state.
+p_fault: assert property (@(posedge clk) disable iff (rst)
+    ((standby || active) && fault) |=> (faulted));
+
+// P6_FAULT_STICKY: fault remains asserted until cleared.
+p_fault_sticky: assert property (@(posedge clk) disable iff (rst)
+    (faulted && !clear_fault) |=> (faulted));
+
+// P7_CLEAR: clearing a fault returns to off.
+p_clear_fault: assert property (@(posedge clk) disable iff (rst)
+    (faulted && clear_fault) |=> (!standby && !active && !faulted));

@@ -1,0 +1,166 @@
+{
+  "design_id": "pulse_event_0001",
+  "category": "pulse_event",
+  "description": "One-cycle pulse generator that fires once for each high episode of event_in.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "event_in"
+  ],
+  "outputs": [
+    "pulse",
+    "armed"
+  ],
+  "states": [
+    "IDLE",
+    "FIRE",
+    "WAIT_LOW"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "pulse": 0,
+      "armed": 1
+    },
+    "FIRE": {
+      "pulse": 1,
+      "armed": 0
+    },
+    "WAIT_LOW": {
+      "pulse": 0,
+      "armed": 0
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "event_in",
+      "to": "FIRE"
+    },
+    {
+      "from": "IDLE",
+      "when": "!event_in",
+      "to": "IDLE"
+    },
+    {
+      "from": "FIRE",
+      "when": "true",
+      "to": "WAIT_LOW"
+    },
+    {
+      "from": "WAIT_LOW",
+      "when": "event_in",
+      "to": "WAIT_LOW"
+    },
+    {
+      "from": "WAIT_LOW",
+      "when": "!event_in",
+      "to": "IDLE"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "A continuously asserted input produces only one pulse.",
+    "All benchmark properties use interface-visible signals only."
+  ],
+  "properties": [
+    {
+      "id": "P1_MUTEX",
+      "sva_name": "p_pulse_not_armed",
+      "type": "invariant",
+      "natural_language": "pulse and armed are never asserted together",
+      "disable": "rst",
+      "expression": "!(pulse && armed)"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_armed",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the detector to the armed state",
+      "antecedent": "rst",
+      "consequent": "!pulse && armed",
+      "delay": 1
+    },
+    {
+      "id": "P3_EVENT_FIRE",
+      "sva_name": "p_event_fire",
+      "type": "next_cycle_implication",
+      "natural_language": "an event while armed produces a pulse",
+      "disable": "rst",
+      "antecedent": "armed && event_in",
+      "consequent": "pulse && !armed",
+      "delay": 1
+    },
+    {
+      "id": "P4_FIRE_ONE_CYCLE",
+      "sva_name": "p_fire_one_cycle",
+      "type": "next_cycle_implication",
+      "natural_language": "pulse lasts exactly one state cycle",
+      "disable": "rst",
+      "antecedent": "pulse",
+      "consequent": "!pulse && !armed",
+      "delay": 1
+    },
+    {
+      "id": "P5_REARM",
+      "sva_name": "p_rearm",
+      "type": "next_cycle_implication",
+      "natural_language": "the detector rearms after the input returns low",
+      "disable": "rst",
+      "antecedent": "!pulse && !armed && !event_in",
+      "consequent": "armed",
+      "delay": 1
+    },
+    {
+      "id": "P6_IDLE_NO_EVENT",
+      "sva_name": "p_idle_no_event",
+      "type": "next_cycle_implication",
+      "natural_language": "while armed, absence of an event keeps the detector armed without producing a pulse",
+      "disable": "rst",
+      "antecedent": "armed && !event_in",
+      "consequent": "armed && !pulse",
+      "delay": 1
+    }
+  ],
+  "mutants": [
+    {
+      "name": "repeat_while_high",
+      "kind": "force_transition",
+      "from": "FIRE",
+      "to": "IDLE"
+    },
+    {
+      "name": "never_rearm",
+      "kind": "replace_transition_guard",
+      "from": "WAIT_LOW",
+      "old": "!event_in",
+      "new": "false"
+    },
+    {
+      "name": "fire_without_event",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "event_in",
+      "new": "true"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

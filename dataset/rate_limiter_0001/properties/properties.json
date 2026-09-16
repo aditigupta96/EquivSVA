@@ -1,0 +1,67 @@
+[
+  {
+    "id": "P1_ALLOW",
+    "sva_name": "p_allow",
+    "type": "invariant",
+    "natural_language": "allow is asserted exactly when a token is available",
+    "disable": "rst",
+    "expression": "allow == (tokens != 3'd0)"
+  },
+  {
+    "id": "P2_FULL",
+    "sva_name": "p_full",
+    "type": "invariant",
+    "natural_language": "full is asserted exactly at capacity",
+    "disable": "rst",
+    "expression": "full == (tokens == 3'd7)"
+  },
+  {
+    "id": "P3_RESET",
+    "sva_name": "p_reset_empty",
+    "type": "next_cycle_implication",
+    "natural_language": "reset empties the token bucket",
+    "antecedent": "rst",
+    "consequent": "(tokens == 3'd0) && !allow",
+    "delay": 1
+  },
+  {
+    "id": "P4_REFILL",
+    "sva_name": "p_refill",
+    "type": "next_cycle_implication",
+    "natural_language": "refill adds one token below capacity",
+    "disable": "rst",
+    "antecedent": "refill && (tokens < 3'd7)",
+    "consequent": "tokens == ($past(tokens) + 3'd1)",
+    "delay": 1
+  },
+  {
+    "id": "P5_CONSUME",
+    "sva_name": "p_consume",
+    "type": "next_cycle_implication",
+    "natural_language": "consume removes one token when refill is absent",
+    "disable": "rst",
+    "antecedent": "!refill && consume && (tokens > 3'd0)",
+    "consequent": "tokens == ($past(tokens) - 3'd1)",
+    "delay": 1
+  },
+  {
+    "id": "P6_EMPTY_HOLD",
+    "sva_name": "p_empty_no_underflow",
+    "type": "next_cycle_implication",
+    "natural_language": "consuming an empty bucket cannot underflow",
+    "disable": "rst",
+    "antecedent": "!refill && consume && (tokens == 3'd0)",
+    "consequent": "tokens == 3'd0",
+    "delay": 1
+  },
+  {
+    "id": "P7_IDLE_HOLD",
+    "sva_name": "p_idle_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "without refill or consume the number of tokens remains unchanged",
+    "disable": "rst",
+    "antecedent": "!refill && !consume",
+    "consequent": "tokens == $past(tokens)",
+    "delay": 1
+  }
+]

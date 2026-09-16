@@ -1,0 +1,53 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "pulse and armed are never asserted together",
+    "disable": "rst",
+    "expression": "!(pulse && armed)"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the detector to the armed state",
+    "antecedent": "rst",
+    "consequent": "!pulse && armed",
+    "delay": 1
+  },
+  {
+    "id": "P3_EVENT_FIRE",
+    "type": "next_cycle_implication",
+    "natural_language": "an event while armed produces a pulse",
+    "disable": "rst",
+    "antecedent": "armed && event_in",
+    "consequent": "pulse && !armed",
+    "delay": 1
+  },
+  {
+    "id": "P4_FIRE_ONE_CYCLE",
+    "type": "next_cycle_implication",
+    "natural_language": "pulse lasts exactly one state cycle",
+    "disable": "rst",
+    "antecedent": "pulse",
+    "consequent": "!pulse && !armed",
+    "delay": 1
+  },
+  {
+    "id": "P5_REARM",
+    "type": "next_cycle_implication",
+    "natural_language": "the detector rearms after the input returns low",
+    "disable": "rst",
+    "antecedent": "!pulse && !armed && !event_in",
+    "consequent": "armed",
+    "delay": 1
+  },
+  {
+    "id": "P6_IDLE_NO_EVENT",
+    "type": "next_cycle_implication",
+    "natural_language": "while armed, absence of an event keeps the detector armed without producing a pulse",
+    "disable": "rst",
+    "antecedent": "armed && !event_in",
+    "consequent": "armed && !pulse",
+    "delay": 1
+  }
+]

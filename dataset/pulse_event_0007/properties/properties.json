@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({armed, pulse, cooldown})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "armed && !pulse && !cooldown",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "ARMED transitions to PULSE when trigger",
+    "antecedent": "(armed && !pulse && !cooldown) && (trigger)",
+    "consequent": "!armed && pulse && !cooldown",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "ARMED transitions to ARMED when !trigger",
+    "antecedent": "(armed && !pulse && !cooldown) && (!trigger)",
+    "consequent": "armed && !pulse && !cooldown",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "PULSE transitions to COOL1 when true",
+    "antecedent": "!armed && pulse && !cooldown",
+    "consequent": "!armed && !pulse && cooldown",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "COOL1 transitions to COOL2 when true",
+    "antecedent": "!armed && !pulse && cooldown",
+    "consequent": "!armed && !pulse && cooldown",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "COOL2 transitions to ARMED when true",
+    "antecedent": "!armed && !pulse && cooldown",
+    "consequent": "armed && !pulse && !cooldown",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

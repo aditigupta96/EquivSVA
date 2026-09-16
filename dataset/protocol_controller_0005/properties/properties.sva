@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: protocol_controller_0005
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({preparing, committing, done}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!preparing && !committing && !done));
+
+// P3_T1: IDLE transitions to PREP when start.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!preparing && !committing && !done) && (start)) |=> (preparing && !committing && !done));
+
+// P4_T2: IDLE transitions to IDLE when !start.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!preparing && !committing && !done) && (!start)) |=> (!preparing && !committing && !done));
+
+// P5_T3: PREP transitions to COMMIT when prepare_ok.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((preparing && !committing && !done) && (prepare_ok)) |=> (!preparing && committing && !done));
+
+// P6_T4: PREP transitions to PREP when !prepare_ok.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((preparing && !committing && !done) && (!prepare_ok)) |=> (preparing && !committing && !done));
+
+// P7_T5: COMMIT transitions to DONE when commit_ok.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((!preparing && committing && !done) && (commit_ok)) |=> (!preparing && !committing && done));
+
+// P8_T6: COMMIT transitions to COMMIT when !commit_ok.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!preparing && committing && !done) && (!commit_ok)) |=> (!preparing && committing && !done));
+
+// P9_T7: DONE transitions to IDLE when true.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    (!preparing && !committing && done) |=> (!preparing && !committing && !done));

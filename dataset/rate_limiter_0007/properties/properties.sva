@@ -1,0 +1,41 @@
+// P1_ALLOW: allow is true until three requests are used
+property p_allow;
+    @(posedge clk) disable iff (rst) (allow == (used < 2'd3));
+endproperty
+assert property (p_allow);
+
+// P2_EXHAUSTED: exhausted is true at quota three
+property p_exhausted;
+    @(posedge clk) disable iff (rst) (exhausted == (used == 2'd3));
+endproperty
+assert property (p_exhausted);
+
+// P3_RESET: reset starts at phase zero with unused quota
+property p_reset;
+    @(posedge clk) (rst) |=> ((used == 2'd0) && (phase == 2'd0));
+endproperty
+assert property (p_reset);
+
+// P4_USE: an allowed request consumes one unit
+property p_use;
+    @(posedge clk) disable iff (rst) (!advance_window && request && (used < 2'd3)) |=> (used == ($past(used) + 2'd1));
+endproperty
+assert property (p_use);
+
+// P5_NEW_WINDOW: advancing the window resets quota usage
+property p_new_window;
+    @(posedge clk) disable iff (rst) (advance_window) |=> (used == 2'd0);
+endproperty
+assert property (p_new_window);
+
+// P6_PHASE_ADV: advance_window increments phase before wrap
+property p_phase_adv;
+    @(posedge clk) disable iff (rst) (advance_window && (phase < 2'd3)) |=> (phase == ($past(phase) + 2'd1));
+endproperty
+assert property (p_phase_adv);
+
+// P7_EXHAUST_HOLD: requests cannot exceed the exhausted quota
+property p_exhaust_hold;
+    @(posedge clk) disable iff (rst) (!advance_window && request && exhausted) |=> (used == 2'd3);
+endproperty
+assert property (p_exhaust_hold);

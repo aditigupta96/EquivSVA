@@ -1,0 +1,53 @@
+[
+  {
+    "id": "P1_MUTEX",
+    "type": "invariant",
+    "natural_language": "protocol output phases are mutually exclusive",
+    "expression": "$onehot0({authorizing, executing, done, cancelled})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns to idle",
+    "antecedent": "rst",
+    "consequent": "!authorizing && !executing && !done && !cancelled",
+    "delay": 1
+  },
+  {
+    "id": "P3_REQUEST",
+    "type": "next_cycle_implication",
+    "natural_language": "a request begins authorization",
+    "antecedent": "!authorizing && !executing && !done && !cancelled && request",
+    "consequent": "authorizing",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_AUTH",
+    "type": "next_cycle_implication",
+    "natural_language": "authorization begins execution",
+    "antecedent": "authorizing && authorized && !cancel",
+    "consequent": "executing",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_CANCEL_AUTH",
+    "type": "next_cycle_implication",
+    "natural_language": "cancel during authorization terminates the request",
+    "antecedent": "authorizing && cancel",
+    "consequent": "cancelled",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_COMPLETE",
+    "type": "next_cycle_implication",
+    "natural_language": "completion ends execution successfully",
+    "antecedent": "executing && complete && !cancel",
+    "consequent": "done",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "protocol phases are mutually exclusive",
+    "expression": "$onehot0({preparing, ready_commit, committed, aborted})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the protocol to idle",
+    "antecedent": "rst",
+    "consequent": "!preparing && !ready_commit && !committed && !aborted",
+    "delay": 1
+  },
+  {
+    "id": "P3_START",
+    "type": "next_cycle_implication",
+    "natural_language": "start begins prepare",
+    "antecedent": "!preparing && !ready_commit && !committed && !aborted && start",
+    "consequent": "preparing",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_PREPARED",
+    "type": "next_cycle_implication",
+    "natural_language": "prepared advances to commit-ready",
+    "antecedent": "preparing && prepared && !abort",
+    "consequent": "ready_commit",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_ABORT_PREP",
+    "type": "next_cycle_implication",
+    "natural_language": "abort during prepare enters aborted",
+    "antecedent": "preparing && abort",
+    "consequent": "aborted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_COMMIT",
+    "type": "next_cycle_implication",
+    "natural_language": "commit from ready completes the transaction",
+    "antecedent": "ready_commit && commit && !abort",
+    "consequent": "committed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_RECOVER",
+    "type": "next_cycle_implication",
+    "natural_language": "recover leaves aborted state",
+    "antecedent": "aborted && recover",
+    "consequent": "!preparing && !ready_commit && !committed && !aborted",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

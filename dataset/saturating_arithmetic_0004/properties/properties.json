@@ -1,0 +1,59 @@
+[
+  {
+    "id": "P1_MAX",
+    "sva_name": "p_max",
+    "type": "invariant",
+    "natural_language": "at_max matches the saturated arithmetic value",
+    "expression": "at_max == (value == 4'd15)",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears value and sticky overflow",
+    "antecedent": "rst",
+    "consequent": "(value == 4'd0) && !overflowed",
+    "delay": 1
+  },
+  {
+    "id": "P3_CLEAR",
+    "sva_name": "p_clear",
+    "type": "next_cycle_implication",
+    "natural_language": "clear resets both outputs",
+    "antecedent": "clear",
+    "consequent": "(value == 4'd0) && !overflowed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_ADD",
+    "sva_name": "p_add",
+    "type": "next_cycle_implication",
+    "natural_language": "add increments value below saturation",
+    "antecedent": "!clear && add && (value < 4'd15)",
+    "consequent": "value == ($past(value) + 4'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_OVERFLOW",
+    "sva_name": "p_overflow",
+    "type": "next_cycle_implication",
+    "natural_language": "adding at saturation latches overflowed",
+    "antecedent": "!clear && add && (value == 4'd15)",
+    "consequent": "(value == 4'd15) && overflowed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_STICKY",
+    "sva_name": "p_sticky",
+    "type": "next_cycle_implication",
+    "natural_language": "overflowed remains set without clear",
+    "antecedent": "overflowed && !clear",
+    "consequent": "overflowed",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

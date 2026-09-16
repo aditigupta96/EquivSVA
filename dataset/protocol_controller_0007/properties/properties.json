@@ -1,0 +1,89 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({running, paused, done})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!running && !paused && !done",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to RUN when start",
+    "antecedent": "(!running && !paused && !done) && (start)",
+    "consequent": "running && !paused && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !start",
+    "antecedent": "(!running && !paused && !done) && (!start)",
+    "consequent": "!running && !paused && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to DONE when done_in",
+    "antecedent": "(running && !paused && !done) && (done_in)",
+    "consequent": "!running && !paused && done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to PAUSE when !done_in && pause",
+    "antecedent": "(running && !paused && !done) && (!done_in && pause)",
+    "consequent": "!running && paused && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to RUN when !done_in && !pause",
+    "antecedent": "(running && !paused && !done) && (!done_in && !pause)",
+    "consequent": "running && !paused && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "PAUSE transitions to RUN when resume",
+    "antecedent": "(!running && paused && !done) && (resume)",
+    "consequent": "running && !paused && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "PAUSE transitions to PAUSE when !resume",
+    "antecedent": "(!running && paused && !done) && (!resume)",
+    "consequent": "!running && paused && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P10_T8",
+    "type": "next_cycle_implication",
+    "natural_language": "DONE transitions to IDLE when true",
+    "antecedent": "!running && !paused && done",
+    "consequent": "!running && !paused && !done",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: mode_controller_0005
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({active, boosted, idle_mode}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!active && !boosted && idle_mode));
+
+// P3_T1: IDLE transitions to ACTIVE when activate.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!active && !boosted && idle_mode) && (activate)) |=> (active && !boosted && !idle_mode));
+
+// P4_T2: IDLE transitions to IDLE when !activate.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!active && !boosted && idle_mode) && (!activate)) |=> (!active && !boosted && idle_mode));
+
+// P5_T3: ACTIVE transitions to BOOST when boost.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((active && !boosted && !idle_mode) && (boost)) |=> (!active && boosted && !idle_mode));
+
+// P6_T4: ACTIVE transitions to IDLE when !boost && idle.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((active && !boosted && !idle_mode) && (!boost && idle)) |=> (!active && !boosted && idle_mode));
+
+// P7_T5: ACTIVE transitions to ACTIVE when !boost && !idle.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((active && !boosted && !idle_mode) && (!boost && !idle)) |=> (active && !boosted && !idle_mode));
+
+// P8_T6: BOOST transitions to BOOST when boost.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!active && boosted && !idle_mode) && (boost)) |=> (!active && boosted && !idle_mode));
+
+// P9_T7: BOOST transitions to ACTIVE when !boost.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!active && boosted && !idle_mode) && (!boost)) |=> (active && !boosted && !idle_mode));

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({opened, transferring, closed})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!opened && !transferring && !closed",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to OPEN when open",
+    "antecedent": "(!opened && !transferring && !closed) && (open)",
+    "consequent": "opened && !transferring && !closed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !open",
+    "antecedent": "(!opened && !transferring && !closed) && (!open)",
+    "consequent": "!opened && !transferring && !closed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "OPEN transitions to XFER when true",
+    "antecedent": "opened && !transferring && !closed",
+    "consequent": "!opened && transferring && !closed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "XFER transitions to CLOSE when transfer_done",
+    "antecedent": "(!opened && transferring && !closed) && (transfer_done)",
+    "consequent": "!opened && !transferring && closed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "XFER transitions to XFER when !transfer_done",
+    "antecedent": "(!opened && transferring && !closed) && (!transfer_done)",
+    "consequent": "!opened && transferring && !closed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "CLOSE transitions to IDLE when close",
+    "antecedent": "(!opened && !transferring && closed) && (close)",
+    "consequent": "!opened && !transferring && !closed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "CLOSE transitions to CLOSE when !close",
+    "antecedent": "(!opened && !transferring && closed) && (!close)",
+    "consequent": "!opened && !transferring && closed",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

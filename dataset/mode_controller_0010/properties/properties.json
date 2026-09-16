@@ -1,0 +1,98 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({manual, automatic, off})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!manual && !automatic && off",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "OFF transitions to AUTO when enable && auto_mode",
+    "antecedent": "(!manual && !automatic && off) && (enable && auto_mode)",
+    "consequent": "!manual && automatic && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "OFF transitions to MANUAL when enable && !auto_mode",
+    "antecedent": "(!manual && !automatic && off) && (enable && !auto_mode)",
+    "consequent": "manual && !automatic && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "OFF transitions to OFF when !enable",
+    "antecedent": "(!manual && !automatic && off) && (!enable)",
+    "consequent": "!manual && !automatic && off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "MANUAL transitions to OFF when disable",
+    "antecedent": "(manual && !automatic && !off) && (disable)",
+    "consequent": "!manual && !automatic && off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "MANUAL transitions to AUTO when !disable && auto_mode",
+    "antecedent": "(manual && !automatic && !off) && (!disable && auto_mode)",
+    "consequent": "!manual && automatic && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "MANUAL transitions to MANUAL when !disable && !auto_mode",
+    "antecedent": "(manual && !automatic && !off) && (!disable && !auto_mode)",
+    "consequent": "manual && !automatic && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "AUTO transitions to OFF when disable",
+    "antecedent": "(!manual && automatic && !off) && (disable)",
+    "consequent": "!manual && !automatic && off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P10_T8",
+    "type": "next_cycle_implication",
+    "natural_language": "AUTO transitions to MANUAL when !disable && !auto_mode",
+    "antecedent": "(!manual && automatic && !off) && (!disable && !auto_mode)",
+    "consequent": "manual && !automatic && !off",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P11_T9",
+    "type": "next_cycle_implication",
+    "natural_language": "AUTO transitions to AUTO when !disable && auto_mode",
+    "antecedent": "(!manual && automatic && !off) && (!disable && auto_mode)",
+    "consequent": "!manual && automatic && !off",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

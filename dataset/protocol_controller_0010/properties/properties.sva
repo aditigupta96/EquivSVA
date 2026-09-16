@@ -1,0 +1,34 @@
+// Generated from spec.json.
+// Design: protocol_controller_0010
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({running, draining, stopped}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!running && !draining && stopped));
+
+// P3_T1: STOP transitions to RUN when enable.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!running && !draining && stopped) && (enable)) |=> (running && !draining && !stopped));
+
+// P4_T2: STOP transitions to STOP when !enable.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!running && !draining && stopped) && (!enable)) |=> (!running && !draining && stopped));
+
+// P5_T3: RUN transitions to DRAIN when quiesce.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((running && !draining && !stopped) && (quiesce)) |=> (!running && draining && !stopped));
+
+// P6_T4: RUN transitions to RUN when !quiesce.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((running && !draining && !stopped) && (!quiesce)) |=> (running && !draining && !stopped));
+
+// P7_T5: DRAIN transitions to STOP when idle_seen.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((!running && draining && !stopped) && (idle_seen)) |=> (!running && !draining && stopped));
+
+// P8_T6: DRAIN transitions to DRAIN when !idle_seen.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!running && draining && !stopped) && (!idle_seen)) |=> (!running && draining && !stopped));

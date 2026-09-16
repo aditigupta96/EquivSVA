@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: protocol_controller_0008
+
+// P1_ONEHOT: session phases are mutually exclusive.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot({opening, authenticating, transferring, closing, done, failed}));
+
+// P2_RESET: reset begins in opening phase.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (opening));
+
+// P3_OPEN: successful open advances to authentication.
+p_open: assert property (@(posedge clk) disable iff (rst)
+    (opening && open_ok && !abort) |=> (authenticating));
+
+// P4_AUTH: successful authentication begins transfer.
+p_auth: assert property (@(posedge clk) disable iff (rst)
+    (authenticating && auth_ok && !abort) |=> (transferring));
+
+// P5_TRANSFER: completed transfer enters closing.
+p_transfer: assert property (@(posedge clk) disable iff (rst)
+    (transferring && transfer_done && !abort) |=> (closing));
+
+// P6_CLOSE: successful close completes the session.
+p_close: assert property (@(posedge clk) disable iff (rst)
+    (closing && close_ok && !abort) |=> (done));
+
+// P7_ABORT: abort from an active phase produces failure.
+p_abort: assert property (@(posedge clk) disable iff (rst)
+    ((opening || authenticating || transferring || closing) && abort) |=> (failed));

@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: protocol_controller_0003
+
+// P1_ONEHOT: protocol phases are mutually exclusive.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({preparing, ready_commit, committed, aborted}));
+
+// P2_RESET: reset returns the protocol to idle.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (!preparing && !ready_commit && !committed && !aborted));
+
+// P3_START: start begins prepare.
+p_start: assert property (@(posedge clk) disable iff (rst)
+    (!preparing && !ready_commit && !committed && !aborted && start) |=> (preparing));
+
+// P4_PREPARED: prepared advances to commit-ready.
+p_prepared: assert property (@(posedge clk) disable iff (rst)
+    (preparing && prepared && !abort) |=> (ready_commit));
+
+// P5_ABORT_PREP: abort during prepare enters aborted.
+p_abort_prep: assert property (@(posedge clk) disable iff (rst)
+    (preparing && abort) |=> (aborted));
+
+// P6_COMMIT: commit from ready completes the transaction.
+p_commit: assert property (@(posedge clk) disable iff (rst)
+    (ready_commit && commit && !abort) |=> (committed));
+
+// P7_RECOVER: recover leaves aborted state.
+p_recover: assert property (@(posedge clk) disable iff (rst)
+    (aborted && recover) |=> (!preparing && !ready_commit && !committed && !aborted));

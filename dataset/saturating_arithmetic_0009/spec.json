@@ -1,0 +1,212 @@
+{
+  "design_id": "saturating_arithmetic_0009",
+  "category": "saturating_arithmetic",
+  "model_type": "multi_register_rules",
+  "template": "saturation_history_accumulator",
+  "description": "Accumulator records whether either saturation boundary has ever been reached.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "clear_history",
+    "inc",
+    "dec"
+  ],
+  "outputs": [
+    "value",
+    "hit_low",
+    "hit_high"
+  ],
+  "signal_widths": {
+    "value": 3
+  },
+  "registers": [
+    {
+      "name": "value_reg",
+      "width": 3,
+      "reset_value": "3'd3"
+    },
+    {
+      "name": "low_reg",
+      "width": 1,
+      "reset_value": "1'b0"
+    },
+    {
+      "name": "high_reg",
+      "width": 1,
+      "reset_value": "1'b0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All RTL variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "value": "value_reg",
+    "hit_low": "low_reg",
+    "hit_high": "high_reg"
+  },
+  "update_rules": {
+    "value_reg": [
+      {
+        "when": "inc && !dec && (value_reg < 3'd6)",
+        "value": "value_reg + 3'd1"
+      },
+      {
+        "when": "dec && !inc && (value_reg > 3'd1)",
+        "value": "value_reg - 3'd1"
+      },
+      {
+        "when": "true",
+        "value": "value_reg"
+      }
+    ],
+    "low_reg": [
+      {
+        "when": "clear_history",
+        "value": "1'b0"
+      },
+      {
+        "when": "dec && !inc && (value_reg == 3'd2)",
+        "value": "1'b1"
+      },
+      {
+        "when": "true",
+        "value": "low_reg"
+      }
+    ],
+    "high_reg": [
+      {
+        "when": "clear_history",
+        "value": "1'b0"
+      },
+      {
+        "when": "inc && !dec && (value_reg == 3'd5)",
+        "value": "1'b1"
+      },
+      {
+        "when": "true",
+        "value": "high_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset starts at the midpoint with clear history",
+      "antecedent": "rst",
+      "consequent": "(value == 3'd3) && !hit_low && !hit_high",
+      "delay": 1
+    },
+    {
+      "id": "P2_INC",
+      "sva_name": "p_inc",
+      "type": "next_cycle_implication",
+      "natural_language": "exclusive increment advances below the high bound",
+      "antecedent": "inc && !dec && (value < 3'd6)",
+      "consequent": "value == ($past(value) + 3'd1)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P3_DEC",
+      "sva_name": "p_dec",
+      "type": "next_cycle_implication",
+      "natural_language": "exclusive decrement advances above the low bound",
+      "antecedent": "dec && !inc && (value > 3'd1)",
+      "consequent": "value == ($past(value) - 3'd1)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_HIGH_HISTORY",
+      "sva_name": "p_high_history",
+      "type": "next_cycle_implication",
+      "natural_language": "reaching the high boundary records high history",
+      "antecedent": "inc && !dec && (value == 3'd5)",
+      "consequent": "hit_high",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_LOW_HISTORY",
+      "sva_name": "p_low_history",
+      "type": "next_cycle_implication",
+      "natural_language": "reaching the low boundary records low history",
+      "antecedent": "dec && !inc && (value == 3'd2)",
+      "consequent": "hit_low",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_CLEAR_HISTORY",
+      "sva_name": "p_clear_history",
+      "type": "next_cycle_implication",
+      "natural_language": "clear_history clears both sticky history bits",
+      "antecedent": "clear_history",
+      "consequent": "!hit_low && !hit_high",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "never_record_low",
+      "register": "low_reg",
+      "kind": "replace_update_guard",
+      "old": "dec && !inc && (value_reg == 3'd2)",
+      "new": "false"
+    },
+    {
+      "name": "never_record_high",
+      "register": "high_reg",
+      "kind": "replace_update_guard",
+      "old": "inc && !dec && (value_reg == 3'd5)",
+      "new": "false"
+    },
+    {
+      "name": "ignore_clear_high",
+      "register": "high_reg",
+      "kind": "replace_update_guard",
+      "old": "clear_history",
+      "new": "false"
+    }
+  ]
+}

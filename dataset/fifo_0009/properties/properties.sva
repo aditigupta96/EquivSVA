@@ -1,0 +1,29 @@
+// P1_READY: overwrite mailbox is always ready
+property p_ready;
+    @(posedge clk) disable iff (rst) (ready);
+endproperty
+assert property (p_ready);
+
+// P2_RESET: reset empties mailbox
+property p_reset;
+    @(posedge clk) (rst) |=> (!valid);
+endproperty
+assert property (p_reset);
+
+// P3_PUSH: every push stores the newest item
+property p_push;
+    @(posedge clk) disable iff (rst) (push) |=> (valid && (dout == $past(din)));
+endproperty
+assert property (p_push);
+
+// P4_POP: pop without simultaneous push empties mailbox
+property p_pop;
+    @(posedge clk) disable iff (rst) (!push && valid && pop) |=> (!valid);
+endproperty
+assert property (p_pop);
+
+// P5_HOLD: without push or pop mailbox holds
+property p_hold;
+    @(posedge clk) disable iff (rst) (valid && !push && !pop) |=> (valid && (dout == $past(dout)));
+endproperty
+assert property (p_hold);

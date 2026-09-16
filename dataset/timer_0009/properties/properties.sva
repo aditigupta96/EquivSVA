@@ -1,0 +1,31 @@
+// Gold interface properties for timer_0009
+
+// P1_RESET: reset restores the register to its reset value
+property p_reset_value;
+    @(posedge clk) (rst) |=> (count == 3'd0);
+endproperty
+assert property (p_reset_value);
+
+// P2_DONE: done is consistent with the observable register value
+property p_done;
+    @(posedge clk) disable iff (rst) (done == (count == 3'd5));
+endproperty
+assert property (p_done);
+
+// P3_RULE: update rule clear produces the specified next value
+property p_rule_3;
+    @(posedge clk) disable iff (rst) (clear) |=> (count == (3'd0));
+endproperty
+assert property (p_rule_3);
+
+// P4_RULE: update rule !clear && enable && (count < 3'd5) produces the specified next value
+property p_rule_4;
+    @(posedge clk) disable iff (rst) (!clear && enable && (count < 3'd5)) |=> (count == ($past(count) + 3'd1));
+endproperty
+assert property (p_rule_4);
+
+// P5_HOLD: when no update rule fires the register holds its value
+property p_hold;
+    @(posedge clk) disable iff (rst) (!(clear) && !(!clear && enable && (count < 3'd5))) |=> (count == $past(count));
+endproperty
+assert property (p_hold);

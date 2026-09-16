@@ -1,0 +1,31 @@
+// Gold interface properties for counter_0008
+
+// P1_RESET: reset restores the register to its reset value
+property p_reset_value;
+    @(posedge clk) (rst) |=> (count == 3'd0);
+endproperty
+assert property (p_reset_value);
+
+// P2_AT_LIMIT: at_limit is consistent with the observable register value
+property p_at_limit;
+    @(posedge clk) disable iff (rst) (at_limit == (count == 3'd6));
+endproperty
+assert property (p_at_limit);
+
+// P3_RULE: update rule clear produces the specified next value
+property p_rule_3;
+    @(posedge clk) disable iff (rst) (clear) |=> (count == (3'd0));
+endproperty
+assert property (p_rule_3);
+
+// P4_RULE: update rule !clear && step && (count < 3'd6) produces the specified next value
+property p_rule_4;
+    @(posedge clk) disable iff (rst) (!clear && step && (count < 3'd6)) |=> (count == ($past(count) + 3'd2));
+endproperty
+assert property (p_rule_4);
+
+// P5_HOLD: when no update rule fires the register holds its value
+property p_hold;
+    @(posedge clk) disable iff (rst) (!(clear) && !(!clear && step && (count < 3'd6))) |=> (count == $past(count));
+endproperty
+assert property (p_hold);

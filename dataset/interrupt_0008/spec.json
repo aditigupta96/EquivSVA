@@ -1,0 +1,250 @@
+{
+  "design_id": "interrupt_0008",
+  "category": "interrupt_control",
+  "template": "priority_two_level_irq",
+  "description": "High-priority interrupt can preempt a low-priority pending request.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "irq_hi",
+    "irq_lo",
+    "ack"
+  ],
+  "outputs": [
+    "low_pending",
+    "high_pending",
+    "service"
+  ],
+  "states": [
+    "IDLE",
+    "LOW",
+    "HIGH",
+    "SERVICE"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "low_pending": 0,
+      "high_pending": 0,
+      "service": 0
+    },
+    "LOW": {
+      "low_pending": 1,
+      "high_pending": 0,
+      "service": 0
+    },
+    "HIGH": {
+      "low_pending": 0,
+      "high_pending": 1,
+      "service": 0
+    },
+    "SERVICE": {
+      "low_pending": 0,
+      "high_pending": 0,
+      "service": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "irq_hi",
+      "to": "HIGH"
+    },
+    {
+      "from": "IDLE",
+      "when": "!irq_hi && irq_lo",
+      "to": "LOW"
+    },
+    {
+      "from": "IDLE",
+      "when": "!irq_hi && !irq_lo",
+      "to": "IDLE"
+    },
+    {
+      "from": "LOW",
+      "when": "irq_hi",
+      "to": "HIGH"
+    },
+    {
+      "from": "LOW",
+      "when": "!irq_hi && ack",
+      "to": "SERVICE"
+    },
+    {
+      "from": "LOW",
+      "when": "!irq_hi && !ack",
+      "to": "LOW"
+    },
+    {
+      "from": "HIGH",
+      "when": "ack",
+      "to": "SERVICE"
+    },
+    {
+      "from": "HIGH",
+      "when": "!ack",
+      "to": "HIGH"
+    },
+    {
+      "from": "SERVICE",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({low_pending, high_pending, service})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!low_pending && !high_pending && !service",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to HIGH when irq_hi",
+      "antecedent": "(!low_pending && !high_pending && !service) && (irq_hi)",
+      "consequent": "!low_pending && high_pending && !service",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to LOW when !irq_hi && irq_lo",
+      "antecedent": "(!low_pending && !high_pending && !service) && (!irq_hi && irq_lo)",
+      "consequent": "low_pending && !high_pending && !service",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to IDLE when !irq_hi && !irq_lo",
+      "antecedent": "(!low_pending && !high_pending && !service) && (!irq_hi && !irq_lo)",
+      "consequent": "!low_pending && !high_pending && !service",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "LOW transitions to HIGH when irq_hi",
+      "antecedent": "(low_pending && !high_pending && !service) && (irq_hi)",
+      "consequent": "!low_pending && high_pending && !service",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "LOW transitions to SERVICE when !irq_hi && ack",
+      "antecedent": "(low_pending && !high_pending && !service) && (!irq_hi && ack)",
+      "consequent": "!low_pending && !high_pending && service",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "LOW transitions to LOW when !irq_hi && !ack",
+      "antecedent": "(low_pending && !high_pending && !service) && (!irq_hi && !ack)",
+      "consequent": "low_pending && !high_pending && !service",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P9_T7",
+      "sva_name": "p_t7",
+      "type": "next_cycle_implication",
+      "natural_language": "HIGH transitions to SERVICE when ack",
+      "antecedent": "(!low_pending && high_pending && !service) && (ack)",
+      "consequent": "!low_pending && !high_pending && service",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P10_T8",
+      "sva_name": "p_t8",
+      "type": "next_cycle_implication",
+      "natural_language": "HIGH transitions to HIGH when !ack",
+      "antecedent": "(!low_pending && high_pending && !service) && (!ack)",
+      "consequent": "!low_pending && high_pending && !service",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P11_T9",
+      "sva_name": "p_t9",
+      "type": "next_cycle_implication",
+      "natural_language": "SERVICE transitions to IDLE when true",
+      "antecedent": "!low_pending && !high_pending && service",
+      "consequent": "!low_pending && !high_pending && !service",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "irq_hi",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "!irq_hi && irq_lo",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "!irq_hi && !irq_lo",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

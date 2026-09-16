@@ -1,0 +1,194 @@
+{
+  "design_id": "protocol_controller_0006",
+  "category": "protocol_controller",
+  "template": "lock_unlock",
+  "description": "Protocol controller implementing lock unlock behavior.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "acquire",
+    "release"
+  ],
+  "outputs": [
+    "waiting",
+    "held"
+  ],
+  "states": [
+    "IDLE",
+    "WAIT",
+    "HELD"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "waiting": 0,
+      "held": 0
+    },
+    "WAIT": {
+      "waiting": 1,
+      "held": 0
+    },
+    "HELD": {
+      "waiting": 0,
+      "held": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "acquire",
+      "to": "WAIT"
+    },
+    {
+      "from": "IDLE",
+      "when": "!acquire",
+      "to": "IDLE"
+    },
+    {
+      "from": "WAIT",
+      "when": "acquire",
+      "to": "HELD"
+    },
+    {
+      "from": "WAIT",
+      "when": "!acquire",
+      "to": "WAIT"
+    },
+    {
+      "from": "HELD",
+      "when": "release",
+      "to": "IDLE"
+    },
+    {
+      "from": "HELD",
+      "when": "!release",
+      "to": "HELD"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({waiting, held})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!waiting && !held",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to WAIT when acquire",
+      "antecedent": "(!waiting && !held) && (acquire)",
+      "consequent": "waiting && !held",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to IDLE when !acquire",
+      "antecedent": "(!waiting && !held) && (!acquire)",
+      "consequent": "!waiting && !held",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "WAIT transitions to HELD when acquire",
+      "antecedent": "(waiting && !held) && (acquire)",
+      "consequent": "!waiting && held",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "WAIT transitions to WAIT when !acquire",
+      "antecedent": "(waiting && !held) && (!acquire)",
+      "consequent": "waiting && !held",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "HELD transitions to IDLE when release",
+      "antecedent": "(!waiting && held) && (release)",
+      "consequent": "!waiting && !held",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "HELD transitions to HELD when !release",
+      "antecedent": "(!waiting && held) && (!release)",
+      "consequent": "!waiting && held",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "acquire",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "!acquire",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "WAIT",
+      "old": "acquire",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

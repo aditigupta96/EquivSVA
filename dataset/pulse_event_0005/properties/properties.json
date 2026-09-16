@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_ONEHOT",
+    "type": "invariant",
+    "natural_language": "debounce phases are mutually exclusive",
+    "expression": "$onehot0({armed, qualifying, pulse})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset arms the detector",
+    "antecedent": "rst",
+    "consequent": "armed",
+    "delay": 1
+  },
+  {
+    "id": "P3_FIRST_HIGH",
+    "type": "next_cycle_implication",
+    "natural_language": "the first high sample begins qualification",
+    "antecedent": "armed && event_in",
+    "consequent": "qualifying",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_SECOND_HIGH",
+    "type": "next_cycle_implication",
+    "natural_language": "a second consecutive high sample emits a pulse",
+    "antecedent": "qualifying && event_in",
+    "consequent": "pulse",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_GLITCH",
+    "type": "next_cycle_implication",
+    "natural_language": "a one-cycle high glitch does not emit a pulse",
+    "antecedent": "qualifying && !event_in",
+    "consequent": "armed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_FIRST_LOW",
+    "type": "next_cycle_implication",
+    "natural_language": "the first low after a pulse begins rearming",
+    "antecedent": "rearming && !event_in",
+    "consequent": "rearming || armed",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_HIGH_INTERRUPTS_REARM",
+    "type": "next_cycle_implication",
+    "natural_language": "a high sample interrupts low rearming",
+    "antecedent": "rearming && event_in",
+    "consequent": "rearming",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

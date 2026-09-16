@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: rate_limiter_0010
+
+// P1_ONEHOT: strike states are mutually exclusive.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot({clean, strike1, strike2, blocked}));
+
+// P2_RESET: reset clears all strikes.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (clean));
+
+// P3_FIRST: first consecutive violation records strike one.
+p_first: assert property (@(posedge clk) disable iff (rst)
+    (clean && violation) |=> (strike1));
+
+// P4_SECOND: second consecutive violation records strike two.
+p_second: assert property (@(posedge clk) disable iff (rst)
+    (strike1 && violation) |=> (strike2));
+
+// P5_THIRD: third consecutive violation enters lockout.
+p_third: assert property (@(posedge clk) disable iff (rst)
+    (strike2 && violation) |=> (blocked));
+
+// P6_RECOVER_SEQUENCE: a clean cycle before lockout clears strikes.
+p_recover_sequence: assert property (@(posedge clk) disable iff (rst)
+    ((strike1 || strike2) && !violation) |=> (clean));
+
+// P7_CLEAR: clear releases lockout.
+p_clear: assert property (@(posedge clk) disable iff (rst)
+    (blocked && clear) |=> (clean));

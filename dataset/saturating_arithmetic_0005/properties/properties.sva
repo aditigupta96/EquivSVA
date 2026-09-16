@@ -1,0 +1,37 @@
+// Gold interface properties for saturating_arithmetic_0005
+
+// P1_HIGH: high reflects values nine and above
+property p_high;
+    @(posedge clk) disable iff (rst) (high == (value >= 4'd9));
+endproperty
+assert property (p_high);
+
+// P2_LOW: low reflects values three and below
+property p_low;
+    @(posedge clk) disable iff (rst) (low == (value <= 4'd3));
+endproperty
+assert property (p_low);
+
+// P3_RESET: reset restores center value
+property p_reset;
+    @(posedge clk) (rst) |=> (value == 4'd6);
+endproperty
+assert property (p_reset);
+
+// P4_CENTER: center has priority
+property p_center;
+    @(posedge clk) disable iff (rst) (center) |=> (value == 4'd6);
+endproperty
+assert property (p_center);
+
+// P5_BOOST: boost adds three when not near the upper clamp
+property p_boost;
+    @(posedge clk) disable iff (rst) (!center && boost && (value <= 4'd9)) |=> (value == ($past(value) + 4'd3));
+endproperty
+assert property (p_boost);
+
+// P6_DRAIN: drain subtracts two when boost is absent
+property p_drain;
+    @(posedge clk) disable iff (rst) (!center && !boost && drain && (value >= 4'd4)) |=> (value == ($past(value) - 4'd2));
+endproperty
+assert property (p_drain);

@@ -1,0 +1,59 @@
+[
+  {
+    "id": "P1_READY",
+    "sva_name": "p_ready",
+    "type": "invariant",
+    "natural_language": "ready reflects elastic acceptance",
+    "expression": "ready == (!valid || pop)",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset empties the queue",
+    "antecedent": "rst",
+    "consequent": "!valid",
+    "delay": 1
+  },
+  {
+    "id": "P3_PUSH_EMPTY",
+    "sva_name": "p_push_empty",
+    "type": "next_cycle_implication",
+    "natural_language": "push into empty captures data",
+    "antecedent": "!valid && push",
+    "consequent": "valid && (dout == $past(din))",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_HOLD_FULL",
+    "sva_name": "p_hold_full",
+    "type": "next_cycle_implication",
+    "natural_language": "full queue without pop holds data",
+    "antecedent": "valid && !pop",
+    "consequent": "valid && (dout == $past(dout))",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_POP",
+    "sva_name": "p_pop",
+    "type": "next_cycle_implication",
+    "natural_language": "pop without replacement empties queue",
+    "antecedent": "valid && pop && !push",
+    "consequent": "!valid",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_REPLACE",
+    "sva_name": "p_replace",
+    "type": "next_cycle_implication",
+    "natural_language": "simultaneous pop and push replaces item",
+    "antecedent": "valid && pop && push",
+    "consequent": "valid && (dout == $past(din))",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

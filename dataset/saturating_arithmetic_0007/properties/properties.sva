@@ -1,0 +1,31 @@
+// Gold interface properties for saturating_arithmetic_0007
+
+// P1_RESET: reset restores the register to its reset value
+property p_reset_value;
+    @(posedge clk) (rst) |=> (value == 3'd7);
+endproperty
+assert property (p_reset_value);
+
+// P2_AT_FLOOR: at_floor is consistent with the observable register value
+property p_at_floor;
+    @(posedge clk) disable iff (rst) (at_floor == (value == 3'd2));
+endproperty
+assert property (p_at_floor);
+
+// P3_RULE: update rule restore produces the specified next value
+property p_rule_3;
+    @(posedge clk) disable iff (rst) (restore) |=> (value == (3'd7));
+endproperty
+assert property (p_rule_3);
+
+// P4_RULE: update rule !restore && dec && (value > 3'd2) produces the specified next value
+property p_rule_4;
+    @(posedge clk) disable iff (rst) (!restore && dec && (value > 3'd2)) |=> (value == ($past(value) - 3'd1));
+endproperty
+assert property (p_rule_4);
+
+// P5_HOLD: when no update rule fires the register holds its value
+property p_hold;
+    @(posedge clk) disable iff (rst) (!(restore) && !(!restore && dec && (value > 3'd2))) |=> (value == $past(value));
+endproperty
+assert property (p_hold);

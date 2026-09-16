@@ -1,0 +1,275 @@
+{
+  "design_id": "sequence_detector_0009",
+  "category": "sequence_detector",
+  "template": "pattern_1101",
+  "description": "Overlapping serial sequence detector for pattern 1101.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "S0"
+  },
+  "inputs": [
+    "bit_in"
+  ],
+  "outputs": [
+    "progress1",
+    "progress2",
+    "progress3",
+    "match"
+  ],
+  "states": [
+    "S0",
+    "S1",
+    "S2",
+    "S3",
+    "MATCH"
+  ],
+  "state_outputs": {
+    "S0": {
+      "progress1": 0,
+      "progress2": 0,
+      "progress3": 0,
+      "match": 0
+    },
+    "S1": {
+      "progress1": 1,
+      "progress2": 0,
+      "progress3": 0,
+      "match": 0
+    },
+    "S2": {
+      "progress1": 0,
+      "progress2": 1,
+      "progress3": 0,
+      "match": 0
+    },
+    "S3": {
+      "progress1": 0,
+      "progress2": 0,
+      "progress3": 1,
+      "match": 0
+    },
+    "MATCH": {
+      "progress1": 0,
+      "progress2": 0,
+      "progress3": 0,
+      "match": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "S0",
+      "when": "!bit_in",
+      "to": "S0"
+    },
+    {
+      "from": "S0",
+      "when": "bit_in",
+      "to": "S1"
+    },
+    {
+      "from": "S1",
+      "when": "!bit_in",
+      "to": "S0"
+    },
+    {
+      "from": "S1",
+      "when": "bit_in",
+      "to": "S2"
+    },
+    {
+      "from": "S2",
+      "when": "!bit_in",
+      "to": "S3"
+    },
+    {
+      "from": "S2",
+      "when": "bit_in",
+      "to": "S2"
+    },
+    {
+      "from": "S3",
+      "when": "!bit_in",
+      "to": "S0"
+    },
+    {
+      "from": "S3",
+      "when": "bit_in",
+      "to": "MATCH"
+    },
+    {
+      "from": "MATCH",
+      "when": "!bit_in",
+      "to": "S0"
+    },
+    {
+      "from": "MATCH",
+      "when": "bit_in",
+      "to": "S2"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({progress1, progress2, progress3, match})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!progress1 && !progress2 && !progress3 && !match",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "S0 transitions to S0 when !bit_in",
+      "antecedent": "(!progress1 && !progress2 && !progress3 && !match) && (!bit_in)",
+      "consequent": "!progress1 && !progress2 && !progress3 && !match",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "S0 transitions to S1 when bit_in",
+      "antecedent": "(!progress1 && !progress2 && !progress3 && !match) && (bit_in)",
+      "consequent": "progress1 && !progress2 && !progress3 && !match",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "S1 transitions to S0 when !bit_in",
+      "antecedent": "(progress1 && !progress2 && !progress3 && !match) && (!bit_in)",
+      "consequent": "!progress1 && !progress2 && !progress3 && !match",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "S1 transitions to S2 when bit_in",
+      "antecedent": "(progress1 && !progress2 && !progress3 && !match) && (bit_in)",
+      "consequent": "!progress1 && progress2 && !progress3 && !match",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "S2 transitions to S3 when !bit_in",
+      "antecedent": "(!progress1 && progress2 && !progress3 && !match) && (!bit_in)",
+      "consequent": "!progress1 && !progress2 && progress3 && !match",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "S2 transitions to S2 when bit_in",
+      "antecedent": "(!progress1 && progress2 && !progress3 && !match) && (bit_in)",
+      "consequent": "!progress1 && progress2 && !progress3 && !match",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P9_T7",
+      "sva_name": "p_t7",
+      "type": "next_cycle_implication",
+      "natural_language": "S3 transitions to S0 when !bit_in",
+      "antecedent": "(!progress1 && !progress2 && progress3 && !match) && (!bit_in)",
+      "consequent": "!progress1 && !progress2 && !progress3 && !match",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P10_T8",
+      "sva_name": "p_t8",
+      "type": "next_cycle_implication",
+      "natural_language": "S3 transitions to MATCH when bit_in",
+      "antecedent": "(!progress1 && !progress2 && progress3 && !match) && (bit_in)",
+      "consequent": "!progress1 && !progress2 && !progress3 && match",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P11_T9",
+      "sva_name": "p_t9",
+      "type": "next_cycle_implication",
+      "natural_language": "MATCH transitions to S0 when !bit_in",
+      "antecedent": "(!progress1 && !progress2 && !progress3 && match) && (!bit_in)",
+      "consequent": "!progress1 && !progress2 && !progress3 && !match",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P12_T10",
+      "sva_name": "p_t10",
+      "type": "next_cycle_implication",
+      "natural_language": "MATCH transitions to S2 when bit_in",
+      "antecedent": "(!progress1 && !progress2 && !progress3 && match) && (bit_in)",
+      "consequent": "!progress1 && progress2 && !progress3 && !match",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "S0",
+      "old": "!bit_in",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "S0",
+      "old": "bit_in",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "S1",
+      "old": "!bit_in",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "design_id": "rate_limiter_0007",
+  "category": "rate_limiter",
+  "model_type": "multi_register_rules",
+  "template": "windowed_quota",
+  "description": "Windowed quota tracks both requests used and the current phase before quota reset.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "request",
+    "advance_window"
+  ],
+  "outputs": [
+    "used",
+    "phase",
+    "allow",
+    "exhausted"
+  ],
+  "signal_widths": {
+    "used": 2,
+    "phase": 2
+  },
+  "registers": [
+    {
+      "name": "used_reg",
+      "width": 2,
+      "reset_value": "2'd0"
+    },
+    {
+      "name": "phase_reg",
+      "width": 2,
+      "reset_value": "2'd0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All RTL variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "used": "used_reg",
+    "phase": "phase_reg",
+    "allow": "used_reg < 2'd3",
+    "exhausted": "used_reg == 2'd3"
+  },
+  "update_rules": {
+    "used_reg": [
+      {
+        "when": "advance_window",
+        "value": "2'd0"
+      },
+      {
+        "when": "!advance_window && request && (used_reg < 2'd3)",
+        "value": "used_reg + 2'd1"
+      },
+      {
+        "when": "true",
+        "value": "used_reg"
+      }
+    ],
+    "phase_reg": [
+      {
+        "when": "advance_window && (phase_reg < 2'd3)",
+        "value": "phase_reg + 2'd1"
+      },
+      {
+        "when": "advance_window && (phase_reg == 2'd3)",
+        "value": "2'd0"
+      },
+      {
+        "when": "true",
+        "value": "phase_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_ALLOW",
+      "sva_name": "p_allow",
+      "type": "invariant",
+      "natural_language": "allow is true until three requests are used",
+      "expression": "allow == (used < 2'd3)",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_EXHAUSTED",
+      "sva_name": "p_exhausted",
+      "type": "invariant",
+      "natural_language": "exhausted is true at quota three",
+      "expression": "exhausted == (used == 2'd3)",
+      "disable": "rst"
+    },
+    {
+      "id": "P3_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset starts at phase zero with unused quota",
+      "antecedent": "rst",
+      "consequent": "(used == 2'd0) && (phase == 2'd0)",
+      "delay": 1
+    },
+    {
+      "id": "P4_USE",
+      "sva_name": "p_use",
+      "type": "next_cycle_implication",
+      "natural_language": "an allowed request consumes one unit",
+      "antecedent": "!advance_window && request && (used < 2'd3)",
+      "consequent": "used == ($past(used) + 2'd1)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_NEW_WINDOW",
+      "sva_name": "p_new_window",
+      "type": "next_cycle_implication",
+      "natural_language": "advancing the window resets quota usage",
+      "antecedent": "advance_window",
+      "consequent": "used == 2'd0",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_PHASE_ADV",
+      "sva_name": "p_phase_adv",
+      "type": "next_cycle_implication",
+      "natural_language": "advance_window increments phase before wrap",
+      "antecedent": "advance_window && (phase < 2'd3)",
+      "consequent": "phase == ($past(phase) + 2'd1)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_EXHAUST_HOLD",
+      "sva_name": "p_exhaust_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "requests cannot exceed the exhausted quota",
+      "antecedent": "!advance_window && request && exhausted",
+      "consequent": "used == 2'd3",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "never_reset_quota",
+      "register": "used_reg",
+      "kind": "replace_update_guard",
+      "old": "advance_window",
+      "new": "false"
+    },
+    {
+      "name": "ignore_request",
+      "register": "used_reg",
+      "kind": "replace_update_guard",
+      "old": "!advance_window && request && (used_reg < 2'd3)",
+      "new": "false"
+    },
+    {
+      "name": "never_wrap_phase",
+      "register": "phase_reg",
+      "kind": "replace_update_guard",
+      "old": "advance_window && (phase_reg == 2'd3)",
+      "new": "false"
+    }
+  ]
+}

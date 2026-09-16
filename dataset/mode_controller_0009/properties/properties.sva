@@ -1,0 +1,42 @@
+// Generated from spec.json.
+// Design: mode_controller_0009
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({primary, backup, off}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!primary && !backup && off));
+
+// P3_T1: OFF transitions to PRIMARY when enable.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!primary && !backup && off) && (enable)) |=> (primary && !backup && !off));
+
+// P4_T2: OFF transitions to OFF when !enable.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!primary && !backup && off) && (!enable)) |=> (!primary && !backup && off));
+
+// P5_T3: PRIMARY transitions to BACKUP when fail.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((primary && !backup && !off) && (fail)) |=> (!primary && backup && !off));
+
+// P6_T4: PRIMARY transitions to PRIMARY when !fail && enable.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((primary && !backup && !off) && (!fail && enable)) |=> (primary && !backup && !off));
+
+// P7_T5: PRIMARY transitions to OFF when !fail && !enable.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((primary && !backup && !off) && (!fail && !enable)) |=> (!primary && !backup && off));
+
+// P8_T6: BACKUP transitions to PRIMARY when recover.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!primary && backup && !off) && (recover)) |=> (primary && !backup && !off));
+
+// P9_T7: BACKUP transitions to BACKUP when !recover && enable.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!primary && backup && !off) && (!recover && enable)) |=> (!primary && backup && !off));
+
+// P10_T8: BACKUP transitions to OFF when !recover && !enable.
+p_t8: assert property (@(posedge clk) disable iff (rst)
+    ((!primary && backup && !off) && (!recover && !enable)) |=> (!primary && !backup && off));

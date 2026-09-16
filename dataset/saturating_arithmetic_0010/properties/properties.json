@@ -1,0 +1,67 @@
+[
+  {
+    "id": "P1_RESET",
+    "sva_name": "p_reset_value",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the register to its reset value",
+    "antecedent": "rst",
+    "consequent": "value == 3'd3",
+    "delay": 1
+  },
+  {
+    "id": "P2_AT_ZERO",
+    "sva_name": "p_at_zero",
+    "type": "invariant",
+    "natural_language": "at_zero is consistent with the observable register value",
+    "expression": "at_zero == (value == 3'd0)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_AT_MAX",
+    "sva_name": "p_at_max",
+    "type": "invariant",
+    "natural_language": "at_max is consistent with the observable register value",
+    "expression": "at_max == (value == 3'd7)",
+    "disable": "rst"
+  },
+  {
+    "id": "P4_RULE",
+    "sva_name": "p_rule_4",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule clear produces the specified next value",
+    "antecedent": "clear",
+    "consequent": "value == (3'd3)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_RULE",
+    "sva_name": "p_rule_5",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule !clear && inc && !dec && (value < 3'd7) produces the specified next value",
+    "antecedent": "!clear && inc && !dec && (value < 3'd7)",
+    "consequent": "value == ($past(value) + 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_RULE",
+    "sva_name": "p_rule_6",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule !clear && dec && !inc && (value > 3'd0) produces the specified next value",
+    "antecedent": "!clear && dec && !inc && (value > 3'd0)",
+    "consequent": "value == ($past(value) - 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "when no update rule fires the register holds its value",
+    "antecedent": "!(clear) && !(!clear && inc && !dec && (value < 3'd7)) && !(!clear && dec && !inc && (value > 3'd0))",
+    "consequent": "value == $past(value)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

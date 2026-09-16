@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: handshake_0008
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({busy, retrying, done}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!busy && !retrying && !done));
+
+// P3_T1: IDLE transitions to WAIT when req.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!busy && !retrying && !done) && (req)) |=> (busy && !retrying && !done));
+
+// P4_T2: IDLE transitions to IDLE when !req.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!busy && !retrying && !done) && (!req)) |=> (!busy && !retrying && !done));
+
+// P5_T3: WAIT transitions to RETRY when retry.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((busy && !retrying && !done) && (retry)) |=> (!busy && retrying && !done));
+
+// P6_T4: WAIT transitions to DONE when !retry && accept.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((busy && !retrying && !done) && (!retry && accept)) |=> (!busy && !retrying && done));
+
+// P7_T5: WAIT transitions to WAIT when !retry && !accept.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((busy && !retrying && !done) && (!retry && !accept)) |=> (busy && !retrying && !done));
+
+// P8_T6: RETRY transitions to WAIT when true.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    (!busy && retrying && !done) |=> (busy && !retrying && !done));
+
+// P9_T7: DONE transitions to IDLE when true.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    (!busy && !retrying && done) |=> (!busy && !retrying && !done));

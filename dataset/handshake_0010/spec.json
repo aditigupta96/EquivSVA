@@ -1,0 +1,219 @@
+{
+  "design_id": "handshake_0010",
+  "category": "handshake",
+  "template": "two_phase_release",
+  "description": "Two-phase handshake waits for request assertion, acknowledge, and request release.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "req",
+    "peer_ack"
+  ],
+  "outputs": [
+    "waiting",
+    "acked",
+    "release"
+  ],
+  "states": [
+    "IDLE",
+    "WAIT_ACK",
+    "ACKED",
+    "WAIT_RELEASE"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "waiting": 0,
+      "acked": 0,
+      "release": 0
+    },
+    "WAIT_ACK": {
+      "waiting": 1,
+      "acked": 0,
+      "release": 0
+    },
+    "ACKED": {
+      "waiting": 0,
+      "acked": 1,
+      "release": 0
+    },
+    "WAIT_RELEASE": {
+      "waiting": 0,
+      "acked": 0,
+      "release": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "req",
+      "to": "WAIT_ACK"
+    },
+    {
+      "from": "IDLE",
+      "when": "!req",
+      "to": "IDLE"
+    },
+    {
+      "from": "WAIT_ACK",
+      "when": "peer_ack",
+      "to": "ACKED"
+    },
+    {
+      "from": "WAIT_ACK",
+      "when": "!peer_ack",
+      "to": "WAIT_ACK"
+    },
+    {
+      "from": "ACKED",
+      "when": "true",
+      "to": "WAIT_RELEASE"
+    },
+    {
+      "from": "WAIT_RELEASE",
+      "when": "req",
+      "to": "WAIT_RELEASE"
+    },
+    {
+      "from": "WAIT_RELEASE",
+      "when": "!req",
+      "to": "IDLE"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({waiting, acked, release})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!waiting && !acked && !release",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to WAIT_ACK when req",
+      "antecedent": "(!waiting && !acked && !release) && (req)",
+      "consequent": "waiting && !acked && !release",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to IDLE when !req",
+      "antecedent": "(!waiting && !acked && !release) && (!req)",
+      "consequent": "!waiting && !acked && !release",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "WAIT_ACK transitions to ACKED when peer_ack",
+      "antecedent": "(waiting && !acked && !release) && (peer_ack)",
+      "consequent": "!waiting && acked && !release",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "WAIT_ACK transitions to WAIT_ACK when !peer_ack",
+      "antecedent": "(waiting && !acked && !release) && (!peer_ack)",
+      "consequent": "waiting && !acked && !release",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "ACKED transitions to WAIT_RELEASE when true",
+      "antecedent": "!waiting && acked && !release",
+      "consequent": "!waiting && !acked && release",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "WAIT_RELEASE transitions to WAIT_RELEASE when req",
+      "antecedent": "(!waiting && !acked && release) && (req)",
+      "consequent": "!waiting && !acked && release",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P9_T7",
+      "sva_name": "p_t7",
+      "type": "next_cycle_implication",
+      "natural_language": "WAIT_RELEASE transitions to IDLE when !req",
+      "antecedent": "(!waiting && !acked && release) && (!req)",
+      "consequent": "!waiting && !acked && !release",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "req",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "!req",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "WAIT_ACK",
+      "old": "peer_ack",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

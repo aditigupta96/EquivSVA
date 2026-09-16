@@ -1,0 +1,67 @@
+[
+  {
+    "id": "P1_HIGH",
+    "sva_name": "p_high",
+    "type": "invariant",
+    "natural_language": "high marks values at or above ten",
+    "expression": "high == (value >= 4'd10)",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_LOW",
+    "sva_name": "p_low",
+    "type": "invariant",
+    "natural_language": "low marks values at or below three",
+    "expression": "low == (value <= 4'd3)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the center value",
+    "antecedent": "rst",
+    "consequent": "value == 4'd6",
+    "delay": 1
+  },
+  {
+    "id": "P4_CENTER",
+    "sva_name": "p_center",
+    "type": "next_cycle_implication",
+    "natural_language": "center has priority over arithmetic updates",
+    "antecedent": "center",
+    "consequent": "value == 4'd6",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_BOOST",
+    "sva_name": "p_boost",
+    "type": "next_cycle_implication",
+    "natural_language": "boost adds two when there is room",
+    "antecedent": "!center && boost && !drain && (value <= 4'd11)",
+    "consequent": "value == ($past(value) + 4'd2)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_BOOST_CLAMP",
+    "sva_name": "p_boost_clamp",
+    "type": "next_cycle_implication",
+    "natural_language": "boost near the top clamps to thirteen",
+    "antecedent": "!center && boost && !drain && (value > 4'd11)",
+    "consequent": "value == 4'd13",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_DRAIN",
+    "sva_name": "p_drain",
+    "type": "next_cycle_implication",
+    "natural_language": "drain subtracts one above the lower bound",
+    "antecedent": "!center && drain && !boost && (value > 4'd1)",
+    "consequent": "value == ($past(value) - 4'd1)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

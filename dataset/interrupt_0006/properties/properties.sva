@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: interrupt_0006
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({pending, servicing}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!pending && !servicing));
+
+// P3_T1: IDLE transitions to PENDING when irq && !mask.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!pending && !servicing) && (irq && !mask)) |=> (pending && !servicing));
+
+// P4_T2: IDLE transitions to IDLE when !(irq && !mask).
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!pending && !servicing) && (!(irq && !mask))) |=> (!pending && !servicing));
+
+// P5_T3: PENDING transitions to SERVICE when ack.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((pending && !servicing) && (ack)) |=> (!pending && servicing));
+
+// P6_T4: PENDING transitions to PENDING when !ack.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((pending && !servicing) && (!ack)) |=> (pending && !servicing));
+
+// P7_T5: SERVICE transitions to IDLE when true.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    (!pending && servicing) |=> (!pending && !servicing));

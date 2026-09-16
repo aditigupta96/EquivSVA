@@ -1,0 +1,46 @@
+// Generated from spec.json.
+// Design: mode_controller_0010
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({manual, automatic, off}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!manual && !automatic && off));
+
+// P3_T1: OFF transitions to AUTO when enable && auto_mode.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!manual && !automatic && off) && (enable && auto_mode)) |=> (!manual && automatic && !off));
+
+// P4_T2: OFF transitions to MANUAL when enable && !auto_mode.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!manual && !automatic && off) && (enable && !auto_mode)) |=> (manual && !automatic && !off));
+
+// P5_T3: OFF transitions to OFF when !enable.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((!manual && !automatic && off) && (!enable)) |=> (!manual && !automatic && off));
+
+// P6_T4: MANUAL transitions to OFF when disable.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((manual && !automatic && !off) && (disable)) |=> (!manual && !automatic && off));
+
+// P7_T5: MANUAL transitions to AUTO when !disable && auto_mode.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((manual && !automatic && !off) && (!disable && auto_mode)) |=> (!manual && automatic && !off));
+
+// P8_T6: MANUAL transitions to MANUAL when !disable && !auto_mode.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((manual && !automatic && !off) && (!disable && !auto_mode)) |=> (manual && !automatic && !off));
+
+// P9_T7: AUTO transitions to OFF when disable.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!manual && automatic && !off) && (disable)) |=> (!manual && !automatic && off));
+
+// P10_T8: AUTO transitions to MANUAL when !disable && !auto_mode.
+p_t8: assert property (@(posedge clk) disable iff (rst)
+    ((!manual && automatic && !off) && (!disable && !auto_mode)) |=> (manual && !automatic && !off));
+
+// P11_T9: AUTO transitions to AUTO when !disable && auto_mode.
+p_t9: assert property (@(posedge clk) disable iff (rst)
+    ((!manual && automatic && !off) && (!disable && auto_mode)) |=> (!manual && automatic && !off));

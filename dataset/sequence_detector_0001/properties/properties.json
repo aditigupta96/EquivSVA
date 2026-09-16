@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_ONEHOT_PROGRESS",
+    "type": "invariant",
+    "natural_language": "at most one progress output is active",
+    "disable": "rst",
+    "expression": "$onehot0({seen1, seen10, seen101, match})"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears all detector progress",
+    "antecedent": "rst",
+    "consequent": "!seen1 && !seen10 && !seen101 && !match",
+    "delay": 1
+  },
+  {
+    "id": "P3_FIRST_ONE",
+    "type": "next_cycle_implication",
+    "natural_language": "a one from the empty state begins the sequence",
+    "disable": "rst",
+    "antecedent": "!seen1 && !seen10 && !seen101 && !match && bit_in",
+    "consequent": "seen1",
+    "delay": 1
+  },
+  {
+    "id": "P4_ONE_ZERO",
+    "type": "next_cycle_implication",
+    "natural_language": "10 advances to the second progress state",
+    "disable": "rst",
+    "antecedent": "seen1 && !bit_in",
+    "consequent": "seen10",
+    "delay": 1
+  },
+  {
+    "id": "P5_101",
+    "type": "next_cycle_implication",
+    "natural_language": "101 advances to the third progress state",
+    "disable": "rst",
+    "antecedent": "seen10 && bit_in",
+    "consequent": "seen101",
+    "delay": 1
+  },
+  {
+    "id": "P6_MATCH",
+    "type": "next_cycle_implication",
+    "natural_language": "1011 produces match",
+    "disable": "rst",
+    "antecedent": "seen101 && bit_in",
+    "consequent": "match",
+    "delay": 1
+  },
+  {
+    "id": "P7_MATCH_OVERLAP",
+    "type": "next_cycle_implication",
+    "natural_language": "a one immediately following a match begins the next overlapping sequence",
+    "disable": "rst",
+    "antecedent": "match && bit_in",
+    "consequent": "seen1",
+    "delay": 1
+  }
+]

@@ -1,0 +1,42 @@
+// Generated from spec.json.
+// Design: mode_controller_0002
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({active, sleeping, off}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!active && !sleeping && off));
+
+// P3_T1: OFF transitions to ACTIVE when enable.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!active && !sleeping && off) && (enable)) |=> (active && !sleeping && !off));
+
+// P4_T2: OFF transitions to OFF when !enable.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!active && !sleeping && off) && (!enable)) |=> (!active && !sleeping && off));
+
+// P5_T3: ACTIVE transitions to OFF when !enable.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((active && !sleeping && !off) && (!enable)) |=> (!active && !sleeping && off));
+
+// P6_T4: ACTIVE transitions to SLEEP when enable && sleep.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((active && !sleeping && !off) && (enable && sleep)) |=> (!active && sleeping && !off));
+
+// P7_T5: ACTIVE transitions to ACTIVE when enable && !sleep.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((active && !sleeping && !off) && (enable && !sleep)) |=> (active && !sleeping && !off));
+
+// P8_T6: SLEEP transitions to OFF when !enable.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!active && sleeping && !off) && (!enable)) |=> (!active && !sleeping && off));
+
+// P9_T7: SLEEP transitions to ACTIVE when enable && wake.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!active && sleeping && !off) && (enable && wake)) |=> (active && !sleeping && !off));
+
+// P10_T8: SLEEP transitions to SLEEP when enable && !wake.
+p_t8: assert property (@(posedge clk) disable iff (rst)
+    ((!active && sleeping && !off) && (enable && !wake)) |=> (!active && sleeping && !off));

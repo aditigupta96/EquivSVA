@@ -1,0 +1,38 @@
+// Generated from spec.json.
+// Design: mode_controller_0003
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({normal, maint, off}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!normal && !maint && off));
+
+// P3_T1: OFF transitions to NORMAL when enable.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!normal && !maint && off) && (enable)) |=> (normal && !maint && !off));
+
+// P4_T2: OFF transitions to OFF when !enable.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!normal && !maint && off) && (!enable)) |=> (!normal && !maint && off));
+
+// P5_T3: NORMAL transitions to MAINT when maintenance.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((normal && !maint && !off) && (maintenance)) |=> (!normal && maint && !off));
+
+// P6_T4: NORMAL transitions to OFF when !maintenance && !enable.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((normal && !maint && !off) && (!maintenance && !enable)) |=> (!normal && !maint && off));
+
+// P7_T5: NORMAL transitions to NORMAL when !maintenance && enable.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((normal && !maint && !off) && (!maintenance && enable)) |=> (normal && !maint && !off));
+
+// P8_T6: MAINT transitions to NORMAL when exit_maintenance.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!normal && maint && !off) && (exit_maintenance)) |=> (normal && !maint && !off));
+
+// P9_T7: MAINT transitions to MAINT when !exit_maintenance.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!normal && maint && !off) && (!exit_maintenance)) |=> (!normal && maint && !off));

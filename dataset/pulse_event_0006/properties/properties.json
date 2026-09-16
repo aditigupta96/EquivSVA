@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({armed, pulse, cancelled})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "armed && !pulse && !cancelled",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "ARMED transitions to PULSE when trigger && !cancel",
+    "antecedent": "(armed && !pulse && !cancelled) && (trigger && !cancel)",
+    "consequent": "!armed && pulse && !cancelled",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "ARMED transitions to CANCEL when cancel",
+    "antecedent": "(armed && !pulse && !cancelled) && (cancel)",
+    "consequent": "!armed && !pulse && cancelled",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "ARMED transitions to ARMED when !trigger && !cancel",
+    "antecedent": "(armed && !pulse && !cancelled) && (!trigger && !cancel)",
+    "consequent": "armed && !pulse && !cancelled",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "PULSE transitions to ARMED when true",
+    "antecedent": "!armed && pulse && !cancelled",
+    "consequent": "armed && !pulse && !cancelled",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "CANCEL transitions to ARMED when true",
+    "antecedent": "!armed && !pulse && cancelled",
+    "consequent": "armed && !pulse && !cancelled",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

@@ -1,0 +1,199 @@
+{
+  "design_id": "saturating_arithmetic_0003",
+  "category": "saturating_arithmetic",
+  "model_type": "multi_register_rules",
+  "template": "clamped_accumulator_with_direction",
+  "description": "Clamped accumulator records the direction of the most recent successful update.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "clear",
+    "inc",
+    "dec"
+  ],
+  "outputs": [
+    "value",
+    "last_up",
+    "last_down",
+    "at_low",
+    "at_high"
+  ],
+  "signal_widths": {
+    "value": 3
+  },
+  "registers": [
+    {
+      "name": "value_reg",
+      "width": 3,
+      "reset_value": "3'd3"
+    },
+    {
+      "name": "dir_reg",
+      "width": 2,
+      "reset_value": "2'd0"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "Properties use interface-visible behavior only.",
+    "All RTL variants must be observationally equivalent."
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "manually_authored",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  },
+  "derived_outputs": {
+    "value": "value_reg",
+    "last_up": "dir_reg == 2'd1",
+    "last_down": "dir_reg == 2'd2",
+    "at_low": "value_reg == 3'd1",
+    "at_high": "value_reg == 3'd6"
+  },
+  "update_rules": {
+    "value_reg": [
+      {
+        "when": "clear",
+        "value": "3'd3"
+      },
+      {
+        "when": "!clear && inc && !dec && (value_reg < 3'd6)",
+        "value": "value_reg + 3'd1"
+      },
+      {
+        "when": "!clear && dec && !inc && (value_reg > 3'd1)",
+        "value": "value_reg - 3'd1"
+      },
+      {
+        "when": "true",
+        "value": "value_reg"
+      }
+    ],
+    "dir_reg": [
+      {
+        "when": "clear",
+        "value": "2'd0"
+      },
+      {
+        "when": "!clear && inc && !dec && (value_reg < 3'd6)",
+        "value": "2'd1"
+      },
+      {
+        "when": "!clear && dec && !inc && (value_reg > 3'd1)",
+        "value": "2'd2"
+      },
+      {
+        "when": "true",
+        "value": "dir_reg"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "id": "P1_LOW",
+      "sva_name": "p_low",
+      "type": "invariant",
+      "natural_language": "at_low reflects the lower clamp",
+      "expression": "at_low == (value == 3'd1)",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_HIGH",
+      "sva_name": "p_high",
+      "type": "invariant",
+      "natural_language": "at_high reflects the upper clamp",
+      "expression": "at_high == (value == 3'd6)",
+      "disable": "rst"
+    },
+    {
+      "id": "P3_DIR_MUTEX",
+      "sva_name": "p_dir_mutex",
+      "type": "invariant",
+      "natural_language": "last_up and last_down are mutually exclusive",
+      "expression": "!(last_up && last_down)",
+      "disable": "rst"
+    },
+    {
+      "id": "P4_RESET",
+      "sva_name": "p_reset",
+      "type": "next_cycle_implication",
+      "natural_language": "reset restores midpoint and clears direction",
+      "antecedent": "rst",
+      "consequent": "(value == 3'd3) && !last_up && !last_down",
+      "delay": 1
+    },
+    {
+      "id": "P5_INC",
+      "sva_name": "p_inc",
+      "type": "next_cycle_implication",
+      "natural_language": "successful increment advances value and records upward direction",
+      "antecedent": "!clear && inc && !dec && (value < 3'd6)",
+      "consequent": "(value == ($past(value) + 3'd1)) && last_up",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_DEC",
+      "sva_name": "p_dec",
+      "type": "next_cycle_implication",
+      "natural_language": "successful decrement advances value and records downward direction",
+      "antecedent": "!clear && dec && !inc && (value > 3'd1)",
+      "consequent": "(value == ($past(value) - 3'd1)) && last_down",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_inc_value",
+      "register": "value_reg",
+      "kind": "replace_update_guard",
+      "old": "!clear && inc && !dec && (value_reg < 3'd6)",
+      "new": "false"
+    },
+    {
+      "name": "ignore_dec_direction",
+      "register": "dir_reg",
+      "kind": "replace_update_guard",
+      "old": "!clear && dec && !inc && (value_reg > 3'd1)",
+      "new": "false"
+    },
+    {
+      "name": "ignore_clear_direction",
+      "register": "dir_reg",
+      "kind": "replace_update_guard",
+      "old": "clear",
+      "new": "false"
+    }
+  ]
+}

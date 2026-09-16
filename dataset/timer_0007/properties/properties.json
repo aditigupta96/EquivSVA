@@ -1,0 +1,49 @@
+[
+  {
+    "id": "P1_RESET",
+    "sva_name": "p_reset_value",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the register to its reset value",
+    "antecedent": "rst",
+    "consequent": "remaining == 3'd0",
+    "delay": 1
+  },
+  {
+    "id": "P2_EXPIRED",
+    "sva_name": "p_expired",
+    "type": "invariant",
+    "natural_language": "expired is consistent with the observable register value",
+    "expression": "expired == (remaining == 3'd0)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RULE",
+    "sva_name": "p_rule_3",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule load produces the specified next value",
+    "antecedent": "load",
+    "consequent": "remaining == (3'd7)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_RULE",
+    "sva_name": "p_rule_4",
+    "type": "next_cycle_implication",
+    "natural_language": "update rule !load && tick && (remaining > 3'd0) produces the specified next value",
+    "antecedent": "!load && tick && (remaining > 3'd0)",
+    "consequent": "remaining == ($past(remaining) - 3'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "when no update rule fires the register holds its value",
+    "antecedent": "!(load) && !(!load && tick && (remaining > 3'd0))",
+    "consequent": "remaining == $past(remaining)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

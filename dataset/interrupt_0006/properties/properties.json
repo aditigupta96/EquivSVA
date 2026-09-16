@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({pending, servicing})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!pending && !servicing",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to PENDING when irq && !mask",
+    "antecedent": "(!pending && !servicing) && (irq && !mask)",
+    "consequent": "pending && !servicing",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !(irq && !mask)",
+    "antecedent": "(!pending && !servicing) && (!(irq && !mask))",
+    "consequent": "!pending && !servicing",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "PENDING transitions to SERVICE when ack",
+    "antecedent": "(pending && !servicing) && (ack)",
+    "consequent": "!pending && servicing",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "PENDING transitions to PENDING when !ack",
+    "antecedent": "(pending && !servicing) && (!ack)",
+    "consequent": "pending && !servicing",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "SERVICE transitions to IDLE when true",
+    "antecedent": "!pending && servicing",
+    "consequent": "!pending && !servicing",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

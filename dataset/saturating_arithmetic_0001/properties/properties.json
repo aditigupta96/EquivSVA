@@ -1,0 +1,59 @@
+[
+  {
+    "id": "P1_MAX",
+    "sva_name": "p_at_max",
+    "type": "invariant",
+    "natural_language": "at_max exactly reflects the saturated value",
+    "disable": "rst",
+    "expression": "at_max == (value == 3'd7)"
+  },
+  {
+    "id": "P2_RESET",
+    "sva_name": "p_reset_zero",
+    "type": "next_cycle_implication",
+    "natural_language": "reset clears the accumulator",
+    "antecedent": "rst",
+    "consequent": "(value == 3'd0) && !at_max",
+    "delay": 1
+  },
+  {
+    "id": "P3_CLEAR",
+    "sva_name": "p_clear_zero",
+    "type": "next_cycle_implication",
+    "natural_language": "clear has priority",
+    "disable": "rst",
+    "antecedent": "clear",
+    "consequent": "value == 3'd0",
+    "delay": 1
+  },
+  {
+    "id": "P4_ADD",
+    "sva_name": "p_add_increment",
+    "type": "next_cycle_implication",
+    "natural_language": "add increments the accumulator below saturation",
+    "disable": "rst",
+    "antecedent": "!clear && add && (value < 3'd7)",
+    "consequent": "value == ($past(value) + 3'd1)",
+    "delay": 1
+  },
+  {
+    "id": "P5_SATURATE",
+    "sva_name": "p_saturate",
+    "type": "next_cycle_implication",
+    "natural_language": "an add at the maximum stays saturated",
+    "disable": "rst",
+    "antecedent": "!clear && add && (value == 3'd7)",
+    "consequent": "(value == 3'd7) && at_max",
+    "delay": 1
+  },
+  {
+    "id": "P6_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "without clear or add the accumulator holds",
+    "disable": "rst",
+    "antecedent": "!clear && !add",
+    "consequent": "value == $past(value)",
+    "delay": 1
+  }
+]

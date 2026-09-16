@@ -1,0 +1,42 @@
+// Generated from spec.json.
+// Design: mode_controller_0006
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({locked, ready, active}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (locked && !ready && !active));
+
+// P3_T1: LOCKED transitions to READY when unlock.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((locked && !ready && !active) && (unlock)) |=> (!locked && ready && !active));
+
+// P4_T2: LOCKED transitions to LOCKED when !unlock.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((locked && !ready && !active) && (!unlock)) |=> (locked && !ready && !active));
+
+// P5_T3: READY transitions to LOCKED when lock.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((!locked && ready && !active) && (lock)) |=> (locked && !ready && !active));
+
+// P6_T4: READY transitions to ACTIVE when !lock && operate.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((!locked && ready && !active) && (!lock && operate)) |=> (!locked && !ready && active));
+
+// P7_T5: READY transitions to READY when !lock && !operate.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((!locked && ready && !active) && (!lock && !operate)) |=> (!locked && ready && !active));
+
+// P8_T6: ACTIVE transitions to LOCKED when lock.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((!locked && !ready && active) && (lock)) |=> (locked && !ready && !active));
+
+// P9_T7: ACTIVE transitions to READY when !lock && !operate.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!locked && !ready && active) && (!lock && !operate)) |=> (!locked && ready && !active));
+
+// P10_T8: ACTIVE transitions to ACTIVE when !lock && operate.
+p_t8: assert property (@(posedge clk) disable iff (rst)
+    ((!locked && !ready && active) && (!lock && operate)) |=> (!locked && !ready && active));

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({low_pending, high_pending, service})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!low_pending && !high_pending && !service",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to HIGH when irq_hi",
+    "antecedent": "(!low_pending && !high_pending && !service) && (irq_hi)",
+    "consequent": "!low_pending && high_pending && !service",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to LOW when !irq_hi && irq_lo",
+    "antecedent": "(!low_pending && !high_pending && !service) && (!irq_hi && irq_lo)",
+    "consequent": "low_pending && !high_pending && !service",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !irq_hi && !irq_lo",
+    "antecedent": "(!low_pending && !high_pending && !service) && (!irq_hi && !irq_lo)",
+    "consequent": "!low_pending && !high_pending && !service",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "LOW transitions to HIGH when irq_hi",
+    "antecedent": "(low_pending && !high_pending && !service) && (irq_hi)",
+    "consequent": "!low_pending && high_pending && !service",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "LOW transitions to SERVICE when !irq_hi && ack",
+    "antecedent": "(low_pending && !high_pending && !service) && (!irq_hi && ack)",
+    "consequent": "!low_pending && !high_pending && service",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "LOW transitions to LOW when !irq_hi && !ack",
+    "antecedent": "(low_pending && !high_pending && !service) && (!irq_hi && !ack)",
+    "consequent": "low_pending && !high_pending && !service",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "HIGH transitions to SERVICE when ack",
+    "antecedent": "(!low_pending && high_pending && !service) && (ack)",
+    "consequent": "!low_pending && !high_pending && service",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P10_T8",
+    "type": "next_cycle_implication",
+    "natural_language": "HIGH transitions to HIGH when !ack",
+    "antecedent": "(!low_pending && high_pending && !service) && (!ack)",
+    "consequent": "!low_pending && high_pending && !service",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P11_T9",
+    "type": "next_cycle_implication",
+    "natural_language": "SERVICE transitions to IDLE when true",
+    "antecedent": "!low_pending && !high_pending && service",
+    "consequent": "!low_pending && !high_pending && !service",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

@@ -1,0 +1,35 @@
+// P1_RESET: reset starts at the midpoint with clear history
+property p_reset;
+    @(posedge clk) (rst) |=> ((value == 3'd3) && !hit_low && !hit_high);
+endproperty
+assert property (p_reset);
+
+// P2_INC: exclusive increment advances below the high bound
+property p_inc;
+    @(posedge clk) disable iff (rst) (inc && !dec && (value < 3'd6)) |=> (value == ($past(value) + 3'd1));
+endproperty
+assert property (p_inc);
+
+// P3_DEC: exclusive decrement advances above the low bound
+property p_dec;
+    @(posedge clk) disable iff (rst) (dec && !inc && (value > 3'd1)) |=> (value == ($past(value) - 3'd1));
+endproperty
+assert property (p_dec);
+
+// P4_HIGH_HISTORY: reaching the high boundary records high history
+property p_high_history;
+    @(posedge clk) disable iff (rst) (inc && !dec && (value == 3'd5)) |=> (hit_high);
+endproperty
+assert property (p_high_history);
+
+// P5_LOW_HISTORY: reaching the low boundary records low history
+property p_low_history;
+    @(posedge clk) disable iff (rst) (dec && !inc && (value == 3'd2)) |=> (hit_low);
+endproperty
+assert property (p_low_history);
+
+// P6_CLEAR_HISTORY: clear_history clears both sticky history bits
+property p_clear_history;
+    @(posedge clk) disable iff (rst) (clear_history) |=> (!hit_low && !hit_high);
+endproperty
+assert property (p_clear_history);

@@ -1,0 +1,43 @@
+// Gold interface properties for rate_limiter_0001
+
+// P1_ALLOW: allow is asserted exactly when a token is available
+property p_allow;
+    @(posedge clk) disable iff (rst) (allow == (tokens != 3'd0));
+endproperty
+assert property (p_allow);
+
+// P2_FULL: full is asserted exactly at capacity
+property p_full;
+    @(posedge clk) disable iff (rst) (full == (tokens == 3'd7));
+endproperty
+assert property (p_full);
+
+// P3_RESET: reset empties the token bucket
+property p_reset_empty;
+    @(posedge clk) (rst) |=> ((tokens == 3'd0) && !allow);
+endproperty
+assert property (p_reset_empty);
+
+// P4_REFILL: refill adds one token below capacity
+property p_refill;
+    @(posedge clk) disable iff (rst) (refill && (tokens < 3'd7)) |=> (tokens == ($past(tokens) + 3'd1));
+endproperty
+assert property (p_refill);
+
+// P5_CONSUME: consume removes one token when refill is absent
+property p_consume;
+    @(posedge clk) disable iff (rst) (!refill && consume && (tokens > 3'd0)) |=> (tokens == ($past(tokens) - 3'd1));
+endproperty
+assert property (p_consume);
+
+// P6_EMPTY_HOLD: consuming an empty bucket cannot underflow
+property p_empty_no_underflow;
+    @(posedge clk) disable iff (rst) (!refill && consume && (tokens == 3'd0)) |=> (tokens == 3'd0);
+endproperty
+assert property (p_empty_no_underflow);
+
+// P7_IDLE_HOLD: without refill or consume the number of tokens remains unchanged
+property p_idle_hold;
+    @(posedge clk) disable iff (rst) (!refill && !consume) |=> (tokens == $past(tokens));
+endproperty
+assert property (p_idle_hold);

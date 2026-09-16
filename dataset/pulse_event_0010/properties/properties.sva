@@ -1,0 +1,26 @@
+// Generated from spec.json.
+// Design: pulse_event_0010
+
+// P1_ONEHOT: event detector modes are mutually exclusive.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot({disarmed, armed, pulse, spent}));
+
+// P2_RESET: reset disarms the detector.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (disarmed));
+
+// P3_ARM: arm enables triggering.
+p_arm: assert property (@(posedge clk) disable iff (rst)
+    (disarmed && arm) |=> (armed));
+
+// P4_FIRE: trigger while armed emits a pulse.
+p_fire: assert property (@(posedge clk) disable iff (rst)
+    (armed && trigger) |=> (pulse));
+
+// P5_SPENT: a pulse becomes spent after one cycle.
+p_spent: assert property (@(posedge clk) disable iff (rst)
+    (pulse) |=> (spent));
+
+// P6_REARM: explicit rearm makes a spent detector armed again.
+p_rearm: assert property (@(posedge clk) disable iff (rst)
+    (spent && rearm) |=> (armed));

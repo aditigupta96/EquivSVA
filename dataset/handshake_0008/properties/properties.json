@@ -1,0 +1,80 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({busy, retrying, done})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!busy && !retrying && !done",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to WAIT when req",
+    "antecedent": "(!busy && !retrying && !done) && (req)",
+    "consequent": "busy && !retrying && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "IDLE transitions to IDLE when !req",
+    "antecedent": "(!busy && !retrying && !done) && (!req)",
+    "consequent": "!busy && !retrying && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "WAIT transitions to RETRY when retry",
+    "antecedent": "(busy && !retrying && !done) && (retry)",
+    "consequent": "!busy && retrying && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "WAIT transitions to DONE when !retry && accept",
+    "antecedent": "(busy && !retrying && !done) && (!retry && accept)",
+    "consequent": "!busy && !retrying && done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "WAIT transitions to WAIT when !retry && !accept",
+    "antecedent": "(busy && !retrying && !done) && (!retry && !accept)",
+    "consequent": "busy && !retrying && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "RETRY transitions to WAIT when true",
+    "antecedent": "!busy && retrying && !done",
+    "consequent": "busy && !retrying && !done",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P9_T7",
+    "type": "next_cycle_implication",
+    "natural_language": "DONE transitions to IDLE when true",
+    "antecedent": "!busy && !retrying && done",
+    "consequent": "!busy && !retrying && !done",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

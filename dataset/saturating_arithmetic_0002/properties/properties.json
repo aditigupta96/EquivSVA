@@ -1,0 +1,67 @@
+[
+  {
+    "id": "P1_MIN",
+    "sva_name": "p_min",
+    "type": "invariant",
+    "natural_language": "at_min reflects the lower saturation point",
+    "expression": "at_min == (value == 4'd2)",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_MAX",
+    "sva_name": "p_max",
+    "type": "invariant",
+    "natural_language": "at_max reflects the upper saturation point",
+    "expression": "at_max == (value == 4'd13)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores the midpoint",
+    "antecedent": "rst",
+    "consequent": "value == 4'd8",
+    "delay": 1
+  },
+  {
+    "id": "P4_LOAD",
+    "sva_name": "p_load",
+    "type": "next_cycle_implication",
+    "natural_language": "load_mid restores the midpoint",
+    "antecedent": "load_mid",
+    "consequent": "value == 4'd8",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_INC",
+    "sva_name": "p_inc",
+    "type": "next_cycle_implication",
+    "natural_language": "exclusive increment advances below the upper bound",
+    "antecedent": "!load_mid && inc && !dec && (value < 4'd13)",
+    "consequent": "value == ($past(value) + 4'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_DEC",
+    "sva_name": "p_dec",
+    "type": "next_cycle_implication",
+    "natural_language": "exclusive decrement advances toward the lower bound",
+    "antecedent": "!load_mid && dec && !inc && (value > 4'd2)",
+    "consequent": "value == ($past(value) - 4'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_BOTH_HOLD",
+    "sva_name": "p_both_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "simultaneous increment and decrement cancel",
+    "antecedent": "!load_mid && inc && dec",
+    "consequent": "value == $past(value)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

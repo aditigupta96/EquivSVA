@@ -1,0 +1,220 @@
+{
+  "design_id": "interrupt_0010",
+  "category": "interrupt_control",
+  "template": "cancelable_irq",
+  "description": "Pending interrupt may be explicitly cancelled before service.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "irq",
+    "cancel",
+    "ack"
+  ],
+  "outputs": [
+    "pending",
+    "service",
+    "cancelled"
+  ],
+  "states": [
+    "IDLE",
+    "PENDING",
+    "SERVICE",
+    "CANCEL"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "pending": 0,
+      "service": 0,
+      "cancelled": 0
+    },
+    "PENDING": {
+      "pending": 1,
+      "service": 0,
+      "cancelled": 0
+    },
+    "SERVICE": {
+      "pending": 0,
+      "service": 1,
+      "cancelled": 0
+    },
+    "CANCEL": {
+      "pending": 0,
+      "service": 0,
+      "cancelled": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "irq",
+      "to": "PENDING"
+    },
+    {
+      "from": "IDLE",
+      "when": "!irq",
+      "to": "IDLE"
+    },
+    {
+      "from": "PENDING",
+      "when": "cancel",
+      "to": "CANCEL"
+    },
+    {
+      "from": "PENDING",
+      "when": "!cancel && ack",
+      "to": "SERVICE"
+    },
+    {
+      "from": "PENDING",
+      "when": "!cancel && !ack",
+      "to": "PENDING"
+    },
+    {
+      "from": "SERVICE",
+      "when": "true",
+      "to": "IDLE"
+    },
+    {
+      "from": "CANCEL",
+      "when": "true",
+      "to": "IDLE"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({pending, service, cancelled})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!pending && !service && !cancelled",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to PENDING when irq",
+      "antecedent": "(!pending && !service && !cancelled) && (irq)",
+      "consequent": "pending && !service && !cancelled",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to IDLE when !irq",
+      "antecedent": "(!pending && !service && !cancelled) && (!irq)",
+      "consequent": "!pending && !service && !cancelled",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "PENDING transitions to CANCEL when cancel",
+      "antecedent": "(pending && !service && !cancelled) && (cancel)",
+      "consequent": "!pending && !service && cancelled",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "PENDING transitions to SERVICE when !cancel && ack",
+      "antecedent": "(pending && !service && !cancelled) && (!cancel && ack)",
+      "consequent": "!pending && service && !cancelled",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "PENDING transitions to PENDING when !cancel && !ack",
+      "antecedent": "(pending && !service && !cancelled) && (!cancel && !ack)",
+      "consequent": "pending && !service && !cancelled",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "SERVICE transitions to IDLE when true",
+      "antecedent": "!pending && service && !cancelled",
+      "consequent": "!pending && !service && !cancelled",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P9_T7",
+      "sva_name": "p_t7",
+      "type": "next_cycle_implication",
+      "natural_language": "CANCEL transitions to IDLE when true",
+      "antecedent": "!pending && !service && cancelled",
+      "consequent": "!pending && !service && !cancelled",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "irq",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "!irq",
+      "new": "false"
+    },
+    {
+      "name": "drop_t3",
+      "kind": "replace_transition_guard",
+      "from": "PENDING",
+      "old": "cancel",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

@@ -1,0 +1,41 @@
+// P1_READY: flush or available capacity permits acceptance
+property p_ready;
+    @(posedge clk) disable iff (rst) (ready == (!valid || pop || flush));
+endproperty
+assert property (p_ready);
+
+// P2_RESET: reset empties queue
+property p_reset;
+    @(posedge clk) (rst) |=> (!valid);
+endproperty
+assert property (p_reset);
+
+// P3_FLUSH: flush empties queue and preserves stored data bits
+property p_flush;
+    @(posedge clk) disable iff (rst) (flush) |=> (!valid && (dout == $past(dout)));
+endproperty
+assert property (p_flush);
+
+// P4_PUSH: non-flushed accepted push captures data
+property p_push;
+    @(posedge clk) disable iff (rst) (!flush && !valid && push) |=> (valid && (dout == $past(din)));
+endproperty
+assert property (p_push);
+
+// P5_POP: non-flushed pop without replacement empties
+property p_pop;
+    @(posedge clk) disable iff (rst) (!flush && valid && pop && !push) |=> (!valid);
+endproperty
+assert property (p_pop);
+
+// P6_REPLACE: non-flushed pop plus push replaces data
+property p_replace;
+    @(posedge clk) disable iff (rst) (!flush && valid && pop && push) |=> (valid && (dout == $past(din)));
+endproperty
+assert property (p_replace);
+
+// P7_HOLD: full non-flushed queue without pop holds
+property p_hold;
+    @(posedge clk) disable iff (rst) (!flush && valid && !pop) |=> (valid && (dout == $past(dout)));
+endproperty
+assert property (p_hold);

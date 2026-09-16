@@ -1,0 +1,67 @@
+[
+  {
+    "id": "P1_ALLOW",
+    "sva_name": "p_allow",
+    "type": "invariant",
+    "natural_language": "allow is true before quota exhaustion",
+    "expression": "allow == (used < 2'd3)",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_EXHAUSTED",
+    "sva_name": "p_exhausted",
+    "type": "invariant",
+    "natural_language": "exhausted marks full quota usage",
+    "expression": "exhausted == (used == 2'd3)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset starts with unused quota and epoch zero",
+    "antecedent": "rst",
+    "consequent": "(used == 2'd0) && !epoch",
+    "delay": 1
+  },
+  {
+    "id": "P4_USE",
+    "sva_name": "p_use",
+    "type": "next_cycle_implication",
+    "natural_language": "an allowed request consumes one quota unit",
+    "antecedent": "!new_window && request && (used < 2'd3)",
+    "consequent": "used == ($past(used) + 2'd1)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_WINDOW",
+    "sva_name": "p_window",
+    "type": "next_cycle_implication",
+    "natural_language": "new window clears quota usage",
+    "antecedent": "new_window",
+    "consequent": "used == 2'd0",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_EPOCH",
+    "sva_name": "p_epoch",
+    "type": "next_cycle_implication",
+    "natural_language": "new window toggles the epoch marker",
+    "antecedent": "new_window",
+    "consequent": "epoch != $past(epoch)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "without request or window reset usage holds",
+    "antecedent": "!new_window && !request",
+    "consequent": "used == $past(used)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

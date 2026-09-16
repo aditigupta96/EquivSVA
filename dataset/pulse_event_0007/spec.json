@@ -1,0 +1,187 @@
+{
+  "design_id": "pulse_event_0007",
+  "category": "pulse_event",
+  "template": "two_cycle_cooldown",
+  "description": "Pulse/event controller implementing two cycle cooldown semantics.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "ARMED"
+  },
+  "inputs": [
+    "trigger"
+  ],
+  "outputs": [
+    "armed",
+    "pulse",
+    "cooldown"
+  ],
+  "states": [
+    "ARMED",
+    "PULSE",
+    "COOL1",
+    "COOL2"
+  ],
+  "state_outputs": {
+    "ARMED": {
+      "armed": 1,
+      "pulse": 0,
+      "cooldown": 0
+    },
+    "PULSE": {
+      "armed": 0,
+      "pulse": 1,
+      "cooldown": 0
+    },
+    "COOL1": {
+      "armed": 0,
+      "pulse": 0,
+      "cooldown": 1
+    },
+    "COOL2": {
+      "armed": 0,
+      "pulse": 0,
+      "cooldown": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "ARMED",
+      "when": "trigger",
+      "to": "PULSE"
+    },
+    {
+      "from": "ARMED",
+      "when": "!trigger",
+      "to": "ARMED"
+    },
+    {
+      "from": "PULSE",
+      "when": "true",
+      "to": "COOL1"
+    },
+    {
+      "from": "COOL1",
+      "when": "true",
+      "to": "COOL2"
+    },
+    {
+      "from": "COOL2",
+      "when": "true",
+      "to": "ARMED"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({armed, pulse, cooldown})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "armed && !pulse && !cooldown",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "ARMED transitions to PULSE when trigger",
+      "antecedent": "(armed && !pulse && !cooldown) && (trigger)",
+      "consequent": "!armed && pulse && !cooldown",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "ARMED transitions to ARMED when !trigger",
+      "antecedent": "(armed && !pulse && !cooldown) && (!trigger)",
+      "consequent": "armed && !pulse && !cooldown",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "PULSE transitions to COOL1 when true",
+      "antecedent": "!armed && pulse && !cooldown",
+      "consequent": "!armed && !pulse && cooldown",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "COOL1 transitions to COOL2 when true",
+      "antecedent": "!armed && !pulse && cooldown",
+      "consequent": "!armed && !pulse && cooldown",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "COOL2 transitions to ARMED when true",
+      "antecedent": "!armed && !pulse && cooldown",
+      "consequent": "armed && !pulse && !cooldown",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "ARMED",
+      "old": "trigger",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "ARMED",
+      "old": "!trigger",
+      "new": "false"
+    },
+    {
+      "name": "redirect_t3",
+      "kind": "force_transition",
+      "from": "PULSE",
+      "to": "ARMED"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

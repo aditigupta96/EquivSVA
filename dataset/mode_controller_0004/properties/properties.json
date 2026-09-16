@@ -1,0 +1,71 @@
+[
+  {
+    "id": "P1_STATE_ENCODING",
+    "type": "invariant",
+    "natural_language": "observable state outputs always encode at most one active mode",
+    "expression": "$onehot0({running, safe, faulted})",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "type": "next_cycle_implication",
+    "natural_language": "reset returns the controller to its reset behavior",
+    "antecedent": "rst",
+    "consequent": "!running && safe && !faulted",
+    "delay": 1
+  },
+  {
+    "id": "P3_T1",
+    "type": "next_cycle_implication",
+    "natural_language": "SAFE transitions to RUN when start",
+    "antecedent": "(!running && safe && !faulted) && (start)",
+    "consequent": "running && !safe && !faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_T2",
+    "type": "next_cycle_implication",
+    "natural_language": "SAFE transitions to SAFE when !start",
+    "antecedent": "(!running && safe && !faulted) && (!start)",
+    "consequent": "!running && safe && !faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_T3",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to FAULT when fault",
+    "antecedent": "(running && !safe && !faulted) && (fault)",
+    "consequent": "!running && !safe && faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_T4",
+    "type": "next_cycle_implication",
+    "natural_language": "RUN transitions to RUN when !fault",
+    "antecedent": "(running && !safe && !faulted) && (!fault)",
+    "consequent": "running && !safe && !faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_T5",
+    "type": "next_cycle_implication",
+    "natural_language": "FAULT transitions to SAFE when clear",
+    "antecedent": "(!running && !safe && faulted) && (clear)",
+    "consequent": "!running && safe && !faulted",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P8_T6",
+    "type": "next_cycle_implication",
+    "natural_language": "FAULT transitions to FAULT when !clear",
+    "antecedent": "(!running && !safe && faulted) && (!clear)",
+    "consequent": "!running && !safe && faulted",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

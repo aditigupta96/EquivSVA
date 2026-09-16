@@ -1,0 +1,220 @@
+{
+  "design_id": "protocol_controller_0009",
+  "category": "protocol_controller",
+  "template": "open_transfer_close",
+  "description": "Protocol controller implementing open transfer close behavior.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true,
+    "state": "IDLE"
+  },
+  "inputs": [
+    "open",
+    "transfer_done",
+    "close"
+  ],
+  "outputs": [
+    "opened",
+    "transferring",
+    "closed"
+  ],
+  "states": [
+    "IDLE",
+    "OPEN",
+    "XFER",
+    "CLOSE"
+  ],
+  "state_outputs": {
+    "IDLE": {
+      "opened": 0,
+      "transferring": 0,
+      "closed": 0
+    },
+    "OPEN": {
+      "opened": 1,
+      "transferring": 0,
+      "closed": 0
+    },
+    "XFER": {
+      "opened": 0,
+      "transferring": 1,
+      "closed": 0
+    },
+    "CLOSE": {
+      "opened": 0,
+      "transferring": 0,
+      "closed": 1
+    }
+  },
+  "transitions": [
+    {
+      "from": "IDLE",
+      "when": "open",
+      "to": "OPEN"
+    },
+    {
+      "from": "IDLE",
+      "when": "!open",
+      "to": "IDLE"
+    },
+    {
+      "from": "OPEN",
+      "when": "true",
+      "to": "XFER"
+    },
+    {
+      "from": "XFER",
+      "when": "transfer_done",
+      "to": "CLOSE"
+    },
+    {
+      "from": "XFER",
+      "when": "!transfer_done",
+      "to": "XFER"
+    },
+    {
+      "from": "CLOSE",
+      "when": "close",
+      "to": "IDLE"
+    },
+    {
+      "from": "CLOSE",
+      "when": "!close",
+      "to": "CLOSE"
+    }
+  ],
+  "rtl_variants": [
+    "canonical_case",
+    "onehot_case",
+    "nested_if",
+    "factored_flags"
+  ],
+  "notes": [
+    "All benchmark properties use interface-visible signals only.",
+    "All RTL variants must be observationally equivalent after reset."
+  ],
+  "properties": [
+    {
+      "id": "P1_STATE_ENCODING",
+      "sva_name": "p_state_encoding",
+      "type": "invariant",
+      "natural_language": "observable state outputs always encode at most one active mode",
+      "expression": "$onehot0({opened, transferring, closed})",
+      "disable": "rst"
+    },
+    {
+      "id": "P2_RESET",
+      "sva_name": "p_reset_state",
+      "type": "next_cycle_implication",
+      "natural_language": "reset returns the controller to its reset behavior",
+      "antecedent": "rst",
+      "consequent": "!opened && !transferring && !closed",
+      "delay": 1
+    },
+    {
+      "id": "P3_T1",
+      "sva_name": "p_t1",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to OPEN when open",
+      "antecedent": "(!opened && !transferring && !closed) && (open)",
+      "consequent": "opened && !transferring && !closed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_T2",
+      "sva_name": "p_t2",
+      "type": "next_cycle_implication",
+      "natural_language": "IDLE transitions to IDLE when !open",
+      "antecedent": "(!opened && !transferring && !closed) && (!open)",
+      "consequent": "!opened && !transferring && !closed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_T3",
+      "sva_name": "p_t3",
+      "type": "next_cycle_implication",
+      "natural_language": "OPEN transitions to XFER when true",
+      "antecedent": "opened && !transferring && !closed",
+      "consequent": "!opened && transferring && !closed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_T4",
+      "sva_name": "p_t4",
+      "type": "next_cycle_implication",
+      "natural_language": "XFER transitions to CLOSE when transfer_done",
+      "antecedent": "(!opened && transferring && !closed) && (transfer_done)",
+      "consequent": "!opened && !transferring && closed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P7_T5",
+      "sva_name": "p_t5",
+      "type": "next_cycle_implication",
+      "natural_language": "XFER transitions to XFER when !transfer_done",
+      "antecedent": "(!opened && transferring && !closed) && (!transfer_done)",
+      "consequent": "!opened && transferring && !closed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P8_T6",
+      "sva_name": "p_t6",
+      "type": "next_cycle_implication",
+      "natural_language": "CLOSE transitions to IDLE when close",
+      "antecedent": "(!opened && !transferring && closed) && (close)",
+      "consequent": "!opened && !transferring && !closed",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P9_T7",
+      "sva_name": "p_t7",
+      "type": "next_cycle_implication",
+      "natural_language": "CLOSE transitions to CLOSE when !close",
+      "antecedent": "(!opened && !transferring && closed) && (!close)",
+      "consequent": "!opened && !transferring && closed",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "drop_t1",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "open",
+      "new": "false"
+    },
+    {
+      "name": "drop_t2",
+      "kind": "replace_transition_guard",
+      "from": "IDLE",
+      "old": "!open",
+      "new": "false"
+    },
+    {
+      "name": "drop_t4",
+      "kind": "replace_transition_guard",
+      "from": "XFER",
+      "old": "transfer_done",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

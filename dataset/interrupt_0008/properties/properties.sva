@@ -1,0 +1,46 @@
+// Generated from spec.json.
+// Design: interrupt_0008
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({low_pending, high_pending, service}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (!low_pending && !high_pending && !service));
+
+// P3_T1: IDLE transitions to HIGH when irq_hi.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((!low_pending && !high_pending && !service) && (irq_hi)) |=> (!low_pending && high_pending && !service));
+
+// P4_T2: IDLE transitions to LOW when !irq_hi && irq_lo.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((!low_pending && !high_pending && !service) && (!irq_hi && irq_lo)) |=> (low_pending && !high_pending && !service));
+
+// P5_T3: IDLE transitions to IDLE when !irq_hi && !irq_lo.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((!low_pending && !high_pending && !service) && (!irq_hi && !irq_lo)) |=> (!low_pending && !high_pending && !service));
+
+// P6_T4: LOW transitions to HIGH when irq_hi.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((low_pending && !high_pending && !service) && (irq_hi)) |=> (!low_pending && high_pending && !service));
+
+// P7_T5: LOW transitions to SERVICE when !irq_hi && ack.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    ((low_pending && !high_pending && !service) && (!irq_hi && ack)) |=> (!low_pending && !high_pending && service));
+
+// P8_T6: LOW transitions to LOW when !irq_hi && !ack.
+p_t6: assert property (@(posedge clk) disable iff (rst)
+    ((low_pending && !high_pending && !service) && (!irq_hi && !ack)) |=> (low_pending && !high_pending && !service));
+
+// P9_T7: HIGH transitions to SERVICE when ack.
+p_t7: assert property (@(posedge clk) disable iff (rst)
+    ((!low_pending && high_pending && !service) && (ack)) |=> (!low_pending && !high_pending && service));
+
+// P10_T8: HIGH transitions to HIGH when !ack.
+p_t8: assert property (@(posedge clk) disable iff (rst)
+    ((!low_pending && high_pending && !service) && (!ack)) |=> (!low_pending && high_pending && !service));
+
+// P11_T9: SERVICE transitions to IDLE when true.
+p_t9: assert property (@(posedge clk) disable iff (rst)
+    (!low_pending && !high_pending && service) |=> (!low_pending && !high_pending && !service));

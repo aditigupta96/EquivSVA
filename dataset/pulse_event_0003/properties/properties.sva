@@ -1,0 +1,30 @@
+// Generated from spec.json.
+// Design: pulse_event_0003
+
+// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
+p_state_encoding: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({waiting_high, pulse, waiting_low}));
+
+// P2_RESET: reset returns the controller to its reset behavior.
+p_reset_state: assert property (@(posedge clk)
+    (rst) |=> (waiting_high && !pulse && !waiting_low));
+
+// P3_T1: WAIT_HIGH transitions to WAIT_LOW when event_in.
+p_t1: assert property (@(posedge clk) disable iff (rst)
+    ((waiting_high && !pulse && !waiting_low) && (event_in)) |=> (!waiting_high && !pulse && waiting_low));
+
+// P4_T2: WAIT_HIGH transitions to WAIT_HIGH when !event_in.
+p_t2: assert property (@(posedge clk) disable iff (rst)
+    ((waiting_high && !pulse && !waiting_low) && (!event_in)) |=> (waiting_high && !pulse && !waiting_low));
+
+// P5_T3: WAIT_LOW transitions to PULSE when !event_in.
+p_t3: assert property (@(posedge clk) disable iff (rst)
+    ((!waiting_high && !pulse && waiting_low) && (!event_in)) |=> (!waiting_high && pulse && !waiting_low));
+
+// P6_T4: WAIT_LOW transitions to WAIT_LOW when event_in.
+p_t4: assert property (@(posedge clk) disable iff (rst)
+    ((!waiting_high && !pulse && waiting_low) && (event_in)) |=> (!waiting_high && !pulse && waiting_low));
+
+// P7_T5: PULSE transitions to WAIT_HIGH when true.
+p_t5: assert property (@(posedge clk) disable iff (rst)
+    (!waiting_high && pulse && !waiting_low) |=> (waiting_high && !pulse && !waiting_low));

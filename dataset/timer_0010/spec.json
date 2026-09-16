@@ -1,0 +1,168 @@
+{
+  "design_id": "timer_0010",
+  "category": "timer_watchdog",
+  "model_type": "register_rules",
+  "template": "periodic_phase_timer",
+  "description": "Modulo-eight phase timer with synchronous restart.",
+  "clock": {
+    "name": "clk",
+    "edge": "posedge"
+  },
+  "reset": {
+    "name": "rst",
+    "active": "high",
+    "synchronous": true
+  },
+  "inputs": [
+    "restart",
+    "tick"
+  ],
+  "outputs": [
+    "phase",
+    "terminal"
+  ],
+  "signal_widths": {
+    "phase": 3
+  },
+  "registers": [
+    {
+      "name": "phase",
+      "width": 3,
+      "reset_value": "3'd0",
+      "observable": true
+    }
+  ],
+  "derived_outputs": {
+    "terminal": "phase == 3'd7"
+  },
+  "update_rules": [
+    {
+      "when": "restart",
+      "value": "3'd0"
+    },
+    {
+      "when": "!restart && tick && (phase < 3'd7)",
+      "value": "phase + 3'd1"
+    },
+    {
+      "when": "!restart && tick && (phase == 3'd7)",
+      "value": "3'd0"
+    },
+    {
+      "when": "true",
+      "value": "phase"
+    }
+  ],
+  "rtl_variants": [
+    {
+      "name": "canonical",
+      "module_suffix": "canonical_next",
+      "file": "canonical_next.sv"
+    },
+    {
+      "name": "sequential",
+      "module_suffix": "sequential_priority",
+      "file": "sequential_priority.sv"
+    },
+    {
+      "name": "ternary",
+      "module_suffix": "ternary_next",
+      "file": "ternary_next.sv"
+    },
+    {
+      "name": "function",
+      "module_suffix": "function_update",
+      "file": "function_update.sv"
+    }
+  ],
+  "notes": [
+    "The state register is interface-visible and part of observable equivalence.",
+    "All benchmark properties use interface-visible signals only."
+  ],
+  "properties": [
+    {
+      "id": "P1_RESET",
+      "sva_name": "p_reset_value",
+      "type": "next_cycle_implication",
+      "natural_language": "reset restores the register to its reset value",
+      "antecedent": "rst",
+      "consequent": "phase == 3'd0",
+      "delay": 1
+    },
+    {
+      "id": "P2_TERMINAL",
+      "sva_name": "p_terminal",
+      "type": "invariant",
+      "natural_language": "terminal is consistent with the observable register value",
+      "expression": "terminal == (phase == 3'd7)",
+      "disable": "rst"
+    },
+    {
+      "id": "P3_RULE",
+      "sva_name": "p_rule_3",
+      "type": "next_cycle_implication",
+      "natural_language": "update rule restart produces the specified next value",
+      "antecedent": "restart",
+      "consequent": "phase == (3'd0)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P4_RULE",
+      "sva_name": "p_rule_4",
+      "type": "next_cycle_implication",
+      "natural_language": "update rule !restart && tick && (phase < 3'd7) produces the specified next value",
+      "antecedent": "!restart && tick && (phase < 3'd7)",
+      "consequent": "phase == ($past(phase) + 3'd1)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P5_RULE",
+      "sva_name": "p_rule_5",
+      "type": "next_cycle_implication",
+      "natural_language": "update rule !restart && tick && (phase == 3'd7) produces the specified next value",
+      "antecedent": "!restart && tick && (phase == 3'd7)",
+      "consequent": "phase == (3'd0)",
+      "delay": 1,
+      "disable": "rst"
+    },
+    {
+      "id": "P6_HOLD",
+      "sva_name": "p_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "when no update rule fires the register holds its value",
+      "antecedent": "!(restart) && !(!restart && tick && (phase < 3'd7)) && !(!restart && tick && (phase == 3'd7))",
+      "consequent": "phase == $past(phase)",
+      "delay": 1,
+      "disable": "rst"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "ignore_restart",
+      "kind": "replace_update_guard",
+      "old": "restart",
+      "new": "false"
+    },
+    {
+      "name": "stop_at_terminal",
+      "kind": "replace_update_guard",
+      "old": "!restart && tick && (phase == 3'd7)",
+      "new": "false"
+    },
+    {
+      "name": "ignore_tick",
+      "kind": "replace_update_guard",
+      "old": "!restart && tick && (phase < 3'd7)",
+      "new": "false"
+    }
+  ],
+  "provenance": {
+    "source_type": "original_synthetic",
+    "source": "EquivSVA",
+    "behavior_spec_creation": "programmatic_template_instantiation",
+    "rtl_generation": "programmatic_from_behavior_spec",
+    "derived_from_external_benchmark": false
+  }
+}

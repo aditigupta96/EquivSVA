@@ -1,0 +1,26 @@
+// Generated from spec.json.
+// Design: protocol_controller_0001
+
+// P1_MUTEX: busy, done, and error are mutually exclusive.
+p_outputs_mutex: assert property (@(posedge clk) disable iff (rst)
+    $onehot0({busy, done, error}));
+
+// P2_RESET: reset returns the controller to idle.
+p_reset_idle: assert property (@(posedge clk)
+    (rst) |=> (!busy && !done && !error));
+
+// P3_START: start begins a transaction.
+p_start_busy: assert property (@(posedge clk) disable iff (rst)
+    (!busy && !done && !error && start) |=> (busy));
+
+// P4_ACK: ack completes a non-aborted transaction.
+p_ack_done: assert property (@(posedge clk) disable iff (rst)
+    (busy && ack && !abort) |=> (done));
+
+// P5_ABORT: abort terminates the transaction with error.
+p_abort_error: assert property (@(posedge clk) disable iff (rst)
+    (busy && abort) |=> (error));
+
+// P6_DONE_PULSE: done returns to idle after one cycle.
+p_done_pulse: assert property (@(posedge clk) disable iff (rst)
+    (done) |=> (!busy && !done && !error));

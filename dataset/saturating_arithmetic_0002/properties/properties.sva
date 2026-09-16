@@ -1,0 +1,43 @@
+// Gold interface properties for saturating_arithmetic_0002
+
+// P1_MIN: at_min reflects the lower saturation point
+property p_min;
+    @(posedge clk) disable iff (rst) (at_min == (value == 4'd2));
+endproperty
+assert property (p_min);
+
+// P2_MAX: at_max reflects the upper saturation point
+property p_max;
+    @(posedge clk) disable iff (rst) (at_max == (value == 4'd13));
+endproperty
+assert property (p_max);
+
+// P3_RESET: reset restores the midpoint
+property p_reset;
+    @(posedge clk) (rst) |=> (value == 4'd8);
+endproperty
+assert property (p_reset);
+
+// P4_LOAD: load_mid restores the midpoint
+property p_load;
+    @(posedge clk) disable iff (rst) (load_mid) |=> (value == 4'd8);
+endproperty
+assert property (p_load);
+
+// P5_INC: exclusive increment advances below the upper bound
+property p_inc;
+    @(posedge clk) disable iff (rst) (!load_mid && inc && !dec && (value < 4'd13)) |=> (value == ($past(value) + 4'd1));
+endproperty
+assert property (p_inc);
+
+// P6_DEC: exclusive decrement advances toward the lower bound
+property p_dec;
+    @(posedge clk) disable iff (rst) (!load_mid && dec && !inc && (value > 4'd2)) |=> (value == ($past(value) - 4'd1));
+endproperty
+assert property (p_dec);
+
+// P7_BOTH_HOLD: simultaneous increment and decrement cancel
+property p_both_hold;
+    @(posedge clk) disable iff (rst) (!load_mid && inc && dec) |=> (value == $past(value));
+endproperty
+assert property (p_both_hold);

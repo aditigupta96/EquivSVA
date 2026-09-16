@@ -1,0 +1,57 @@
+[
+  {
+    "id": "P1_HIGH",
+    "sva_name": "p_high",
+    "type": "invariant",
+    "natural_language": "high reflects values nine and above",
+    "expression": "high == (value >= 4'd9)",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_LOW",
+    "sva_name": "p_low",
+    "type": "invariant",
+    "natural_language": "low reflects values three and below",
+    "expression": "low == (value <= 4'd3)",
+    "disable": "rst"
+  },
+  {
+    "id": "P3_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset restores center value",
+    "antecedent": "rst",
+    "consequent": "value == 4'd6",
+    "delay": 1
+  },
+  {
+    "id": "P4_CENTER",
+    "sva_name": "p_center",
+    "type": "next_cycle_implication",
+    "natural_language": "center has priority",
+    "antecedent": "center",
+    "consequent": "value == 4'd6",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_BOOST",
+    "sva_name": "p_boost",
+    "type": "next_cycle_implication",
+    "natural_language": "boost adds three when not near the upper clamp",
+    "antecedent": "!center && boost && (value <= 4'd9)",
+    "consequent": "value == ($past(value) + 4'd3)",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_DRAIN",
+    "sva_name": "p_drain",
+    "type": "next_cycle_implication",
+    "natural_language": "drain subtracts two when boost is absent",
+    "antecedent": "!center && !boost && drain && (value >= 4'd4)",
+    "consequent": "value == ($past(value) - 4'd2)",
+    "delay": 1,
+    "disable": "rst"
+  }
+]

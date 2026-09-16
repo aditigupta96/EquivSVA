@@ -1,0 +1,69 @@
+[
+  {
+    "id": "P1_READY",
+    "sva_name": "p_ready",
+    "type": "invariant",
+    "natural_language": "flush or available capacity permits acceptance",
+    "expression": "ready == (!valid || pop || flush)",
+    "disable": "rst"
+  },
+  {
+    "id": "P2_RESET",
+    "sva_name": "p_reset",
+    "type": "next_cycle_implication",
+    "natural_language": "reset empties queue",
+    "antecedent": "rst",
+    "consequent": "!valid",
+    "delay": 1
+  },
+  {
+    "id": "P3_FLUSH",
+    "sva_name": "p_flush",
+    "type": "next_cycle_implication",
+    "natural_language": "flush empties queue and preserves stored data bits",
+    "antecedent": "flush",
+    "consequent": "!valid && (dout == $past(dout))",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P4_PUSH",
+    "sva_name": "p_push",
+    "type": "next_cycle_implication",
+    "natural_language": "non-flushed accepted push captures data",
+    "antecedent": "!flush && !valid && push",
+    "consequent": "valid && (dout == $past(din))",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P5_POP",
+    "sva_name": "p_pop",
+    "type": "next_cycle_implication",
+    "natural_language": "non-flushed pop without replacement empties",
+    "antecedent": "!flush && valid && pop && !push",
+    "consequent": "!valid",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P6_REPLACE",
+    "sva_name": "p_replace",
+    "type": "next_cycle_implication",
+    "natural_language": "non-flushed pop plus push replaces data",
+    "antecedent": "!flush && valid && pop && push",
+    "consequent": "valid && (dout == $past(din))",
+    "delay": 1,
+    "disable": "rst"
+  },
+  {
+    "id": "P7_HOLD",
+    "sva_name": "p_hold",
+    "type": "next_cycle_implication",
+    "natural_language": "full non-flushed queue without pop holds",
+    "antecedent": "!flush && valid && !pop",
+    "consequent": "valid && (dout == $past(dout))",
+    "delay": 1,
+    "disable": "rst"
+  }
+]
