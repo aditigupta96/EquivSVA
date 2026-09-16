@@ -171,6 +171,16 @@
       "consequent": "(value == ($past(value) - 3'd1)) && last_down",
       "delay": 1,
       "disable": "rst"
+    },
+    {
+      "id": "P7_CLEAR_DIRECTION",
+      "sva_name": "p_clear_direction",
+      "type": "next_cycle_implication",
+      "natural_language": "clear removes the remembered update direction",
+      "antecedent": "clear",
+      "consequent": "!last_up && !last_down",
+      "delay": 1,
+      "disable": "rst"
     }
   ],
   "mutants": [

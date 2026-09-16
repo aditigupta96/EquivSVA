@@ -138,10 +138,10 @@
       "new": "false"
     },
     {
-      "name": "increment_beats_load",
+      "name": "load_blocked_by_increment",
       "kind": "replace_update_guard",
-      "old": "!load && increment && (count < 3'd7)",
-      "new": "increment && (count < 3'd7)"
+      "old": "load",
+      "new": "load && !increment"
     }
   ],
   "provenance": {

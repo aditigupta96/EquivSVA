@@ -49,5 +49,14 @@
     "consequent": "done",
     "delay": 1,
     "disable": "rst"
+  },
+  {
+    "id": "P7_CANCEL_EXEC",
+    "type": "next_cycle_implication",
+    "natural_language": "cancel during execution terminates the operation",
+    "antecedent": "executing && cancel",
+    "consequent": "cancelled",
+    "delay": 1,
+    "disable": "rst"
   }
 ]

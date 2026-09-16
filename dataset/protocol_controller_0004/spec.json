@@ -195,6 +195,16 @@
       "consequent": "failed",
       "delay": 1,
       "disable": "rst"
+    },
+    {
+      "id": "P7_RESET_FAILURE",
+      "sva_name": "p_reset_failure",
+      "type": "next_cycle_implication",
+      "natural_language": "reset_fail releases the terminal failure state",
+      "antecedent": "failed && reset_fail",
+      "consequent": "!attempting && !retrying && !done && !failed",
+      "delay": 1,
+      "disable": "rst"
     }
   ],
   "mutants": [

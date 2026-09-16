@@ -33,7 +33,7 @@
     "sva_name": "p_high_history",
     "type": "next_cycle_implication",
     "natural_language": "reaching the high boundary records high history",
-    "antecedent": "inc && !dec && (value == 3'd5)",
+    "antecedent": "!clear_history && inc && !dec && (value == 3'd5)",
     "consequent": "hit_high",
     "delay": 1,
     "disable": "rst"
@@ -43,7 +43,7 @@
     "sva_name": "p_low_history",
     "type": "next_cycle_implication",
     "natural_language": "reaching the low boundary records low history",
-    "antecedent": "dec && !inc && (value == 3'd2)",
+    "antecedent": "!clear_history && dec && !inc && (value == 3'd2)",
     "consequent": "hit_low",
     "delay": 1,
     "disable": "rst"

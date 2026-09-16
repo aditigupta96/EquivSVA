@@ -24,3 +24,7 @@ p_cancel_auth: assert property (@(posedge clk) disable iff (rst)
 // P6_COMPLETE: completion ends execution successfully.
 p_complete: assert property (@(posedge clk) disable iff (rst)
     (executing && complete && !cancel) |=> (done));
+
+// P7_CANCEL_EXEC: cancel during execution terminates the operation.
+p_cancel_exec: assert property (@(posedge clk) disable iff (rst)
+    (executing && cancel) |=> (cancelled));

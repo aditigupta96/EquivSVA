@@ -3,9 +3,9 @@ module mode_controller_0010_factored_flags (
     input  wire rst,
     input  wire enable,
     input  wire auto_mode,
-    input  wire disable,
+    input  wire turn_off,
     output reg  manual,
-    output reg  automatic,
+    output reg  auto_active,
     output reg  off
 );
     localparam [1:0] F_OFF          = 2'd0;
@@ -17,12 +17,12 @@ module mode_controller_0010_factored_flags (
     wire guard_off_0 = (enable && auto_mode);
     wire guard_off_1 = (enable && !auto_mode);
     wire guard_off_2 = (!enable);
-    wire guard_manual_0 = (disable);
-    wire guard_manual_1 = (!disable && auto_mode);
-    wire guard_manual_2 = (!disable && !auto_mode);
-    wire guard_auto_0 = (disable);
-    wire guard_auto_1 = (!disable && !auto_mode);
-    wire guard_auto_2 = (!disable && auto_mode);
+    wire guard_manual_0 = (turn_off);
+    wire guard_manual_1 = (!turn_off && auto_mode);
+    wire guard_manual_2 = (!turn_off && !auto_mode);
+    wire guard_auto_0 = (turn_off);
+    wire guard_auto_1 = (!turn_off && !auto_mode);
+    wire guard_auto_2 = (!turn_off && auto_mode);
 
     always @* begin
         next_state = state;
@@ -64,23 +64,23 @@ module mode_controller_0010_factored_flags (
 
     always @* begin
         manual = 1'b0;
-        automatic = 1'b0;
+        auto_active = 1'b0;
         off = 1'b0;
         case (state)
             F_OFF: begin
                 manual = 1'b0;
-                automatic = 1'b0;
                 off = 1'b1;
+                auto_active = 1'b0;
             end
             F_MANUAL: begin
                 manual = 1'b1;
-                automatic = 1'b0;
                 off = 1'b0;
+                auto_active = 1'b0;
             end
             F_AUTO: begin
                 manual = 1'b0;
-                automatic = 1'b1;
                 off = 1'b0;
+                auto_active = 1'b1;
             end
             default: begin end
         endcase

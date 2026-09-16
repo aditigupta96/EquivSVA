@@ -152,11 +152,15 @@ def make_fsm(
 
     nontrivial = [
         i for i, t in enumerate(transitions)
-        if t["when"] != "true"
+        if t["when"] != "true" and t["from"] != t["to"]
     ]
     chosen = []
     for idx in mutant_transition_indices:
-        if idx < len(transitions) and transitions[idx]["when"] != "true":
+        if (
+            idx < len(transitions)
+            and transitions[idx]["when"] != "true"
+            and transitions[idx]["from"] != transitions[idx]["to"]
+        ):
             chosen.append(idx)
     for i in nontrivial:
         if len(chosen) >= 3:
@@ -1506,8 +1510,8 @@ def build_modes():
              {"from": "BACKUP", "when": "recover", "to": "PRIMARY"}, {"from": "BACKUP", "when": "!recover && enable", "to": "BACKUP"},
              {"from": "BACKUP", "when": "!recover && !enable", "to": "OFF"},
          ]),
-        ("manual_auto", ["enable", "auto_mode", "disable"], ["manual", "automatic", "off"], ["OFF", "MANUAL", "AUTO"],
-         {"OFF": {"manual": 0, "automatic": 0, "off": 1}, "MANUAL": {"manual": 1, "automatic": 0, "off": 0}, "AUTO": {"manual": 0, "automatic": 1, "off": 0}},
+        ("manual_auto", ["enable", "auto_mode", "disable"], ["manual", "auto_active", "off"], ["OFF", "MANUAL", "AUTO"],
+         {"OFF": {"manual": 0, "auto_active": 0, "off": 1}, "MANUAL": {"manual": 1, "auto_active": 0, "off": 0}, "AUTO": {"manual": 0, "auto_active": 1, "off": 0}},
          [
              {"from": "OFF", "when": "enable && auto_mode", "to": "AUTO"}, {"from": "OFF", "when": "enable && !auto_mode", "to": "MANUAL"},
              {"from": "OFF", "when": "!enable", "to": "OFF"},

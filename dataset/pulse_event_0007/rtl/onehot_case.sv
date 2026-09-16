@@ -4,7 +4,8 @@ module pulse_event_0007_onehot_case (
     input  wire trigger,
     output reg  armed,
     output reg  pulse,
-    output reg  cooldown
+    output reg  cooldown1,
+    output reg  cooldown2
 );
     localparam [3:0] ARMED = 4'b0001;
     localparam [3:0] PULSE = 4'b0010;
@@ -34,6 +35,7 @@ module pulse_event_0007_onehot_case (
     always @* begin
         armed = (state == ARMED);
         pulse = (state == PULSE);
-        cooldown = (state == COOL1) || (state == COOL2);
+        cooldown1 = (state == COOL1);
+        cooldown2 = (state == COOL2);
     end
 endmodule

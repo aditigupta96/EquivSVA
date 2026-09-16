@@ -19,7 +19,8 @@
   "outputs": [
     "armed",
     "pulse",
-    "cooldown"
+    "cooldown1",
+    "cooldown2"
   ],
   "states": [
     "ARMED",
@@ -31,22 +32,26 @@
     "ARMED": {
       "armed": 1,
       "pulse": 0,
-      "cooldown": 0
+      "cooldown1": 0,
+      "cooldown2": 0
     },
     "PULSE": {
       "armed": 0,
       "pulse": 1,
-      "cooldown": 0
+      "cooldown1": 0,
+      "cooldown2": 0
     },
     "COOL1": {
       "armed": 0,
       "pulse": 0,
-      "cooldown": 1
+      "cooldown1": 1,
+      "cooldown2": 0
     },
     "COOL2": {
       "armed": 0,
       "pulse": 0,
-      "cooldown": 1
+      "cooldown1": 0,
+      "cooldown2": 1
     }
   },
   "transitions": [
@@ -88,69 +93,69 @@
   ],
   "properties": [
     {
-      "id": "P1_STATE_ENCODING",
-      "sva_name": "p_state_encoding",
+      "id": "P1_ONEHOT",
+      "sva_name": "p_onehot",
       "type": "invariant",
-      "natural_language": "observable state outputs always encode at most one active mode",
-      "expression": "$onehot0({armed, pulse, cooldown})",
+      "natural_language": "exactly one pulse-controller phase is externally visible",
+      "expression": "$onehot({armed, pulse, cooldown1, cooldown2})",
       "disable": "rst"
     },
     {
       "id": "P2_RESET",
-      "sva_name": "p_reset_state",
+      "sva_name": "p_reset",
       "type": "next_cycle_implication",
-      "natural_language": "reset returns the controller to its reset behavior",
+      "natural_language": "reset arms the pulse controller",
       "antecedent": "rst",
-      "consequent": "armed && !pulse && !cooldown",
+      "consequent": "armed",
       "delay": 1
     },
     {
-      "id": "P3_T1",
-      "sva_name": "p_t1",
+      "id": "P3_FIRE",
+      "sva_name": "p_fire",
       "type": "next_cycle_implication",
-      "natural_language": "ARMED transitions to PULSE when trigger",
-      "antecedent": "(armed && !pulse && !cooldown) && (trigger)",
-      "consequent": "!armed && pulse && !cooldown",
+      "natural_language": "a trigger while armed emits a one-cycle pulse",
+      "antecedent": "armed && trigger",
+      "consequent": "pulse",
       "delay": 1,
       "disable": "rst"
     },
     {
-      "id": "P4_T2",
-      "sva_name": "p_t2",
+      "id": "P4_IDLE",
+      "sva_name": "p_idle",
       "type": "next_cycle_implication",
-      "natural_language": "ARMED transitions to ARMED when !trigger",
-      "antecedent": "(armed && !pulse && !cooldown) && (!trigger)",
-      "consequent": "armed && !pulse && !cooldown",
+      "natural_language": "without a trigger the armed controller remains armed",
+      "antecedent": "armed && !trigger",
+      "consequent": "armed",
       "delay": 1,
       "disable": "rst"
     },
     {
-      "id": "P5_T3",
-      "sva_name": "p_t3",
+      "id": "P5_COOL1",
+      "sva_name": "p_cool1",
       "type": "next_cycle_implication",
-      "natural_language": "PULSE transitions to COOL1 when true",
-      "antecedent": "!armed && pulse && !cooldown",
-      "consequent": "!armed && !pulse && cooldown",
+      "natural_language": "a pulse enters the first cooldown phase",
+      "antecedent": "pulse",
+      "consequent": "cooldown1",
       "delay": 1,
       "disable": "rst"
     },
     {
-      "id": "P6_T4",
-      "sva_name": "p_t4",
+      "id": "P6_COOL2",
+      "sva_name": "p_cool2",
       "type": "next_cycle_implication",
-      "natural_language": "COOL1 transitions to COOL2 when true",
-      "antecedent": "!armed && !pulse && cooldown",
-      "consequent": "!armed && !pulse && cooldown",
+      "natural_language": "the first cooldown phase advances to the second",
+      "antecedent": "cooldown1",
+      "consequent": "cooldown2",
       "delay": 1,
       "disable": "rst"
     },
     {
-      "id": "P7_T5",
-      "sva_name": "p_t5",
+      "id": "P7_REARM",
+      "sva_name": "p_rearm",
       "type": "next_cycle_implication",
-      "natural_language": "COOL2 transitions to ARMED when true",
-      "antecedent": "!armed && !pulse && cooldown",
-      "consequent": "armed && !pulse && !cooldown",
+      "natural_language": "the second cooldown phase rearms the controller",
+      "antecedent": "cooldown2",
+      "consequent": "armed",
       "delay": 1,
       "disable": "rst"
     }
@@ -164,11 +169,10 @@
       "new": "false"
     },
     {
-      "name": "drop_t2",
-      "kind": "replace_transition_guard",
+      "name": "force_exit_t2",
+      "kind": "force_transition",
       "from": "ARMED",
-      "old": "!trigger",
-      "new": "false"
+      "to": "PULSE"
     },
     {
       "name": "redirect_t3",

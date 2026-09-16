@@ -4,7 +4,7 @@
     "sva_name": "p_max",
     "type": "invariant",
     "natural_language": "at_max matches the saturated arithmetic value",
-    "expression": "at_max == (value == 4'd15)",
+    "expression": "at_max == (value == 4'd3)",
     "disable": "rst"
   },
   {
@@ -31,7 +31,7 @@
     "sva_name": "p_add",
     "type": "next_cycle_implication",
     "natural_language": "add increments value below saturation",
-    "antecedent": "!clear && add && (value < 4'd15)",
+    "antecedent": "!clear && add && (value < 4'd3)",
     "consequent": "value == ($past(value) + 4'd1)",
     "delay": 1,
     "disable": "rst"
@@ -41,8 +41,8 @@
     "sva_name": "p_overflow",
     "type": "next_cycle_implication",
     "natural_language": "adding at saturation latches overflowed",
-    "antecedent": "!clear && add && (value == 4'd15)",
-    "consequent": "(value == 4'd15) && overflowed",
+    "antecedent": "!clear && add && (value == 4'd3)",
+    "consequent": "(value == 4'd3) && overflowed",
     "delay": 1,
     "disable": "rst"
   },

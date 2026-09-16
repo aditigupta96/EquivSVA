@@ -33,3 +33,9 @@ property p_dec;
     @(posedge clk) disable iff (rst) (!clear && dec && !inc && (value > 3'd1)) |=> ((value == ($past(value) - 3'd1)) && last_down);
 endproperty
 assert property (p_dec);
+
+// P7_CLEAR_DIRECTION: clear removes the remembered update direction
+property p_clear_direction;
+    @(posedge clk) disable iff (rst) (clear) |=> (!last_up && !last_down);
+endproperty
+assert property (p_clear_direction);

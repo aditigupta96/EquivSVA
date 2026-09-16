@@ -16,11 +16,11 @@
   "inputs": [
     "enable",
     "auto_mode",
-    "disable"
+    "turn_off"
   ],
   "outputs": [
     "manual",
-    "automatic",
+    "auto_active",
     "off"
   ],
   "states": [
@@ -31,18 +31,18 @@
   "state_outputs": {
     "OFF": {
       "manual": 0,
-      "automatic": 0,
-      "off": 1
+      "off": 1,
+      "auto_active": 0
     },
     "MANUAL": {
       "manual": 1,
-      "automatic": 0,
-      "off": 0
+      "off": 0,
+      "auto_active": 0
     },
     "AUTO": {
       "manual": 0,
-      "automatic": 1,
-      "off": 0
+      "off": 0,
+      "auto_active": 1
     }
   },
   "transitions": [
@@ -63,32 +63,32 @@
     },
     {
       "from": "MANUAL",
-      "when": "disable",
+      "when": "turn_off",
       "to": "OFF"
     },
     {
       "from": "MANUAL",
-      "when": "!disable && auto_mode",
+      "when": "!turn_off && auto_mode",
       "to": "AUTO"
     },
     {
       "from": "MANUAL",
-      "when": "!disable && !auto_mode",
+      "when": "!turn_off && !auto_mode",
       "to": "MANUAL"
     },
     {
       "from": "AUTO",
-      "when": "disable",
+      "when": "turn_off",
       "to": "OFF"
     },
     {
       "from": "AUTO",
-      "when": "!disable && !auto_mode",
+      "when": "!turn_off && !auto_mode",
       "to": "MANUAL"
     },
     {
       "from": "AUTO",
-      "when": "!disable && auto_mode",
+      "when": "!turn_off && auto_mode",
       "to": "AUTO"
     }
   ],
@@ -108,7 +108,7 @@
       "sva_name": "p_state_encoding",
       "type": "invariant",
       "natural_language": "observable state outputs always encode at most one active mode",
-      "expression": "$onehot0({manual, automatic, off})",
+      "expression": "$onehot0({manual, auto_active, off})",
       "disable": "rst"
     },
     {
@@ -117,7 +117,7 @@
       "type": "next_cycle_implication",
       "natural_language": "reset returns the controller to its reset behavior",
       "antecedent": "rst",
-      "consequent": "!manual && !automatic && off",
+      "consequent": "!manual && !auto_active && off",
       "delay": 1
     },
     {
@@ -125,8 +125,8 @@
       "sva_name": "p_t1",
       "type": "next_cycle_implication",
       "natural_language": "OFF transitions to AUTO when enable && auto_mode",
-      "antecedent": "(!manual && !automatic && off) && (enable && auto_mode)",
-      "consequent": "!manual && automatic && !off",
+      "antecedent": "(!manual && !auto_active && off) && (enable && auto_mode)",
+      "consequent": "!manual && auto_active && !off",
       "delay": 1,
       "disable": "rst"
     },
@@ -135,8 +135,8 @@
       "sva_name": "p_t2",
       "type": "next_cycle_implication",
       "natural_language": "OFF transitions to MANUAL when enable && !auto_mode",
-      "antecedent": "(!manual && !automatic && off) && (enable && !auto_mode)",
-      "consequent": "manual && !automatic && !off",
+      "antecedent": "(!manual && !auto_active && off) && (enable && !auto_mode)",
+      "consequent": "manual && !auto_active && !off",
       "delay": 1,
       "disable": "rst"
     },
@@ -145,8 +145,8 @@
       "sva_name": "p_t3",
       "type": "next_cycle_implication",
       "natural_language": "OFF transitions to OFF when !enable",
-      "antecedent": "(!manual && !automatic && off) && (!enable)",
-      "consequent": "!manual && !automatic && off",
+      "antecedent": "(!manual && !auto_active && off) && (!enable)",
+      "consequent": "!manual && !auto_active && off",
       "delay": 1,
       "disable": "rst"
     },
@@ -154,9 +154,9 @@
       "id": "P6_T4",
       "sva_name": "p_t4",
       "type": "next_cycle_implication",
-      "natural_language": "MANUAL transitions to OFF when disable",
-      "antecedent": "(manual && !automatic && !off) && (disable)",
-      "consequent": "!manual && !automatic && off",
+      "natural_language": "MANUAL transitions to OFF when turn_off",
+      "antecedent": "(manual && !auto_active && !off) && (turn_off)",
+      "consequent": "!manual && !auto_active && off",
       "delay": 1,
       "disable": "rst"
     },
@@ -164,9 +164,9 @@
       "id": "P7_T5",
       "sva_name": "p_t5",
       "type": "next_cycle_implication",
-      "natural_language": "MANUAL transitions to AUTO when !disable && auto_mode",
-      "antecedent": "(manual && !automatic && !off) && (!disable && auto_mode)",
-      "consequent": "!manual && automatic && !off",
+      "natural_language": "MANUAL transitions to AUTO when !turn_off && auto_mode",
+      "antecedent": "(manual && !auto_active && !off) && (!turn_off && auto_mode)",
+      "consequent": "!manual && auto_active && !off",
       "delay": 1,
       "disable": "rst"
     },
@@ -174,9 +174,9 @@
       "id": "P8_T6",
       "sva_name": "p_t6",
       "type": "next_cycle_implication",
-      "natural_language": "MANUAL transitions to MANUAL when !disable && !auto_mode",
-      "antecedent": "(manual && !automatic && !off) && (!disable && !auto_mode)",
-      "consequent": "manual && !automatic && !off",
+      "natural_language": "MANUAL transitions to MANUAL when !turn_off && !auto_mode",
+      "antecedent": "(manual && !auto_active && !off) && (!turn_off && !auto_mode)",
+      "consequent": "manual && !auto_active && !off",
       "delay": 1,
       "disable": "rst"
     },
@@ -184,9 +184,9 @@
       "id": "P9_T7",
       "sva_name": "p_t7",
       "type": "next_cycle_implication",
-      "natural_language": "AUTO transitions to OFF when disable",
-      "antecedent": "(!manual && automatic && !off) && (disable)",
-      "consequent": "!manual && !automatic && off",
+      "natural_language": "AUTO transitions to OFF when turn_off",
+      "antecedent": "(!manual && auto_active && !off) && (turn_off)",
+      "consequent": "!manual && !auto_active && off",
       "delay": 1,
       "disable": "rst"
     },
@@ -194,9 +194,9 @@
       "id": "P10_T8",
       "sva_name": "p_t8",
       "type": "next_cycle_implication",
-      "natural_language": "AUTO transitions to MANUAL when !disable && !auto_mode",
-      "antecedent": "(!manual && automatic && !off) && (!disable && !auto_mode)",
-      "consequent": "manual && !automatic && !off",
+      "natural_language": "AUTO transitions to MANUAL when !turn_off && !auto_mode",
+      "antecedent": "(!manual && auto_active && !off) && (!turn_off && !auto_mode)",
+      "consequent": "manual && !auto_active && !off",
       "delay": 1,
       "disable": "rst"
     },
@@ -204,9 +204,9 @@
       "id": "P11_T9",
       "sva_name": "p_t9",
       "type": "next_cycle_implication",
-      "natural_language": "AUTO transitions to AUTO when !disable && auto_mode",
-      "antecedent": "(!manual && automatic && !off) && (!disable && auto_mode)",
-      "consequent": "!manual && automatic && !off",
+      "natural_language": "AUTO transitions to AUTO when !turn_off && auto_mode",
+      "antecedent": "(!manual && auto_active && !off) && (!turn_off && auto_mode)",
+      "consequent": "!manual && auto_active && !off",
       "delay": 1,
       "disable": "rst"
     }
@@ -227,10 +227,10 @@
       "new": "false"
     },
     {
-      "name": "drop_t3",
+      "name": "drop_t4",
       "kind": "replace_transition_guard",
-      "from": "OFF",
-      "old": "!enable",
+      "from": "MANUAL",
+      "old": "turn_off",
       "new": "false"
     }
   ],

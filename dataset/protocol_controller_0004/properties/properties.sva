@@ -24,3 +24,7 @@ p_done: assert property (@(posedge clk) disable iff (rst)
 // P6_FAIL_STICKY: failure remains until reset_fail.
 p_fail_sticky: assert property (@(posedge clk) disable iff (rst)
     (failed && !reset_fail) |=> (failed));
+
+// P7_RESET_FAILURE: reset_fail releases the terminal failure state.
+p_reset_failure: assert property (@(posedge clk) disable iff (rst)
+    (failed && reset_fail) |=> (!attempting && !retrying && !done && !failed));

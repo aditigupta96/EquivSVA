@@ -18,7 +18,7 @@ module saturating_arithmetic_0004_function_update (
         input add;
         begin
             if (clear) compute_next_value_reg = 4'd0;
-            else if (!clear && add && (current_value_reg < 4'd15)) compute_next_value_reg = current_value_reg + 4'd1;
+            else if (!clear && add && (current_value_reg < 4'd3)) compute_next_value_reg = current_value_reg + 4'd1;
             else compute_next_value_reg = current_value_reg;
         end
     endfunction
@@ -30,7 +30,7 @@ module saturating_arithmetic_0004_function_update (
         input add;
         begin
             if (clear) compute_next_overflow_reg = 1'b0;
-            else if (!clear && add && (current_value_reg == 4'd15)) compute_next_overflow_reg = 1'b1;
+            else if (!clear && add && (current_value_reg == 4'd3)) compute_next_overflow_reg = 1'b1;
             else compute_next_overflow_reg = current_overflow_reg;
         end
     endfunction
@@ -54,5 +54,5 @@ module saturating_arithmetic_0004_function_update (
 
     assign value = value_reg;
     assign overflowed = overflow_reg;
-    assign at_max = value_reg == 4'd15;
+    assign at_max = value_reg == 4'd3;
 endmodule

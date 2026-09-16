@@ -18,13 +18,13 @@ assert property (p_dec);
 
 // P4_HIGH_HISTORY: reaching the high boundary records high history
 property p_high_history;
-    @(posedge clk) disable iff (rst) (inc && !dec && (value == 3'd5)) |=> (hit_high);
+    @(posedge clk) disable iff (rst) (!clear_history && inc && !dec && (value == 3'd5)) |=> (hit_high);
 endproperty
 assert property (p_high_history);
 
 // P5_LOW_HISTORY: reaching the low boundary records low history
 property p_low_history;
-    @(posedge clk) disable iff (rst) (dec && !inc && (value == 3'd2)) |=> (hit_low);
+    @(posedge clk) disable iff (rst) (!clear_history && dec && !inc && (value == 3'd2)) |=> (hit_low);
 endproperty
 assert property (p_low_history);
 

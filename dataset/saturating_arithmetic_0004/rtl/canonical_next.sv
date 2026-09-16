@@ -16,10 +16,10 @@ module saturating_arithmetic_0004_canonical_next (
 
     always @* begin
         if (clear) next_value_reg = 4'd0;
-        else if (!clear && add && (value_reg < 4'd15)) next_value_reg = value_reg + 4'd1;
+        else if (!clear && add && (value_reg < 4'd3)) next_value_reg = value_reg + 4'd1;
         else next_value_reg = value_reg;
         if (clear) next_overflow_reg = 1'b0;
-        else if (!clear && add && (value_reg == 4'd15)) next_overflow_reg = 1'b1;
+        else if (!clear && add && (value_reg == 4'd3)) next_overflow_reg = 1'b1;
         else next_overflow_reg = overflow_reg;
     end
 
@@ -36,5 +36,5 @@ module saturating_arithmetic_0004_canonical_next (
 
     assign value = value_reg;
     assign overflowed = overflow_reg;
-    assign at_max = value_reg == 4'd15;
+    assign at_max = value_reg == 4'd3;
 endmodule

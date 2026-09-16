@@ -39,3 +39,9 @@ property p_exhaust_hold;
     @(posedge clk) disable iff (rst) (!advance_window && request && exhausted) |=> (used == 2'd3);
 endproperty
 assert property (p_exhaust_hold);
+
+// P8_PHASE_WRAP: advancing the final phase wraps the window phase to zero
+property p_phase_wrap;
+    @(posedge clk) disable iff (rst) (advance_window && (phase == 2'd3)) |=> (phase == 2'd0);
+endproperty
+assert property (p_phase_wrap);

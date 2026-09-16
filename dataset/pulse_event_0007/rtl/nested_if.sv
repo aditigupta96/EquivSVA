@@ -4,7 +4,8 @@ module pulse_event_0007_nested_if (
     input  wire trigger,
     output wire armed,
     output wire pulse,
-    output wire cooldown
+    output wire cooldown1,
+    output wire cooldown2
 );
     localparam [1:0] S_ARMED  = 2'd0;
     localparam [1:0] S_PULSE  = 2'd1;
@@ -37,5 +38,6 @@ module pulse_event_0007_nested_if (
 
     assign armed = (state == S_ARMED);
     assign pulse = (state == S_PULSE);
-    assign cooldown = (state == S_COOL1) || (state == S_COOL2);
+    assign cooldown1 = (state == S_COOL1);
+    assign cooldown2 = (state == S_COOL2);
 endmodule

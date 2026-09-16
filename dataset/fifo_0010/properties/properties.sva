@@ -47,3 +47,9 @@ property p_simultaneous;
     @(posedge clk) disable iff (rst) (!flush && push && pop) |=> (count == $past(count));
 endproperty
 assert property (p_simultaneous);
+
+// P9_FULL_PUSH_HOLD: a push into a full FIFO without a simultaneous pop leaves occupancy full
+property p_full_push_hold;
+    @(posedge clk) disable iff (rst) (!flush && (count == 3'd4) && push && !pop) |=> (count == 3'd4);
+endproperty
+assert property (p_full_push_hold);

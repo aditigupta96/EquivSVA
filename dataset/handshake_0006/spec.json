@@ -170,11 +170,10 @@
       "new": "false"
     },
     {
-      "name": "drop_t2",
-      "kind": "replace_transition_guard",
+      "name": "force_exit_t2",
+      "kind": "force_transition",
       "from": "IDLE",
-      "old": "!req",
-      "new": "false"
+      "to": "WAIT"
     },
     {
       "name": "drop_t3",

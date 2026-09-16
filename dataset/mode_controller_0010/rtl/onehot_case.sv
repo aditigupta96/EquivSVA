@@ -3,9 +3,9 @@ module mode_controller_0010_onehot_case (
     input  wire rst,
     input  wire enable,
     input  wire auto_mode,
-    input  wire disable,
+    input  wire turn_off,
     output reg  manual,
-    output reg  automatic,
+    output reg  auto_active,
     output reg  off
 );
     localparam [2:0] OFF   = 3'b001;
@@ -18,8 +18,8 @@ module mode_controller_0010_onehot_case (
         next_state = OFF;
         case (state)
             OFF: next_state = (enable && auto_mode) ? AUTO : ((enable && !auto_mode) ? MANUAL : ((!enable) ? OFF : (OFF)));
-            MANUAL: next_state = (disable) ? OFF : ((!disable && auto_mode) ? AUTO : ((!disable && !auto_mode) ? MANUAL : (MANUAL)));
-            AUTO: next_state = (disable) ? OFF : ((!disable && !auto_mode) ? MANUAL : ((!disable && auto_mode) ? AUTO : (AUTO)));
+            MANUAL: next_state = (turn_off) ? OFF : ((!turn_off && auto_mode) ? AUTO : ((!turn_off && !auto_mode) ? MANUAL : (MANUAL)));
+            AUTO: next_state = (turn_off) ? OFF : ((!turn_off && !auto_mode) ? MANUAL : ((!turn_off && auto_mode) ? AUTO : (AUTO)));
             default: next_state = OFF;
         endcase
     end
@@ -33,7 +33,7 @@ module mode_controller_0010_onehot_case (
 
     always @* begin
         manual = (state == MANUAL);
-        automatic = (state == AUTO);
+        auto_active = (state == AUTO);
         off = (state == OFF);
     end
 endmodule

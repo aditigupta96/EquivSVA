@@ -4,7 +4,8 @@ module pulse_event_0007_mutant_drop_t1 (
     input  wire trigger,
     output reg  armed,
     output reg  pulse,
-    output reg  cooldown
+    output reg  cooldown1,
+    output reg  cooldown2
 );
     localparam [1:0] ARMED = 2'd0;
     localparam [1:0] PULSE = 2'd1;
@@ -34,27 +35,32 @@ module pulse_event_0007_mutant_drop_t1 (
     always @* begin
         armed = 1'b0;
         pulse = 1'b0;
-        cooldown = 1'b0;
+        cooldown1 = 1'b0;
+        cooldown2 = 1'b0;
         case (state)
             ARMED: begin
                 armed = 1'b1;
                 pulse = 1'b0;
-                cooldown = 1'b0;
+                cooldown1 = 1'b0;
+                cooldown2 = 1'b0;
             end
             PULSE: begin
                 armed = 1'b0;
                 pulse = 1'b1;
-                cooldown = 1'b0;
+                cooldown1 = 1'b0;
+                cooldown2 = 1'b0;
             end
             COOL1: begin
                 armed = 1'b0;
                 pulse = 1'b0;
-                cooldown = 1'b1;
+                cooldown1 = 1'b1;
+                cooldown2 = 1'b0;
             end
             COOL2: begin
                 armed = 1'b0;
                 pulse = 1'b0;
-                cooldown = 1'b1;
+                cooldown1 = 1'b0;
+                cooldown2 = 1'b1;
             end
             default: begin end
         endcase

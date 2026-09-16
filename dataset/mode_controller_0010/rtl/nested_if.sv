@@ -3,9 +3,9 @@ module mode_controller_0010_nested_if (
     input  wire rst,
     input  wire enable,
     input  wire auto_mode,
-    input  wire disable,
+    input  wire turn_off,
     output wire manual,
-    output wire automatic,
+    output wire auto_active,
     output wire off
 );
     localparam [1:0] S_OFF    = 2'd0;
@@ -22,10 +22,10 @@ module mode_controller_0010_nested_if (
                 state <= (enable && auto_mode) ? S_AUTO : ((enable && !auto_mode) ? S_MANUAL : ((!enable) ? S_OFF : (S_OFF)));
             end
             else if (state == S_MANUAL) begin
-                state <= (disable) ? S_OFF : ((!disable && auto_mode) ? S_AUTO : ((!disable && !auto_mode) ? S_MANUAL : (S_MANUAL)));
+                state <= (turn_off) ? S_OFF : ((!turn_off && auto_mode) ? S_AUTO : ((!turn_off && !auto_mode) ? S_MANUAL : (S_MANUAL)));
             end
             else if (state == S_AUTO) begin
-                state <= (disable) ? S_OFF : ((!disable && !auto_mode) ? S_MANUAL : ((!disable && auto_mode) ? S_AUTO : (S_AUTO)));
+                state <= (turn_off) ? S_OFF : ((!turn_off && !auto_mode) ? S_MANUAL : ((!turn_off && auto_mode) ? S_AUTO : (S_AUTO)));
             end
             else begin
                 state <= S_OFF;
@@ -34,6 +34,6 @@ module mode_controller_0010_nested_if (
     end
 
     assign manual = (state == S_MANUAL);
-    assign automatic = (state == S_AUTO);
+    assign auto_active = (state == S_AUTO);
     assign off = (state == S_OFF);
 endmodule

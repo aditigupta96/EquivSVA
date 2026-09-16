@@ -2,40 +2,76 @@
   "benchmark": "EquivSVA",
   "categories": {
     "arbiter": {
-      "families": 5,
-      "mutants": 15,
-      "properties": 52,
-      "rtl_variants": 20
+      "families": 10,
+      "mutants": 30,
+      "properties": 103,
+      "rtl_variants": 40
     },
     "counter": {
-      "families": 5,
-      "mutants": 15,
-      "properties": 31,
-      "rtl_variants": 20
+      "families": 10,
+      "mutants": 30,
+      "properties": 58,
+      "rtl_variants": 40
     },
     "fifo_control": {
-      "families": 5,
-      "mutants": 15,
-      "properties": 29,
-      "rtl_variants": 20
+      "families": 10,
+      "mutants": 30,
+      "properties": 63,
+      "rtl_variants": 40
     },
     "handshake": {
-      "families": 5,
-      "mutants": 15,
-      "properties": 32,
-      "rtl_variants": 20
+      "families": 10,
+      "mutants": 30,
+      "properties": 74,
+      "rtl_variants": 40
     },
     "interrupt_control": {
-      "families": 5,
-      "mutants": 15,
-      "properties": 32,
-      "rtl_variants": 20
+      "families": 10,
+      "mutants": 30,
+      "properties": 71,
+      "rtl_variants": 40
+    },
+    "mode_controller": {
+      "families": 10,
+      "mutants": 30,
+      "properties": 91,
+      "rtl_variants": 40
+    },
+    "protocol_controller": {
+      "families": 10,
+      "mutants": 30,
+      "properties": 78,
+      "rtl_variants": 40
+    },
+    "pulse_event": {
+      "families": 10,
+      "mutants": 30,
+      "properties": 70,
+      "rtl_variants": 40
+    },
+    "rate_limiter": {
+      "families": 10,
+      "mutants": 30,
+      "properties": 62,
+      "rtl_variants": 40
+    },
+    "saturating_arithmetic": {
+      "families": 10,
+      "mutants": 30,
+      "properties": 64,
+      "rtl_variants": 40
+    },
+    "sequence_detector": {
+      "families": 10,
+      "mutants": 30,
+      "properties": 109,
+      "rtl_variants": 40
     },
     "timer_watchdog": {
-      "families": 5,
-      "mutants": 15,
-      "properties": 43,
-      "rtl_variants": 20
+      "families": 10,
+      "mutants": 30,
+      "properties": 71,
+      "rtl_variants": 40
     }
   },
   "families": [
@@ -213,6 +249,183 @@
       }
     },
     {
+      "category": "arbiter",
+      "description": "Sticky two-client arbiter: a grant is held until release.",
+      "design_id": "arbiter_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1",
+        "release"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "G0",
+        "G1"
+      ],
+      "template": "sticky_grant0",
+      "validation": {
+        "report": "build/validation/arbiter_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "arbiter",
+      "description": "Two-client arbiter gives req0 priority after idle and req1 priority after serving req0.",
+      "design_id": "arbiter_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1",
+        "done"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1"
+      ],
+      "property_count": 11,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "G0",
+        "G1"
+      ],
+      "template": "grant0_then_grant1",
+      "validation": {
+        "report": "build/validation/arbiter_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "arbiter",
+      "description": "Three-client fixed-priority arbiter with one-cycle grants.",
+      "design_id": "arbiter_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1",
+        "req2"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1",
+        "grant2"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "G0",
+        "G1",
+        "G2"
+      ],
+      "template": "three_client_fixed",
+      "validation": {
+        "report": "build/validation/arbiter_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "arbiter",
+      "description": "Two-client arbiter whose active grant can be locked.",
+      "design_id": "arbiter_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1",
+        "lock"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "G0",
+        "G1"
+      ],
+      "template": "lockable_two_client",
+      "validation": {
+        "report": "build/validation/arbiter_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "arbiter",
+      "description": "Grant handoff prefers a waiting peer when the active client completes.",
+      "design_id": "arbiter_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req0",
+        "req1",
+        "done"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "grant0",
+        "grant1"
+      ],
+      "property_count": 13,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "G0",
+        "G1"
+      ],
+      "template": "handoff_arbiter",
+      "validation": {
+        "report": "build/validation/arbiter_0010.json",
+        "status": "passed"
+      }
+    },
+    {
       "category": "counter",
       "description": "Two-bit saturating up-counter with synchronous clear and enable.",
       "design_id": "counter_0001",
@@ -365,6 +578,157 @@
       "template": "programmable_down_counter",
       "validation": {
         "report": "build/validation/counter_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "counter",
+      "description": "Modulo-six counter with clear and enable.",
+      "design_id": "counter_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "enable"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "terminal"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "modulo_six_counter",
+      "validation": {
+        "report": "build/validation/counter_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "counter",
+      "description": "Saturating down-counter starting from seven.",
+      "design_id": "counter_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "reload",
+        "enable"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "at_zero"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "saturating_down_counter",
+      "validation": {
+        "report": "build/validation/counter_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "counter",
+      "description": "Counter advances by two and saturates at six.",
+      "design_id": "counter_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "step"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "at_limit"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "step_two_counter",
+      "validation": {
+        "report": "build/validation/counter_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "counter",
+      "description": "Three-bit up/down counter bounded at zero and seven.",
+      "design_id": "counter_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "up",
+        "down"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "at_zero",
+        "at_max"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "bounded_up_down_counter",
+      "validation": {
+        "report": "build/validation/counter_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "counter",
+      "description": "Loadable counter where load has priority over increment.",
+      "design_id": "counter_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "load",
+        "increment"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "nonzero"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "priority_load_counter",
+      "validation": {
+        "report": "build/validation/counter_0010.json",
         "status": "passed"
       }
     },
@@ -532,6 +896,171 @@
       }
     },
     {
+      "category": "fifo_control",
+      "description": "Elastic one-entry queue with same-cycle pop-and-replace.",
+      "design_id": "fifo_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop",
+        "din"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "dout",
+        "valid",
+        "ready"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "elastic_mailbox",
+      "validation": {
+        "report": "build/validation/fifo_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "fifo_control",
+      "description": "Two-slot FIFO occupancy controller exposing empty, one-entry, and full states.",
+      "design_id": "fifo_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "empty",
+        "one",
+        "full"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "EMPTY",
+        "ONE",
+        "FULL"
+      ],
+      "template": "two_slot_occupancy_fsm",
+      "validation": {
+        "report": "build/validation/fifo_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "fifo_control",
+      "description": "Flushable elastic one-entry FIFO with flush priority.",
+      "design_id": "fifo_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop",
+        "flush",
+        "din"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "dout",
+        "valid",
+        "ready"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "flushable_elastic_fifo",
+      "validation": {
+        "report": "build/validation/fifo_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "fifo_control",
+      "description": "Always-ready mailbox where newest push overwrites older data.",
+      "design_id": "fifo_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop",
+        "din"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "dout",
+        "valid",
+        "ready"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "overwrite_mailbox",
+      "validation": {
+        "report": "build/validation/fifo_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "fifo_control",
+      "description": "Four-slot FIFO occupancy counter with simultaneous push/pop cancellation and overflow/underflow protection.",
+      "design_id": "fifo_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "push",
+        "pop",
+        "flush"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "empty",
+        "full",
+        "almost_full"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "four_slot_occupancy_counter",
+      "validation": {
+        "report": "build/validation/fifo_0010.json",
+        "status": "passed"
+      }
+    },
+    {
       "category": "handshake",
       "description": "Three-state request/acknowledge controller with cancellation.",
       "design_id": "handshake_0001",
@@ -694,6 +1223,184 @@
       "template": "request_grant_ack_release",
       "validation": {
         "report": "build/validation/handshake_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "Request remains active until acknowledge, then waits for request release.",
+      "design_id": "handshake_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req",
+        "accept"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "busy",
+        "ack"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "WAIT",
+        "ACK"
+      ],
+      "template": "held_request_ack",
+      "validation": {
+        "report": "build/validation/handshake_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "Producer raises valid, waits for ready, then emits a completion state.",
+      "design_id": "handshake_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "produce",
+        "ready"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "valid",
+        "done"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "VALID",
+        "DONE"
+      ],
+      "template": "valid_ready_completion",
+      "validation": {
+        "report": "build/validation/handshake_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "Request can be accepted, retried, or completed.",
+      "design_id": "handshake_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req",
+        "accept",
+        "retry"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "busy",
+        "retrying",
+        "done"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "WAIT",
+        "RETRY",
+        "DONE"
+      ],
+      "template": "retry_handshake",
+      "validation": {
+        "report": "build/validation/handshake_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "Valid/ready transfer can be cancelled before acceptance.",
+      "design_id": "handshake_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "ready",
+        "cancel"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "valid",
+        "cancelled",
+        "done"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "VALID",
+        "CANCEL",
+        "DONE"
+      ],
+      "template": "cancelable_valid_ready",
+      "validation": {
+        "report": "build/validation/handshake_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "handshake",
+      "description": "Two-phase handshake waits for request assertion, acknowledge, and request release.",
+      "design_id": "handshake_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "req",
+        "peer_ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "waiting",
+        "acked",
+        "release"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "WAIT_ACK",
+        "ACKED",
+        "WAIT_RELEASE"
+      ],
+      "template": "two_phase_release",
+      "validation": {
+        "report": "build/validation/handshake_0010.json",
         "status": "passed"
       }
     },
@@ -870,6 +1577,2293 @@
       "template": "interrupt_service_lifecycle",
       "validation": {
         "report": "build/validation/interrupt_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "interrupt_control",
+      "description": "Masked interrupt is latched when enabled and cleared by acknowledge.",
+      "design_id": "interrupt_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq",
+        "mask",
+        "ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "pending",
+        "servicing"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "PENDING",
+        "SERVICE"
+      ],
+      "template": "masked_latched_irq",
+      "validation": {
+        "report": "build/validation/interrupt_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "interrupt_control",
+      "description": "Interrupt can become pending, be held by a later mask, then resume and service.",
+      "design_id": "interrupt_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq",
+        "mask",
+        "ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "pending",
+        "held_masked",
+        "servicing"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "PENDING",
+        "HELD",
+        "SERVICE"
+      ],
+      "template": "masked_hold_then_service",
+      "validation": {
+        "report": "build/validation/interrupt_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "interrupt_control",
+      "description": "High-priority interrupt can preempt a low-priority pending request.",
+      "design_id": "interrupt_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq_hi",
+        "irq_lo",
+        "ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "low_pending",
+        "high_pending",
+        "service"
+      ],
+      "property_count": 11,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "LOW",
+        "HIGH",
+        "SERVICE"
+      ],
+      "template": "priority_two_level_irq",
+      "validation": {
+        "report": "build/validation/interrupt_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "interrupt_control",
+      "description": "Interrupt service waits for irq to deassert before rearming.",
+      "design_id": "interrupt_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq",
+        "ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "pending",
+        "servicing",
+        "wait_low",
+        "armed"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "ARMED",
+        "PENDING",
+        "SERVICE",
+        "WAIT_LOW"
+      ],
+      "template": "service_then_rearm_low",
+      "validation": {
+        "report": "build/validation/interrupt_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "interrupt_control",
+      "description": "Pending interrupt may be explicitly cancelled before service.",
+      "design_id": "interrupt_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "irq",
+        "cancel",
+        "ack"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "pending",
+        "service",
+        "cancelled"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "PENDING",
+        "SERVICE",
+        "CANCEL"
+      ],
+      "template": "cancelable_irq",
+      "validation": {
+        "report": "build/validation/interrupt_0010.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Four-mode controller supporting standby, active operation, and recoverable fault.",
+      "design_id": "mode_controller_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "enable",
+        "wake",
+        "fault",
+        "clear_fault"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "standby",
+        "active",
+        "faulted"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "OFF",
+        "STANDBY",
+        "ACTIVE",
+        "FAULT"
+      ],
+      "template": null,
+      "validation": {
+        "report": "build/validation/mode_controller_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Mode controller implementing sleep wake behavior.",
+      "design_id": "mode_controller_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "enable",
+        "sleep",
+        "wake"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "active",
+        "sleeping",
+        "off"
+      ],
+      "property_count": 10,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "OFF",
+        "ACTIVE",
+        "SLEEP"
+      ],
+      "template": "sleep_wake",
+      "validation": {
+        "report": "build/validation/mode_controller_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Mode controller implementing normal maintenance behavior.",
+      "design_id": "mode_controller_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "enable",
+        "maintenance",
+        "exit_maintenance"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "normal",
+        "maint",
+        "off"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "OFF",
+        "NORMAL",
+        "MAINT"
+      ],
+      "template": "normal_maintenance",
+      "validation": {
+        "report": "build/validation/mode_controller_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Mode controller implementing safe fault behavior.",
+      "design_id": "mode_controller_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "fault",
+        "clear"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "running",
+        "safe",
+        "faulted"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "SAFE",
+        "RUN",
+        "FAULT"
+      ],
+      "template": "safe_fault",
+      "validation": {
+        "report": "build/validation/mode_controller_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Mode controller implementing idle active boost behavior.",
+      "design_id": "mode_controller_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "activate",
+        "boost",
+        "idle"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "active",
+        "boosted",
+        "idle_mode"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "ACTIVE",
+        "BOOST"
+      ],
+      "template": "idle_active_boost",
+      "validation": {
+        "report": "build/validation/mode_controller_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Mode controller implementing locked unlocked behavior.",
+      "design_id": "mode_controller_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "unlock",
+        "lock",
+        "operate"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "locked",
+        "ready",
+        "active"
+      ],
+      "property_count": 10,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "LOCKED",
+        "READY",
+        "ACTIVE"
+      ],
+      "template": "locked_unlocked",
+      "validation": {
+        "report": "build/validation/mode_controller_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Mode controller implementing standby run fault behavior.",
+      "design_id": "mode_controller_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "run",
+        "fault",
+        "clear"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "standby",
+        "running",
+        "faulted"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "STANDBY",
+        "RUN",
+        "FAULT"
+      ],
+      "template": "standby_run_fault",
+      "validation": {
+        "report": "build/validation/mode_controller_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Mode controller implementing boot ready run behavior.",
+      "design_id": "mode_controller_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "boot_ok",
+        "start",
+        "stop"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "booting",
+        "ready",
+        "running"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "BOOT",
+        "READY",
+        "RUN"
+      ],
+      "template": "boot_ready_run",
+      "validation": {
+        "report": "build/validation/mode_controller_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Mode controller implementing primary backup behavior.",
+      "design_id": "mode_controller_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "enable",
+        "fail",
+        "recover"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "primary",
+        "backup",
+        "off"
+      ],
+      "property_count": 10,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "OFF",
+        "PRIMARY",
+        "BACKUP"
+      ],
+      "template": "primary_backup",
+      "validation": {
+        "report": "build/validation/mode_controller_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "mode_controller",
+      "description": "Mode controller implementing manual auto behavior.",
+      "design_id": "mode_controller_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "enable",
+        "auto_mode",
+        "turn_off"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "manual",
+        "auto_active",
+        "off"
+      ],
+      "property_count": 11,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "OFF",
+        "MANUAL",
+        "AUTO"
+      ],
+      "template": "manual_auto",
+      "validation": {
+        "report": "build/validation/mode_controller_0010.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Start/acknowledge transaction controller with abort and completion pulse.",
+      "design_id": "protocol_controller_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "ack",
+        "abort"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "busy",
+        "done",
+        "error"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "WAIT_ACK",
+        "DONE",
+        "ERROR"
+      ],
+      "template": null,
+      "validation": {
+        "report": "build/validation/protocol_controller_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Request must be authorized before execution can begin and then complete.",
+      "design_id": "protocol_controller_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "request",
+        "authorized",
+        "complete",
+        "cancel"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "authorizing",
+        "executing",
+        "done",
+        "cancelled"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "AUTH",
+        "EXEC",
+        "DONE",
+        "CANCEL"
+      ],
+      "template": "authorize_execute_complete",
+      "validation": {
+        "report": "build/validation/protocol_controller_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Transactional protocol with prepare, commit, and abort recovery phases.",
+      "design_id": "protocol_controller_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "prepared",
+        "commit",
+        "abort",
+        "recover"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "preparing",
+        "ready_commit",
+        "committed",
+        "aborted"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "PREPARE",
+        "READY",
+        "COMMITTED",
+        "ABORTED"
+      ],
+      "template": "prepare_commit_abort",
+      "validation": {
+        "report": "build/validation/protocol_controller_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Operation can retry once before succeeding or entering a terminal failure state.",
+      "design_id": "protocol_controller_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "success",
+        "retry",
+        "reset_fail"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "attempting",
+        "retrying",
+        "done",
+        "failed"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "ATTEMPT1",
+        "RETRY",
+        "ATTEMPT2",
+        "DONE",
+        "FAILED"
+      ],
+      "template": "retry_then_fail",
+      "validation": {
+        "report": "build/validation/protocol_controller_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Protocol controller implementing two stage commit behavior.",
+      "design_id": "protocol_controller_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "prepare_ok",
+        "commit_ok"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "preparing",
+        "committing",
+        "done"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "PREP",
+        "COMMIT",
+        "DONE"
+      ],
+      "template": "two_stage_commit",
+      "validation": {
+        "report": "build/validation/protocol_controller_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Protocol controller implementing lock unlock behavior.",
+      "design_id": "protocol_controller_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "acquire",
+        "release"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "waiting",
+        "held"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "WAIT",
+        "HELD"
+      ],
+      "template": "lock_unlock",
+      "validation": {
+        "report": "build/validation/protocol_controller_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Protocol controller implementing start pause resume behavior.",
+      "design_id": "protocol_controller_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "start",
+        "pause",
+        "resume",
+        "done_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "running",
+        "paused",
+        "done"
+      ],
+      "property_count": 10,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "RUN",
+        "PAUSE",
+        "DONE"
+      ],
+      "template": "start_pause_resume",
+      "validation": {
+        "report": "build/validation/protocol_controller_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Session protocol opens, authenticates, transfers, closes, then signals completion.",
+      "design_id": "protocol_controller_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "open_ok",
+        "auth_ok",
+        "transfer_done",
+        "close_ok",
+        "abort"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "opening",
+        "authenticating",
+        "transferring",
+        "closing",
+        "done",
+        "failed"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "OPEN",
+        "AUTH",
+        "TRANSFER",
+        "CLOSE",
+        "DONE",
+        "FAILED"
+      ],
+      "template": "open_auth_transfer_close",
+      "validation": {
+        "report": "build/validation/protocol_controller_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Protocol controller implementing open transfer close behavior.",
+      "design_id": "protocol_controller_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "open",
+        "transfer_done",
+        "close"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "opened",
+        "transferring",
+        "closed"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "OPEN",
+        "XFER",
+        "CLOSE"
+      ],
+      "template": "open_transfer_close",
+      "validation": {
+        "report": "build/validation/protocol_controller_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "protocol_controller",
+      "description": "Protocol controller implementing enable quiesce behavior.",
+      "design_id": "protocol_controller_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "enable",
+        "quiesce",
+        "idle_seen"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "running",
+        "draining",
+        "stopped"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "STOP",
+        "RUN",
+        "DRAIN"
+      ],
+      "template": "enable_quiesce",
+      "validation": {
+        "report": "build/validation/protocol_controller_0010.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "One-cycle pulse generator that fires once for each high episode of event_in.",
+      "design_id": "pulse_event_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "event_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "pulse",
+        "armed"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "FIRE",
+        "WAIT_LOW"
+      ],
+      "template": null,
+      "validation": {
+        "report": "build/validation/pulse_event_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "Pulse/event controller implementing rising rearm semantics.",
+      "design_id": "pulse_event_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "event_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "armed",
+        "pulse",
+        "blocked"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "ARMED",
+        "PULSE",
+        "BLOCKED"
+      ],
+      "template": "rising_rearm",
+      "validation": {
+        "report": "build/validation/pulse_event_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "Pulse/event controller implementing falling rearm semantics.",
+      "design_id": "pulse_event_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "event_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "waiting_high",
+        "pulse",
+        "waiting_low"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "WAIT_HIGH",
+        "PULSE",
+        "WAIT_LOW"
+      ],
+      "template": "falling_rearm",
+      "validation": {
+        "report": "build/validation/pulse_event_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "Pulse/event controller implementing level one shot semantics.",
+      "design_id": "pulse_event_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "trigger",
+        "clear"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "armed",
+        "pulse",
+        "latched"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "ARMED",
+        "PULSE",
+        "LATCHED"
+      ],
+      "template": "level_one_shot",
+      "validation": {
+        "report": "build/validation/pulse_event_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "Pulse generator requires two consecutive high samples before firing and two low samples before rearming.",
+      "design_id": "pulse_event_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "event_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "armed",
+        "qualifying",
+        "pulse",
+        "rearming"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "ARMED",
+        "HIGH1",
+        "PULSE",
+        "WAIT_LOW",
+        "LOW1"
+      ],
+      "template": "two_sample_debounced_pulse",
+      "validation": {
+        "report": "build/validation/pulse_event_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "Pulse/event controller implementing cancelable pulse semantics.",
+      "design_id": "pulse_event_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "trigger",
+        "cancel"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "armed",
+        "pulse",
+        "cancelled"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "ARMED",
+        "PULSE",
+        "CANCEL"
+      ],
+      "template": "cancelable_pulse",
+      "validation": {
+        "report": "build/validation/pulse_event_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "Pulse/event controller implementing two cycle cooldown semantics.",
+      "design_id": "pulse_event_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "trigger"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "armed",
+        "pulse",
+        "cooldown1",
+        "cooldown2"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "ARMED",
+        "PULSE",
+        "COOL1",
+        "COOL2"
+      ],
+      "template": "two_cycle_cooldown",
+      "validation": {
+        "report": "build/validation/pulse_event_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "Pulse/event controller implementing armed gate semantics.",
+      "design_id": "pulse_event_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "trigger",
+        "enable"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "armed",
+        "pulse",
+        "disabled"
+      ],
+      "property_count": 9,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "DISABLED",
+        "ARMED",
+        "PULSE"
+      ],
+      "template": "armed_gate",
+      "validation": {
+        "report": "build/validation/pulse_event_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "Pulse/event controller implementing request complete pulse semantics.",
+      "design_id": "pulse_event_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "request",
+        "complete"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "waiting",
+        "pulse",
+        "idle"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "IDLE",
+        "WAIT",
+        "PULSE"
+      ],
+      "template": "request_complete_pulse",
+      "validation": {
+        "report": "build/validation/pulse_event_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "pulse_event",
+      "description": "Pulse requires explicit arm, a trigger, then explicit rearm after firing.",
+      "design_id": "pulse_event_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "arm",
+        "trigger",
+        "rearm"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "disarmed",
+        "armed",
+        "pulse",
+        "spent"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "DISARMED",
+        "ARMED",
+        "PULSE",
+        "SPENT"
+      ],
+      "template": "qualified_arm_fire_rearm",
+      "validation": {
+        "report": "build/validation/pulse_event_0010.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Three-bit token bucket with refill priority and guarded consumption.",
+      "design_id": "rate_limiter_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "refill",
+        "consume"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "tokens",
+        "allow",
+        "full"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "token_bucket",
+      "validation": {
+        "report": "build/validation/rate_limiter_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Fixed-window limiter tracks quota usage and toggles an observable epoch on window reset.",
+      "design_id": "rate_limiter_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "request",
+        "new_window"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "used",
+        "epoch",
+        "allow",
+        "exhausted"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "fixed_window_quota_with_epoch",
+      "validation": {
+        "report": "build/validation/rate_limiter_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Rate-control state implementing token consume priority.",
+      "design_id": "rate_limiter_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "refill",
+        "consume"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "tokens",
+        "allow",
+        "full"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "token_consume_priority",
+      "validation": {
+        "report": "build/validation/rate_limiter_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Allows two grants in a burst, then enters lockout until reset_window.",
+      "design_id": "rate_limiter_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "request",
+        "reset_window"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "ready_first",
+        "ready_last",
+        "granted",
+        "locked"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "FIRST",
+        "GRANT1",
+        "LAST",
+        "GRANT2",
+        "LOCKED"
+      ],
+      "template": "two_burst_lockout",
+      "validation": {
+        "report": "build/validation/rate_limiter_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Rate-control state implementing cooldown budget.",
+      "design_id": "rate_limiter_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "grant",
+        "recover"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "budget",
+        "allow"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "cooldown_budget",
+      "validation": {
+        "report": "build/validation/rate_limiter_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Rate-control state implementing quota counter.",
+      "design_id": "rate_limiter_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "use",
+        "reset_quota"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "quota",
+        "allow"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "quota_counter",
+      "validation": {
+        "report": "build/validation/rate_limiter_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Windowed quota tracks both requests used and the current phase before quota reset.",
+      "design_id": "rate_limiter_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "request",
+        "advance_window"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "used",
+        "phase",
+        "allow",
+        "exhausted"
+      ],
+      "property_count": 8,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "windowed_quota",
+      "validation": {
+        "report": "build/validation/rate_limiter_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Rate-control state implementing leaky budget.",
+      "design_id": "rate_limiter_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "add",
+        "leak"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "level",
+        "blocked"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "leaky_budget",
+      "validation": {
+        "report": "build/validation/rate_limiter_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Rate-control state implementing admission tokens.",
+      "design_id": "rate_limiter_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "admit",
+        "return_token"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "tokens",
+        "allow"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "admission_tokens",
+      "validation": {
+        "report": "build/validation/rate_limiter_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "rate_limiter",
+      "description": "Three consecutive violations move the limiter into lockout until clear.",
+      "design_id": "rate_limiter_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "violation",
+        "clear"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "clean",
+        "strike1",
+        "strike2",
+        "blocked"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "CLEAN",
+        "S1",
+        "S2",
+        "BLOCKED"
+      ],
+      "template": "three_strike_lockout",
+      "validation": {
+        "report": "build/validation/rate_limiter_0010.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Three-bit accumulator with saturating increment and synchronous clear.",
+      "design_id": "saturating_arithmetic_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "add"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "value",
+        "at_max"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "saturating_accumulator",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Loadable four-bit accumulator with asymmetric saturating increment and decrement.",
+      "design_id": "saturating_arithmetic_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "load_mid",
+        "inc",
+        "dec"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "value",
+        "at_min",
+        "at_max"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "loadable_bidirectional_saturator",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Clamped accumulator records the direction of the most recent successful update.",
+      "design_id": "saturating_arithmetic_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "inc",
+        "dec"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "value",
+        "last_up",
+        "last_down",
+        "at_low",
+        "at_high"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "clamped_accumulator_with_direction",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Accumulator saturates at three and latches a sticky overflow indication until clear.",
+      "design_id": "saturating_arithmetic_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "add"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "value",
+        "overflowed",
+        "at_max"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "sticky_overflow_accumulator",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Priority arithmetic unit with reset-to-center, +3 boost, and -2 drain.",
+      "design_id": "saturating_arithmetic_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "center",
+        "boost",
+        "drain"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "value",
+        "high",
+        "low"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "priority_asymmetric_steps",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Three-band arithmetic controller that moves between low, nominal, and high saturation bands.",
+      "design_id": "saturating_arithmetic_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "raise",
+        "lower"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "low",
+        "nominal",
+        "high"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "LOW",
+        "NOMINAL",
+        "HIGH"
+      ],
+      "template": "three_band_clamped_controller",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Saturating arithmetic unit implementing sat floor two.",
+      "design_id": "saturating_arithmetic_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "dec",
+        "restore"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "value",
+        "at_floor"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "sat_floor_two",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Four-bit accumulator with +2, -1, and clamp-to-center priority behavior.",
+      "design_id": "saturating_arithmetic_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "center",
+        "boost",
+        "drain"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "value",
+        "high",
+        "low"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "asymmetric_step_saturator",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Accumulator records whether either saturation boundary has ever been reached.",
+      "design_id": "saturating_arithmetic_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear_history",
+        "inc",
+        "dec"
+      ],
+      "model_type": "multi_register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "value",
+        "hit_low",
+        "hit_high"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "saturation_history_accumulator",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "saturating_arithmetic",
+      "description": "Saturating arithmetic unit implementing sat priority clear.",
+      "design_id": "saturating_arithmetic_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "inc",
+        "dec"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "value",
+        "at_zero",
+        "at_max"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "sat_priority_clear",
+      "validation": {
+        "report": "build/validation/saturating_arithmetic_0010.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial detector for the bit pattern 1011.",
+      "design_id": "sequence_detector_0001",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "seen1",
+        "seen10",
+        "seen101",
+        "match"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S10",
+        "S101",
+        "MATCH"
+      ],
+      "template": null,
+      "validation": {
+        "report": "build/validation/sequence_detector_0001.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial sequence detector for pattern 110.",
+      "design_id": "sequence_detector_0002",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "progress1",
+        "progress2",
+        "match"
+      ],
+      "property_count": 10,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S2",
+        "MATCH"
+      ],
+      "template": "pattern_110",
+      "validation": {
+        "report": "build/validation/sequence_detector_0002.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial sequence detector for pattern 001.",
+      "design_id": "sequence_detector_0003",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "progress1",
+        "progress2",
+        "match"
+      ],
+      "property_count": 10,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S2",
+        "MATCH"
+      ],
+      "template": "pattern_001",
+      "validation": {
+        "report": "build/validation/sequence_detector_0003.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial sequence detector for pattern 101.",
+      "design_id": "sequence_detector_0004",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "progress1",
+        "progress2",
+        "match"
+      ],
+      "property_count": 10,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S2",
+        "MATCH"
+      ],
+      "template": "pattern_101",
+      "validation": {
+        "report": "build/validation/sequence_detector_0004.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial sequence detector for pattern 1110.",
+      "design_id": "sequence_detector_0005",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "progress1",
+        "progress2",
+        "progress3",
+        "match"
+      ],
+      "property_count": 12,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S2",
+        "S3",
+        "MATCH"
+      ],
+      "template": "pattern_1110",
+      "validation": {
+        "report": "build/validation/sequence_detector_0005.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial sequence detector for pattern 0101.",
+      "design_id": "sequence_detector_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "progress1",
+        "progress2",
+        "progress3",
+        "match"
+      ],
+      "property_count": 12,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S2",
+        "S3",
+        "MATCH"
+      ],
+      "template": "pattern_0101",
+      "validation": {
+        "report": "build/validation/sequence_detector_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial sequence detector for pattern 1001.",
+      "design_id": "sequence_detector_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "progress1",
+        "progress2",
+        "progress3",
+        "match"
+      ],
+      "property_count": 12,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S2",
+        "S3",
+        "MATCH"
+      ],
+      "template": "pattern_1001",
+      "validation": {
+        "report": "build/validation/sequence_detector_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial sequence detector for pattern 0110.",
+      "design_id": "sequence_detector_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "progress1",
+        "progress2",
+        "progress3",
+        "match"
+      ],
+      "property_count": 12,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S2",
+        "S3",
+        "MATCH"
+      ],
+      "template": "pattern_0110",
+      "validation": {
+        "report": "build/validation/sequence_detector_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial sequence detector for pattern 1101.",
+      "design_id": "sequence_detector_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "progress1",
+        "progress2",
+        "progress3",
+        "match"
+      ],
+      "property_count": 12,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S2",
+        "S3",
+        "MATCH"
+      ],
+      "template": "pattern_1101",
+      "validation": {
+        "report": "build/validation/sequence_detector_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "sequence_detector",
+      "description": "Overlapping serial sequence detector for pattern 0011.",
+      "design_id": "sequence_detector_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "bit_in"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "progress1",
+        "progress2",
+        "progress3",
+        "match"
+      ],
+      "property_count": 12,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "S0",
+        "S1",
+        "S2",
+        "S3",
+        "MATCH"
+      ],
+      "template": "pattern_0011",
+      "validation": {
+        "report": "build/validation/sequence_detector_0010.json",
         "status": "passed"
       }
     },
@@ -1052,15 +4046,170 @@
         "report": "build/validation/timer_0005.json",
         "status": "passed"
       }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "Watchdog progresses through warning and timeout phases and is reset by kick.",
+      "design_id": "timer_0006",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "tick",
+        "kick"
+      ],
+      "model_type": "fsm",
+      "mutant_count": 3,
+      "outputs": [
+        "armed",
+        "warning",
+        "timeout"
+      ],
+      "property_count": 7,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_case.sv",
+        "onehot_case.sv",
+        "nested_if.sv",
+        "factored_flags.sv"
+      ],
+      "states": [
+        "ARMED",
+        "WARN",
+        "TIMEOUT"
+      ],
+      "template": "three_phase_watchdog",
+      "validation": {
+        "report": "build/validation/timer_0006.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "Countdown timer loaded to seven and decremented on tick.",
+      "design_id": "timer_0007",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "load",
+        "tick"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "remaining",
+        "expired"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "countdown_timer",
+      "validation": {
+        "report": "build/validation/timer_0007.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "Watchdog increments until kick resets it and saturates at timeout.",
+      "design_id": "timer_0008",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "kick",
+        "tick"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "age",
+        "timeout"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "reloadable_watchdog",
+      "validation": {
+        "report": "build/validation/timer_0008.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "Pausable elapsed timer with clear and enable.",
+      "design_id": "timer_0009",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "clear",
+        "enable"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "count",
+        "done"
+      ],
+      "property_count": 5,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "pausable_timer",
+      "validation": {
+        "report": "build/validation/timer_0009.json",
+        "status": "passed"
+      }
+    },
+    {
+      "category": "timer_watchdog",
+      "description": "Modulo-eight phase timer with synchronous restart.",
+      "design_id": "timer_0010",
+      "expected_formal_jobs": 17,
+      "inputs": [
+        "restart",
+        "tick"
+      ],
+      "model_type": "register_rules",
+      "mutant_count": 3,
+      "outputs": [
+        "phase",
+        "terminal"
+      ],
+      "property_count": 6,
+      "rtl_variant_count": 4,
+      "rtl_variants": [
+        "canonical_next.sv",
+        "sequential_priority.sv",
+        "ternary_next.sv",
+        "function_update.sv"
+      ],
+      "states": [],
+      "template": "periodic_phase_timer",
+      "validation": {
+        "report": "build/validation/timer_0010.json",
+        "status": "passed"
+      }
     }
   ],
   "schema_version": "1.0",
   "summary": {
-    "categories": 6,
-    "expected_formal_jobs": 510,
-    "families": 30,
-    "mutants": 90,
-    "properties": 219,
-    "rtl_variants": 120
+    "categories": 12,
+    "expected_formal_jobs": 2040,
+    "families": 120,
+    "mutants": 360,
+    "properties": 914,
+    "rtl_variants": 480
   }
 }

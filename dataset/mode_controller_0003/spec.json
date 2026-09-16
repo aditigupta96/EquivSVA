@@ -190,11 +190,10 @@
       "new": "false"
     },
     {
-      "name": "drop_t2",
-      "kind": "replace_transition_guard",
+      "name": "force_exit_t2",
+      "kind": "force_transition",
       "from": "OFF",
-      "old": "!enable",
-      "new": "false"
+      "to": "NORMAL"
     },
     {
       "name": "drop_t3",

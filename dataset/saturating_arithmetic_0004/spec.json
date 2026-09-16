@@ -3,7 +3,7 @@
   "category": "saturating_arithmetic",
   "model_type": "multi_register_rules",
   "template": "sticky_overflow_accumulator",
-  "description": "Accumulator saturates at fifteen and latches a sticky overflow indication until clear.",
+  "description": "Accumulator saturates at three and latches a sticky overflow indication until clear.",
   "clock": {
     "name": "clk",
     "edge": "posedge"
@@ -73,7 +73,7 @@
   "derived_outputs": {
     "value": "value_reg",
     "overflowed": "overflow_reg",
-    "at_max": "value_reg == 4'd15"
+    "at_max": "value_reg == 4'd3"
   },
   "update_rules": {
     "value_reg": [
@@ -82,7 +82,7 @@
         "value": "4'd0"
       },
       {
-        "when": "!clear && add && (value_reg < 4'd15)",
+        "when": "!clear && add && (value_reg < 4'd3)",
         "value": "value_reg + 4'd1"
       },
       {
@@ -96,7 +96,7 @@
         "value": "1'b0"
       },
       {
-        "when": "!clear && add && (value_reg == 4'd15)",
+        "when": "!clear && add && (value_reg == 4'd3)",
         "value": "1'b1"
       },
       {
@@ -111,7 +111,7 @@
       "sva_name": "p_max",
       "type": "invariant",
       "natural_language": "at_max matches the saturated arithmetic value",
-      "expression": "at_max == (value == 4'd15)",
+      "expression": "at_max == (value == 4'd3)",
       "disable": "rst"
     },
     {
@@ -138,7 +138,7 @@
       "sva_name": "p_add",
       "type": "next_cycle_implication",
       "natural_language": "add increments value below saturation",
-      "antecedent": "!clear && add && (value < 4'd15)",
+      "antecedent": "!clear && add && (value < 4'd3)",
       "consequent": "value == ($past(value) + 4'd1)",
       "delay": 1,
       "disable": "rst"
@@ -148,8 +148,8 @@
       "sva_name": "p_overflow",
       "type": "next_cycle_implication",
       "natural_language": "adding at saturation latches overflowed",
-      "antecedent": "!clear && add && (value == 4'd15)",
-      "consequent": "(value == 4'd15) && overflowed",
+      "antecedent": "!clear && add && (value == 4'd3)",
+      "consequent": "(value == 4'd3) && overflowed",
       "delay": 1,
       "disable": "rst"
     },
@@ -176,7 +176,7 @@
       "name": "never_latch_overflow",
       "register": "overflow_reg",
       "kind": "replace_update_guard",
-      "old": "!clear && add && (value_reg == 4'd15)",
+      "old": "!clear && add && (value_reg == 4'd3)",
       "new": "false"
     },
     {
@@ -184,7 +184,7 @@
       "register": "value_reg",
       "kind": "insert_update_rule",
       "before": "true",
-      "when": "!clear && add && (value_reg == 4'd15)",
+      "when": "!clear && add && (value_reg == 4'd3)",
       "value": "4'd0"
     }
   ]

@@ -233,11 +233,10 @@
       "new": "false"
     },
     {
-      "name": "drop_t3",
-      "kind": "replace_transition_guard",
+      "name": "force_exit_t3",
+      "kind": "force_transition",
       "from": "IDLE",
-      "old": "!irq_hi && !irq_lo",
-      "new": "false"
+      "to": "HIGH"
     }
   ],
   "provenance": {

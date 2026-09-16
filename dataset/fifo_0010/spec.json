@@ -157,6 +157,16 @@
       "consequent": "count == $past(count)",
       "delay": 1,
       "disable": "rst"
+    },
+    {
+      "id": "P9_FULL_PUSH_HOLD",
+      "sva_name": "p_full_push_hold",
+      "type": "next_cycle_implication",
+      "natural_language": "a push into a full FIFO without a simultaneous pop leaves occupancy full",
+      "antecedent": "!flush && (count == 3'd4) && push && !pop",
+      "consequent": "count == 3'd4",
+      "delay": 1,
+      "disable": "rst"
     }
   ],
   "mutants": [

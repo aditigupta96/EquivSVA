@@ -14,8 +14,8 @@ module saturating_arithmetic_0004_ternary_next (
     wire [3:0] next_value_reg;
     wire next_overflow_reg;
 
-    assign next_value_reg = (clear) ? (4'd0) : ((!clear && add && (value_reg < 4'd15)) ? (value_reg + 4'd1) : (value_reg));
-    assign next_overflow_reg = (clear) ? (1'b0) : ((!clear && add && (value_reg == 4'd15)) ? (1'b1) : (overflow_reg));
+    assign next_value_reg = (clear) ? (4'd0) : ((!clear && add && (value_reg < 4'd3)) ? (value_reg + 4'd1) : (value_reg));
+    assign next_overflow_reg = (clear) ? (1'b0) : ((!clear && add && (value_reg == 4'd3)) ? (1'b1) : (overflow_reg));
 
     always @(posedge clk) begin
         if (rst) begin
@@ -30,5 +30,5 @@ module saturating_arithmetic_0004_ternary_next (
 
     assign value = value_reg;
     assign overflowed = overflow_reg;
-    assign at_max = value_reg == 4'd15;
+    assign at_max = value_reg == 4'd3;
 endmodule

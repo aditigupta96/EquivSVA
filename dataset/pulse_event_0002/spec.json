@@ -158,18 +158,16 @@
       "new": "false"
     },
     {
-      "name": "drop_t2",
-      "kind": "replace_transition_guard",
+      "name": "force_exit_t2",
+      "kind": "force_transition",
       "from": "ARMED",
-      "old": "!event_in",
-      "new": "false"
+      "to": "PULSE"
     },
     {
-      "name": "drop_t4",
-      "kind": "replace_transition_guard",
+      "name": "force_exit_t4",
+      "kind": "force_transition",
       "from": "BLOCKED",
-      "old": "event_in",
-      "new": "false"
+      "to": "ARMED"
     }
   ],
   "provenance": {

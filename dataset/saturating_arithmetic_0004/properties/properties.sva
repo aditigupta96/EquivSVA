@@ -1,6 +1,6 @@
 // P1_MAX: at_max matches the saturated arithmetic value
 property p_max;
-    @(posedge clk) disable iff (rst) (at_max == (value == 4'd15));
+    @(posedge clk) disable iff (rst) (at_max == (value == 4'd3));
 endproperty
 assert property (p_max);
 
@@ -18,13 +18,13 @@ assert property (p_clear);
 
 // P4_ADD: add increments value below saturation
 property p_add;
-    @(posedge clk) disable iff (rst) (!clear && add && (value < 4'd15)) |=> (value == ($past(value) + 4'd1));
+    @(posedge clk) disable iff (rst) (!clear && add && (value < 4'd3)) |=> (value == ($past(value) + 4'd1));
 endproperty
 assert property (p_add);
 
 // P5_OVERFLOW: adding at saturation latches overflowed
 property p_overflow;
-    @(posedge clk) disable iff (rst) (!clear && add && (value == 4'd15)) |=> ((value == 4'd15) && overflowed);
+    @(posedge clk) disable iff (rst) (!clear && add && (value == 4'd3)) |=> ((value == 4'd3) && overflowed);
 endproperty
 assert property (p_overflow);
 

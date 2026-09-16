@@ -1,30 +1,30 @@
 // Generated from spec.json.
 // Design: pulse_event_0007
 
-// P1_STATE_ENCODING: observable state outputs always encode at most one active mode.
-p_state_encoding: assert property (@(posedge clk) disable iff (rst)
-    $onehot0({armed, pulse, cooldown}));
+// P1_ONEHOT: exactly one pulse-controller phase is externally visible.
+p_onehot: assert property (@(posedge clk) disable iff (rst)
+    $onehot({armed, pulse, cooldown1, cooldown2}));
 
-// P2_RESET: reset returns the controller to its reset behavior.
-p_reset_state: assert property (@(posedge clk)
-    (rst) |=> (armed && !pulse && !cooldown));
+// P2_RESET: reset arms the pulse controller.
+p_reset: assert property (@(posedge clk)
+    (rst) |=> (armed));
 
-// P3_T1: ARMED transitions to PULSE when trigger.
-p_t1: assert property (@(posedge clk) disable iff (rst)
-    ((armed && !pulse && !cooldown) && (trigger)) |=> (!armed && pulse && !cooldown));
+// P3_FIRE: a trigger while armed emits a one-cycle pulse.
+p_fire: assert property (@(posedge clk) disable iff (rst)
+    (armed && trigger) |=> (pulse));
 
-// P4_T2: ARMED transitions to ARMED when !trigger.
-p_t2: assert property (@(posedge clk) disable iff (rst)
-    ((armed && !pulse && !cooldown) && (!trigger)) |=> (armed && !pulse && !cooldown));
+// P4_IDLE: without a trigger the armed controller remains armed.
+p_idle: assert property (@(posedge clk) disable iff (rst)
+    (armed && !trigger) |=> (armed));
 
-// P5_T3: PULSE transitions to COOL1 when true.
-p_t3: assert property (@(posedge clk) disable iff (rst)
-    (!armed && pulse && !cooldown) |=> (!armed && !pulse && cooldown));
+// P5_COOL1: a pulse enters the first cooldown phase.
+p_cool1: assert property (@(posedge clk) disable iff (rst)
+    (pulse) |=> (cooldown1));
 
-// P6_T4: COOL1 transitions to COOL2 when true.
-p_t4: assert property (@(posedge clk) disable iff (rst)
-    (!armed && !pulse && cooldown) |=> (!armed && !pulse && cooldown));
+// P6_COOL2: the first cooldown phase advances to the second.
+p_cool2: assert property (@(posedge clk) disable iff (rst)
+    (cooldown1) |=> (cooldown2));
 
-// P7_T5: COOL2 transitions to ARMED when true.
-p_t5: assert property (@(posedge clk) disable iff (rst)
-    (!armed && !pulse && cooldown) |=> (armed && !pulse && !cooldown));
+// P7_REARM: the second cooldown phase rearms the controller.
+p_rearm: assert property (@(posedge clk) disable iff (rst)
+    (cooldown2) |=> (armed));

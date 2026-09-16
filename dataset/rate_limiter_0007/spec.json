@@ -173,6 +173,16 @@
       "consequent": "used == 2'd3",
       "delay": 1,
       "disable": "rst"
+    },
+    {
+      "id": "P8_PHASE_WRAP",
+      "sva_name": "p_phase_wrap",
+      "type": "next_cycle_implication",
+      "natural_language": "advancing the final phase wraps the window phase to zero",
+      "antecedent": "advance_window && (phase == 2'd3)",
+      "consequent": "phase == 2'd0",
+      "delay": 1,
+      "disable": "rst"
     }
   ],
   "mutants": [

@@ -244,11 +244,10 @@
   ],
   "mutants": [
     {
-      "name": "drop_t1",
-      "kind": "replace_transition_guard",
+      "name": "force_exit_t1",
+      "kind": "force_transition",
       "from": "S0",
-      "old": "!bit_in",
-      "new": "false"
+      "to": "S1"
     },
     {
       "name": "drop_t2",
