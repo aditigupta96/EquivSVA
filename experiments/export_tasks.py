@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET = ROOT / "dataset"
-SPLIT_FILE = DATASET / "splits_v0.4.json"
+SPLIT_FILE = DATASET / "splits_v2.0.json"
 OUT = ROOT / "experiments" / "tasks"
 
 
@@ -211,16 +211,16 @@ for split in ("train", "dev", "test"):
 
 print(f"total: {total} tasks")
 
-if total != 120:
-    raise SystemExit(f"Expected 120 tasks, got {total}")
+if total != 480:
+    raise SystemExit(f"Expected 480 tasks, got {total}")
 
-if len(rows["train"]) != 72:
-    raise SystemExit("Expected 72 train tasks")
+if len(rows["train"]) != 288:
+    raise SystemExit("Expected 288 train tasks")
 
-if len(rows["dev"]) != 24:
-    raise SystemExit("Expected 24 dev tasks")
+if len(rows["dev"]) != 96:
+    raise SystemExit("Expected 96 dev tasks")
 
-if len(rows["test"]) != 24:
-    raise SystemExit("Expected 24 test tasks")
+if len(rows["test"]) != 96:
+    raise SystemExit("Expected 96 test tasks")
 
 print("TASK EXPORT PASS")

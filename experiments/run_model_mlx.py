@@ -71,6 +71,11 @@ def main():
         type=int,
         default=1024,
     )
+    parser.add_argument(
+        "--results-root",
+        default="results_v2",
+        help="Directory under experiments/ for model outputs.",
+    )
 
     args = parser.parse_args()
 
@@ -91,7 +96,7 @@ def main():
     output_dir = (
         ROOT
         / "experiments"
-        / "results"
+        / args.results_root
         / safe_model
     )
 
