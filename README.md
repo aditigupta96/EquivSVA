@@ -7,6 +7,7 @@ The dataset is organized around **behavior families**. Each family contains mult
 EquivSVA is intended to support research on assertion generation, formal verification, and robustness of generated assertions across different implementations of the same behavior.
 
 **Paper:** [EquivSVA: A Formally Verified Dataset of Behavioral Assertions Across Equivalent RTL Implementations](https://arxiv.org/abs/2609.26751) (arXiv:2609.26751).
+**Hugging Face dataset:** [aditigupta/EquivSVA](https://huggingface.co/datasets/aditigupta/EquivSVA).
 
 ## Dataset
 
