@@ -6,6 +6,8 @@ The dataset is organized around **behavior families**. Each family contains mult
 
 EquivSVA is intended to support research on assertion generation, formal verification, and robustness of generated assertions across different implementations of the same behavior.
 
+**Paper:** [EquivSVA: A Formally Verified Dataset of Behavioral Assertions Across Equivalent RTL Implementations](https://arxiv.org/abs/2609.26751) (arXiv:2609.26751).
+
 ## Dataset
 
 EquivSVA v2.0 contains:
@@ -242,11 +244,19 @@ Python dependencies for model experiments are separate from the formal-tool envi
 
 ## Citation
 
-A paper describing EquivSVA is in preparation.
+If you use EquivSVA in your research, please cite the [paper](https://arxiv.org/abs/2609.26751):
 
-If you use the dataset before the paper citation is available, please cite this repository and the corresponding EquivSVA v2.0 release.
-
-A `CITATION.cff` file and archival DOI will be included with the public v2.0 release.
+```bibtex
+@misc{aditi2026equivsva,
+  title         = {EquivSVA: A Formally Verified Dataset of Behavioral Assertions Across Equivalent RTL Implementations},
+  author        = {Aditi, FNU},
+  year          = {2026},
+  eprint        = {2609.26751},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  url           = {https://arxiv.org/abs/2609.26751}
+}
+```
 
 ## License
 
